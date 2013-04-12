@@ -26,7 +26,7 @@ namespace StockTake.Model.Tests
 			var salesItem = new SalesItem ();
 			float containerSize = 11f;
 			float unitOfSale = (1f / 8);
-			float costPerContainer = 110f;
+			decimal costPerContainer = 110m;
 
 			salesItem.ContainerSize = containerSize;
 			salesItem.UnitOfSale = unitOfSale;
@@ -45,7 +45,7 @@ namespace StockTake.Model.Tests
 			var salesItem = new SalesItem ();
 			float containerSize = 0.7f;
 			float unitOfSale = 0.035f;
-			float costPerContainer = 22;
+			decimal costPerContainer = 22m;
 			
 			salesItem.ContainerSize = containerSize;
 			salesItem.UnitOfSale = unitOfSale;
@@ -77,7 +77,7 @@ namespace StockTake.Model.Tests
 		{
 			var salesItem = new SalesItem ();
 			
-			salesItem.SalesPrice = 2.00f;
+			salesItem.SalesPrice = 2.00m;
 			salesItem.ContainerSize = 1;
 			salesItem.UnitOfSale = 1;
 			salesItem.CostPerContainer = 1;
