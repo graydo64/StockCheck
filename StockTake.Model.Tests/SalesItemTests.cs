@@ -1,8 +1,8 @@
 using System;
 using NUnit.Framework;
-using StockTake.Model;
+using StockCheck.Model;
 
-namespace StockTake.Model.Tests
+namespace StockCheck.Model.Tests
 {
 	[TestFixture]
 	public class WhenTheCostPerContainerIsZero

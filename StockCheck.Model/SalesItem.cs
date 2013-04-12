@@ -1,6 +1,6 @@
 using System;
 
-namespace StockTake.Model
+namespace StockCheck.Model
 {
 	public class SalesItem
 	{

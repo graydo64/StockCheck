@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockCheck.Model", "StockCheck.Model\StockCheck.Model.csproj", "{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockTake.Model.Tests", "StockTake.Model.Tests\StockTake.Model.Tests.csproj", "{206EFE6C-1EE3-484C-B38F-2981E222F7DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockCheck.Model.Tests", "StockTake.Model.Tests\StockCheck.Model.Tests.csproj", "{206EFE6C-1EE3-484C-B38F-2981E222F7DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
