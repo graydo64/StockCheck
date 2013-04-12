@@ -28,6 +28,14 @@ namespace StockCheck.Model
 				InvoicedAmountInc = invoicedAmountInc}
 			);
 		}
+
+		public PeriodItem CopyForNextPeriod()
+		{
+			var clone = new PeriodItem();
+			clone.OpeningStock = this.ClosingStock;
+			clone.SalesItem = this.SalesItem;
+			return clone;
+		}
 	}
 }
 

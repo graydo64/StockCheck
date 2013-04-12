@@ -35,5 +35,42 @@ namespace StockCheck.Model.Tests
 
 		}
 	}
+
+	[TestFixture]
+	public class WhenAPeriodItemIsCopiedForTheNextPeriod
+	{
+		protected Fixture _fixture;
+
+		public WhenAPeriodItemIsCopiedForTheNextPeriod()
+		{
+			_fixture = new Fixture();
+		}
+
+		[Test]
+		public void TheNewInstanceIsNotTheSourceInstance()
+		{
+			var periodItem1 = _fixture.Create<PeriodItem>();
+			var periodItem2 = periodItem1.CopyForNextPeriod();
+
+			Assert.AreNotSame(periodItem1, periodItem2);
+		}
+
+		[Test]
+		public void TheNewInstanceOpeningStockMatchesTheSourceInstanceClosingStock()
+		{
+			var periodItem1 = _fixture.Create<PeriodItem>();
+			var periodItem2 = periodItem1.CopyForNextPeriod();
+			
+			Assert.AreEqual(periodItem1.ClosingStock, periodItem2.OpeningStock);
+		}
+
+		[Test]
+		public void TheNewInstanceSalesItemIsTheSameAsTheSourceInstanceSalesItem()
+		{
+			var periodItem1 = _fixture.Create<PeriodItem>();
+			var periodItem2 = periodItem1.CopyForNextPeriod();
+			
+			Assert.AreSame(periodItem1.SalesItem, periodItem2.SalesItem);
+		}}
 }
 
