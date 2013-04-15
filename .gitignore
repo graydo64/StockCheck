@@ -1,4 +1,6 @@
+
 # git ignore file
 [Bb]in/
 [Oo]bj/
 [Pp]ackages/
+*.suo
