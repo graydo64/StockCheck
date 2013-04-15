@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
 using Ploeh.AutoFixture;
+using StockCheck.ModelFs;
 
 namespace StockCheck.Model.Tests
 {
@@ -10,7 +11,8 @@ namespace StockCheck.Model.Tests
 		[Test()]
 		public void TheItemsReceivedCollectionIsNotNull()
 		{
-			var periodItem = new PeriodItem();
+            var fixture = new Fixture();
+			var periodItem = new PeriodItem(fixture.Create<SalesItem>());
 
 			Assert.IsNotNull(periodItem.ItemsReceived);
 		}
@@ -23,7 +25,7 @@ namespace StockCheck.Model.Tests
 		public void TheGoodsAreAddedToTheItemsReceivedCollection()
 		{
 			var fixture = new Fixture();
-			var periodItem = new PeriodItem();
+            var periodItem = new PeriodItem(fixture.Create<SalesItem>());
 			var itemReceived = fixture.Create<ItemReceived>();
 
 			periodItem.ReceiveItems(itemReceived.ReceivedDate,

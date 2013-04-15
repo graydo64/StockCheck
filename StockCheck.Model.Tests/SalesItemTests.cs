@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
 using StockCheck.Model;
+using StockCheck.ModelFs;
 
 namespace StockCheck.Model.Tests
 {

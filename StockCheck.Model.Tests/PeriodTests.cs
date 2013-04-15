@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using Ploeh.AutoFixture;
+using StockCheck.ModelFs;
 
 namespace StockCheck.Model.Tests
 {

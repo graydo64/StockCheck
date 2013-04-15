@@ -51,9 +51,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StockCheck.Model\StockCheck.Model.csproj">
-      <Project>{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}</Project>
-      <Name>StockCheck.Model</Name>
+    <ProjectReference Include="..\StockCheck.ModelFs\StockCheck.ModelFs.fsproj">
+      <Project>{a131582e-d9bb-4200-a933-699f0e7cdc53}</Project>
+      <Name>StockCheck.ModelFs</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
