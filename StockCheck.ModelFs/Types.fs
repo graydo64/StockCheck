@@ -34,8 +34,8 @@ type ItemReceived = {
 
 type PeriodItem(salesItem : SalesItem) = 
     let itemsReceived = List<ItemReceived>()
-    member val OpeningStock = 0 with get, set
-    member val ClosingStock = 0 with get, set
+    member val OpeningStock = 0. with get, set
+    member val ClosingStock = 0. with get, set
     member val SalesItem = salesItem
     member this.ItemsReceived = itemsReceived;
     member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
@@ -44,12 +44,30 @@ type PeriodItem(salesItem : SalesItem) =
             let periodItem = PeriodItem (salesItem)
             periodItem.OpeningStock <- this.ClosingStock
             periodItem
-
+    member val ContainersReceived = 0. with get
+    member this.TotalUnits = this.ContainersReceived * salesItem.ContainerSize
+    member this.Sales = this.OpeningStock + this.TotalUnits - this.ClosingStock
+    member val PurchasesEx = 0 with get
+    member val PurchesesInc = 0 with get
+    member val PurchasesTotal = 0 with get
+    member val SalesInc = 0 with get
+    member val SalesEx = 0 with get
+    member val CostOfSalesEx = 0 with get
+    member val SalesPerDay = 0 with get
+    member val DaysOnHand = 0 with get
+    member val Ullage = 0 with get
+    member val UllageAtSale = 0 with get
+    member val ClosingValueCostEx = 0 with get
+    member val ClosingValueSalesInc = 0 with get
+    member val ClosingValueSalesEx = 0 with get
 
 type Period() = 
     member val EndOfPeriod = DateTime.MinValue with get, set
     member val StartOfPeriod = DateTime.MinValue with get, set
-    member val Items = new List<PeriodItem>() with get, set
+    member val Items = List<PeriodItem>() with get, set
+    member val ClosingValueCostEx = 0 with get
+    member val ClosingValueSalesInc = 0 with get
+    member val ClosingValueSalesEx = 0 with get
     static member private InitialiseFrom (source: Period) =
             let period = Period()
             period.StartOfPeriod <- source.EndOfPeriod.AddDays(1.)
