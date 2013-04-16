@@ -41,8 +41,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library1.fs" />
-    <Compile Include="Utils.fs" />
+    <Compile Include="Types.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
   <PropertyGroup>
