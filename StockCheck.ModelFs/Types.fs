@@ -4,7 +4,7 @@ open System
 open System.Collections.Generic
 
 module Utils =
-    let GrossProfit (sale) (cost) =
+    let GrossProfit sale cost =
         if sale = decimal 0
         then decimal 0
         else (sale - cost)/sale
@@ -12,7 +12,7 @@ module Utils =
 type SalesItem() = 
     let costPerUnitOfSale (costPerContainer: decimal) (containerSize: float) (unitOfSale: float) : decimal = 
         if costPerContainer = decimal 0 
-        then decimal 0
+        then decimal 0 
         else decimal ((float costPerContainer)/(containerSize/unitOfSale))
     member val ContainerSize = 0. with get, set
     member val CostPerContainer = decimal 0 with get, set
@@ -25,14 +25,15 @@ type SalesItem() =
     member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.UnitOfSale
     member this.IdealGP = Utils.GrossProfit this.SalesPrice this.CostPerUnitOfSale
 
-type ItemReceived = { Quantity: int;
+type ItemReceived = { 
+    Quantity: int;
     ReceivedDate : DateTime;
     InvoicedAmountEx : decimal;
     InvoicedAmountInc : decimal;
 }
 
 type PeriodItem(salesItem : SalesItem) = 
-    let itemsReceived = new List<ItemReceived>()
+    let itemsReceived = List<ItemReceived>()
     member val OpeningStock = 0 with get, set
     member val ClosingStock = 0 with get, set
     member val SalesItem = salesItem
@@ -40,7 +41,7 @@ type PeriodItem(salesItem : SalesItem) =
     member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
             this.ItemsReceived.Add({Quantity = quantity; ReceivedDate = receivedDate; InvoicedAmountEx = invoiceAmountEx; InvoicedAmountInc = invoiceAmountInc})
     member this.CopyForNextPeriod() =
-            let periodItem = new PeriodItem (salesItem)
+            let periodItem = PeriodItem (salesItem)
             periodItem.OpeningStock <- this.ClosingStock
             periodItem
 
@@ -50,7 +51,7 @@ type Period() =
     member val StartOfPeriod = DateTime.MinValue with get, set
     member val Items = new List<PeriodItem>() with get, set
     static member private InitialiseFrom (source: Period) =
-            let period = new Period()
+            let period = Period()
             period.StartOfPeriod <- source.EndOfPeriod.AddDays(1.)
             period
     static member InitialiseFromClone source =
