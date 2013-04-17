@@ -110,5 +110,49 @@ namespace StockCheck.Model.Tests
 
             Assert.AreEqual(212.34M + 109.3M + 109.3M, _target.PurchasesEx);
         }
+
+        [Test]
+        public void TheInvoicedAmountIncIsCorrect()
+        {
+            _fixture = new Fixture();
+            _salesItem = _fixture.Create<SalesItem>();
+            _target = new PeriodItem(_salesItem);
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountInc = 212.34M });
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountInc = 109.3M });
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountInc = 109.3M });
+
+            Assert.AreEqual(212.34M + 109.3M + 109.3M, _target.PurchasesInc);
+        }
+
+        [Test]
+        public void ThePurchasesTotalIsCorrect()
+        {
+            _fixture = new Fixture();
+            _salesItem = _fixture.Create<SalesItem>();
+            _salesItem.TaxRate = 0.2;
+            _target = new PeriodItem(_salesItem);
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountEx = 212.34M });
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountInc = 120M });
+
+            Assert.AreEqual(212.34M + 109.3M + (120M/((decimal)(1.0 + _salesItem.TaxRate))), _target.PurchasesTotal);
+        }
+
+        [Test]
+        public void TheSalesQuantityIsCorrect()
+        {
+            _fixture = new Fixture();
+            _salesItem = _fixture.Create<SalesItem>();
+            _salesItem.TaxRate = 0.2;
+            _salesItem.ContainerSize = 11;
+            _target = new PeriodItem(_salesItem);
+            _target.OpeningStock = 23;
+            _target.ClosingStock = 25;
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountEx = 212.34M });
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountInc = 120M });
+
+            Assert.AreEqual(23 + (4 * 11) - 25 , _target.Sales);
+        }
     }
 }
