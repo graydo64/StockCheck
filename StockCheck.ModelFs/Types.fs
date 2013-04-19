@@ -34,8 +34,9 @@ type ItemReceived() =
     member val InvoicedAmountEx = decimal 0 with get, set
     member val InvoicedAmountInc = decimal 0 with get, set
 
-type PeriodItem(salesItem : SalesItem) = 
+type PeriodItem(salesItem : SalesItem) as this = 
     let itemsReceived = List<ItemReceived>()
+
     member val OpeningStock = 0. with get, set
     member val ClosingStock = 0. with get, set
     member val SalesItem = salesItem
@@ -51,22 +52,23 @@ type PeriodItem(salesItem : SalesItem) =
             let periodItem = PeriodItem (salesItem)
             periodItem.OpeningStock <- this.ClosingStock
             periodItem
-    member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun (i: ItemReceived) -> i.Quantity)
+    member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun i -> i.Quantity)
     member this.TotalUnits = float this.ContainersReceived * salesItem.ContainerSize
     member this.Sales = this.OpeningStock + this.TotalUnits - this.ClosingStock
-    member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun (i: ItemReceived) -> i.InvoicedAmountEx)
-    member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun (i: ItemReceived) -> i.InvoicedAmountInc)
+    member this.ContainersSold = this.Sales / salesItem.ContainerSize
+    member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
+    member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
     member this.PurchasesTotal = this.PurchasesEx + Utils.LessTax this.PurchasesInc (decimal salesItem.TaxRate)
-    member this.SalesInc = this.Sales * float salesItem.SalesPrice
+    member this.SalesInc = decimal (this.Sales / salesItem.UnitOfSale * float salesItem.SalesPrice)
     member this.SalesEx = Utils.LessTax (decimal this.SalesInc) (decimal salesItem.TaxRate)
-    member val CostOfSalesEx = 0 with get
+    member this.CostOfSalesEx = decimal (this.ContainersSold * float salesItem.CostPerContainer)
     member val SalesPerDay = 0 with get
     member val DaysOnHand = 0 with get
-    member val Ullage = 0 with get
-    member val UllageAtSale = 0 with get
-    member val ClosingValueCostEx = 0 with get
-    member val ClosingValueSalesInc = 0 with get
-    member val ClosingValueSalesEx = 0 with get
+    member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
+    member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
+    member this.ClosingValueCostEx = decimal (this.ClosingStock / salesItem.ContainerSize) * salesItem.CostPerContainer
+    member this.ClosingValueSalesInc = decimal (this.ClosingStock / salesItem.UnitOfSale) * salesItem.SalesPrice
+    member this.ClosingValueSalesEx = Utils.LessTax this.ClosingValueSalesInc (decimal salesItem.TaxRate)
 
 type Period() = 
     member val EndOfPeriod = DateTime.MinValue with get, set
@@ -81,13 +83,12 @@ type Period() =
             period
     static member InitialiseFromClone source =
             let period = Period.InitialiseFrom source
-            for si in source.Items do
-                period.Items.Add(si)
+            period.Items.AddRange(source.Items)
             period
     static member InitialiseWithoutZeroCarriedItems source =
             let period = Period.InitialiseFrom source
-            for si in source.Items do
-                if si.OpeningStock > 0. && si.ClosingStock > 0. then period.Items.Add(si)
+            let items = source.Items |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.)
+            period.Items.AddRange(items)
             period
 
 

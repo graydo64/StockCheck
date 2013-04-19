@@ -80,20 +80,19 @@ namespace StockCheck.Model.Tests
         protected Fixture _fixture;
         protected PeriodItem _target;
         protected SalesItem _salesItem;
+        protected decimal _containerPrice;
 
         public void WhenAPeriodItemHasItemsReceived()
         {
+            _fixture = new Fixture();
         }
 
         [Test]
         public void TheContainersReceivedAmountIsCorrect()
         {
             _fixture = new Fixture();
-            _salesItem = _fixture.Create<SalesItem>();
-            _target = new PeriodItem(_salesItem);
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountEx = 212.34M });
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
+            initialiseSalesItem();
+            initialisePeriodItem();
 
             Assert.AreEqual(2 + 1 + 1, _target.ContainersReceived);
         }
@@ -102,11 +101,8 @@ namespace StockCheck.Model.Tests
         public void TheInvoicedAmountExIsCorrect()
         {
             _fixture = new Fixture();
-            _salesItem = _fixture.Create<SalesItem>();
-            _target = new PeriodItem(_salesItem);
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountEx = 212.34M });
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
+            initialiseSalesItem();
+            initialisePeriodItem();
 
             Assert.AreEqual(212.34M + 109.3M + 109.3M, _target.PurchasesEx);
         }
@@ -115,7 +111,7 @@ namespace StockCheck.Model.Tests
         public void TheInvoicedAmountIncIsCorrect()
         {
             _fixture = new Fixture();
-            _salesItem = _fixture.Create<SalesItem>();
+            initialiseSalesItem();
             _target = new PeriodItem(_salesItem);
             _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountInc = 212.34M });
             _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountInc = 109.3M });
@@ -128,8 +124,7 @@ namespace StockCheck.Model.Tests
         public void ThePurchasesTotalIsCorrect()
         {
             _fixture = new Fixture();
-            _salesItem = _fixture.Create<SalesItem>();
-            _salesItem.TaxRate = 0.2;
+            initialiseSalesItem();
             _target = new PeriodItem(_salesItem);
             _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountEx = 212.34M });
             _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
@@ -142,17 +137,59 @@ namespace StockCheck.Model.Tests
         public void TheSalesQuantityIsCorrect()
         {
             _fixture = new Fixture();
+            initialiseSalesItem();
+            initialisePeriodItem();
+            Assert.AreEqual(23 + (4 * 11) - 25 , _target.Sales);
+        }
+
+        [Test]
+        public void TheSalesIncIsCorrect()
+        {
+            _fixture = new Fixture();
+            initialiseSalesItem();
+            initialisePeriodItem();
+            _target.ClosingStock = _target.OpeningStock;
+            Assert.AreEqual(4 * 11 * 8 * 3.25M, _target.SalesInc);
+        }
+
+        [Test]
+        public void TheSalesExIsCorrect()
+        {
+            _fixture = new Fixture();
+            initialiseSalesItem();
+            initialisePeriodItem();
+            _target.ClosingStock = _target.OpeningStock;
+            Assert.AreEqual((4 * 11 * 8 * 3.25M)/(1 + (decimal)_salesItem.TaxRate), _target.SalesEx);
+        }
+
+        [Test]
+        public void TheCostOfSalesIsCorrect()
+        {
+            _fixture = new Fixture();
+            initialiseSalesItem();
+            initialisePeriodItem();
+
+            var sales = _target.OpeningStock + _target.TotalUnits - _target.ClosingStock;
+            Assert.AreEqual((decimal)(sales / _salesItem.ContainerSize * (float)_salesItem.CostPerContainer), _target.CostOfSalesEx);
+        }
+
+        private void initialiseSalesItem()
+        {
             _salesItem = _fixture.Create<SalesItem>();
             _salesItem.TaxRate = 0.2;
             _salesItem.ContainerSize = 11;
+            _salesItem.UnitOfSale = 1f / 8;
+            _salesItem.SalesPrice = 3.25M;
+        }
+
+        private void initialisePeriodItem()
+        {
             _target = new PeriodItem(_salesItem);
             _target.OpeningStock = 23;
             _target.ClosingStock = 25;
             _target.ItemsReceived.Add(new ItemReceived { Quantity = 2, InvoicedAmountEx = 212.34M });
             _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
-            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountInc = 120M });
-
-            Assert.AreEqual(23 + (4 * 11) - 25 , _target.Sales);
+            _target.ItemsReceived.Add(new ItemReceived { Quantity = 1, InvoicedAmountEx = 109.3M });
         }
     }
 }
