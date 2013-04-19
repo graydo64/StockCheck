@@ -20,52 +20,6 @@ namespace StockCheck.Model.Tests
 	}
 
 	[TestFixture]
-	public class WhenAPeriodIsConstructed: PeriodTestBase
-	{
-		[Test]
-		public void TheItemsCollectionIsNotNull()
-		{
-			Assert.IsNotNull(_target.Items);
-		}
-	}
-
-	[TestFixture]
-	public class WhenAPeriodIsFullyInitialised: PeriodTestBase
-	{
-		[Test]
-		public void TheItemsCollectionContainsTheSameNumberAsTheSourcePeriod()
-		{
-			var source = _fixture.Create<Period>();
-			_target = Period.InitialiseFromClone(source);
-
-			Assert.AreEqual(source.Items.Count, _target.Items.Count);
-		}
-
-		[Test]
-		public void TheItemsCollectionContainsTheSameSalesItemsAsTheSourcePeriod()
-		{
-			var source = _fixture.Create<Period>();
-			_target = Period.InitialiseFromClone(source);
-			
-			for(int i = 0; i < source.Items.Count; i++)
-			{
-				Assert.AreEqual(source.Items.ElementAt(i).SalesItem, _target.Items.ElementAt(i).SalesItem);
-			}
-		}
-
-		[Test]
-		public void ThePeriodStartDateIsADayAfterTheSourcePeriodEndDate()
-		{
-			var source = _fixture.Create<Period>();
-			_target = Period.InitialiseFromClone(source);
-			
-			DateTime nextDay = source.EndOfPeriod.AddDays(1);
-
-			Assert.AreEqual(nextDay, _target.StartOfPeriod);
-		}
-	}
-
-	[TestFixture]
 	public class WhenAPeriodIsInitialisedWithoutZeroCarriedItems: PeriodTestBase
 	{
 		[Test]

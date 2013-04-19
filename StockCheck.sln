@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{026586
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheck.ModelFs", "StockCheck.ModelFs\StockCheck.ModelFs.fsproj", "{A131582E-D9BB-4200-A933-699F0E7CDC53}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheck.Model.Test", "StockCheck.Model.Test\StockCheck.Model.Test.fsproj", "{2D137C1E-A106-4233-94C6-54E9D0FBACA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
