@@ -5,6 +5,12 @@ open FsUnit
 open StockCheck.ModelFs
 open Ploeh.AutoFixture
 
+module TestUtils =
+    let Zeroise (period : Period) =
+        (period.Items |> Seq.head).OpeningStock <- 0.
+        (period.Items |> Seq.head).ClosingStock <- 0.
+        period
+
 [<TestFixture>]
 type ``Given that a Period has been constructed`` () = 
     let period = new Period()
@@ -36,7 +42,14 @@ type ``Given that a Period has been initialised from an existing Period`` () =
 type ``Given that a period has been initialised without zero item carried stock`` () =
     let fixture = new Fixture()
     let source = fixture.Create<Period>()
-    let target = Period.InitialiseWithoutZeroCarriedItems source
-    do
-        (source.Items |> Seq.head).OpeningStock <- 0.
+    let target = Period.InitialiseWithoutZeroCarriedItems (TestUtils.Zeroise source)
+
+    [<Test>] member x.
+        ``The period's item collection should exclude items with zero opening and closing stocks`` () =
+            
+            target.Items |> should haveCount (source.Items.Count - 1)
+
+    [<Test>] member x.
+        ``The period start date should be one day after the source period end date`` () =
+            target.StartOfPeriod |> should equal (source.EndOfPeriod.AddDays(1.))
         

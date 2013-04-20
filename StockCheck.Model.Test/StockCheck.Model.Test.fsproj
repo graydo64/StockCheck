@@ -58,6 +58,7 @@
     <Compile Include="PeriodTests.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
+    <Compile Include="SalesItemTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StockCheck.ModelFs\StockCheck.ModelFs.fsproj">

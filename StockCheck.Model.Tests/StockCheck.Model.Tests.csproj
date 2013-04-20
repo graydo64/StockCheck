@@ -44,7 +44,6 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="SalesItemTests.cs" />
     <Compile Include="PeriodItemTests.cs" />
-    <Compile Include="PeriodTests.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
