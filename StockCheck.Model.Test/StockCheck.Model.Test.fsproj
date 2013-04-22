@@ -55,6 +55,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PeriodItemTests.fs" />
     <Compile Include="PeriodTests.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
