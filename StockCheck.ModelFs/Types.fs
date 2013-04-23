@@ -48,7 +48,7 @@ type PeriodItem(salesItem : SalesItem) as this =
             item.InvoicedAmountEx <- invoiceAmountEx
             item.InvoicedAmountInc <- invoiceAmountInc
             this.ItemsReceived.Add(item)
-    member this.CopyForNextPeriod() =
+    member this.CopyForNextPeriod () =
             let periodItem = PeriodItem (salesItem)
             periodItem.OpeningStock <- this.ClosingStock
             periodItem
