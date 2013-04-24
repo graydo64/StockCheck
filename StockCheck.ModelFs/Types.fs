@@ -34,7 +34,7 @@ type ItemReceived() =
     member val InvoicedAmountEx = decimal 0 with get, set
     member val InvoicedAmountInc = decimal 0 with get, set
 
-type PeriodItem(salesItem : SalesItem) as this = 
+type PeriodItem(salesItem : SalesItem) = 
     let itemsReceived = List<ItemReceived>()
 
     member val OpeningStock = 0. with get, set
@@ -61,7 +61,7 @@ type PeriodItem(salesItem : SalesItem) as this =
     member this.PurchasesTotal = this.PurchasesEx + Utils.LessTax this.PurchasesInc (decimal salesItem.TaxRate)
     member this.SalesInc = decimal (this.Sales / salesItem.UnitOfSale * float salesItem.SalesPrice)
     member this.SalesEx = Utils.LessTax (decimal this.SalesInc) (decimal salesItem.TaxRate)
-    member this.CostOfSalesEx = decimal (this.ContainersSold * float salesItem.CostPerContainer)
+    member this.CostOfSalesEx = decimal this.ContainersSold * salesItem.CostPerContainer
     member val SalesPerDay = 0 with get
     member val DaysOnHand = 0 with get
     member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)

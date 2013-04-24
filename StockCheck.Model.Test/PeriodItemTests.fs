@@ -44,14 +44,18 @@ type ``Given that a PeriodItem has been constructed`` () =
         ``The items received collection is empty`` () =
         x.PeriodItem.ItemsReceived |> should be Empty
 
-//[<TestFixture>]
-//type ``Given that goods have been received`` () =
-//    inherit PeriodItemSetup ()
-//    let itemReceived = x.Fixture.Create<ItemReceived>()
-//
-//    [<Test>] member x.
-//        ``The goods are added to the items received collection`` () =
-//        true
+[<TestFixture>]
+type ``Given that goods have been received`` () as this =
+    inherit PeriodItemSetup ()
+    let itemReceived = this.Fixture.Create<ItemReceived>()
+    let salesItem = piSetup.InitialiseSalesItem()
+    let periodItem = new PeriodItem(salesItem)
+    do
+        periodItem.ReceiveItems itemReceived.ReceivedDate itemReceived.Quantity itemReceived.InvoicedAmountEx itemReceived.InvoicedAmountInc
+
+    [<Test>] member x.
+        ``The goods are added to the items received collection`` () =
+            periodItem.ItemsReceived |> should haveCount 1
 
 [<TestFixture>]
 type ``Given that a PeriodItem is being copied for the next period`` () as this =
@@ -75,6 +79,8 @@ type ``Given that a PeriodItem is being copied for the next period`` () as this 
 type ``Given that a PeriodItem has draught items received`` () =
     inherit PeriodItemSetup ()
     let periodItem = piSetup.InitialiseSalesItem() |> piSetup.initialisePeriodItem
+    let gallonsSold = 23. + (4. * 11.) - 25.
+    let pintsSold = 8. * gallonsSold
 
     [<Test>] member x.
         ``The ContainersReceived amount is correctly calculated`` () =
@@ -86,11 +92,19 @@ type ``Given that a PeriodItem has draught items received`` () =
 
     [<Test>] member x.
         ``The Sales quantity is correct`` () =
-            periodItem.Sales |> should equal (23 + (4 * 11) - 25)
+            periodItem.Sales |> should equal gallonsSold
 
-//    [<Test>] member x.
-//        ``The SalesInc amount is correct`` () =
-//            periodItem.SalesInc |> should equal (decimal(4 * 11 * 8) * 3.25M)
+    [<Test>] member x.
+        ``The SalesInc amount is correct`` () =
+            periodItem.SalesInc |> should equal (decimal(pintsSold) * 3.25M)
+
+    [<Test>] member x.
+        ``The SalesEx amount is correct`` () =
+            periodItem.SalesEx |> should equal ((decimal(pintsSold) * 3.25M) / decimal 1.2)
+
+    [<Test>] member x.
+        ``The CostOfSales amount is correct`` () =
+            periodItem.CostOfSalesEx |> should equal (decimal periodItem.ContainersSold * periodItem.SalesItem.CostPerContainer)
 
 [<TestFixture>]
 type ``Given that a PeriodItem has Tax inclusive draught items received`` () as this =
@@ -106,7 +120,7 @@ type ``Given that a PeriodItem has Tax inclusive draught items received`` () as 
             periodItem.PurchasesInc |> should equal (212.34M + 109.3M + 109.3M)
 
 [<TestFixture>]
-type ``Given that a PeriodItem has mixed Tax Exclusive and inclusive draught items received`` () as this =
+type ``Given that a PeriodItem has mixed Tax Exclusive and inclusive draught items received`` () =
     inherit PeriodItemSetup ()
     let salesItem = piSetup.InitialiseSalesItem ()
     let periodItem = new PeriodItem(salesItem)
