@@ -1,5 +1,6 @@
 ﻿namespace StockCheck.Model.Test
 
+open System
 open NUnit.Framework
 open FsUnit
 open StockCheck.ModelFs
@@ -105,6 +106,14 @@ type ``Given that a PeriodItem has draught items received`` () =
     [<Test>] member x.
         ``The CostOfSales amount is correct`` () =
             periodItem.CostOfSalesEx |> should equal (decimal periodItem.ContainersSold * periodItem.SalesItem.CostPerContainer)
+
+    [<Test>] member x.
+        ``The SalesPerDay amount is correct`` () = 
+            periodItem.SalesPerDay(new DateTime(2013, 04, 01), new DateTime(2013, 04, 03)) |> should equal (gallonsSold / 3.)
+
+    [<Test>] member x.
+        ``The DaysOnHand amount is correct`` () =
+            periodItem.DaysOnHand(new DateTime(2013, 04, 01), new DateTime(2013, 04, 03)) |> should equal ((25. / (gallonsSold / 3.)) |> int)
 
 [<TestFixture>]
 type ``Given that a PeriodItem has Tax inclusive draught items received`` () as this =
