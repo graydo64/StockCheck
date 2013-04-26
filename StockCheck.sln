@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockCheck.Model", "StockCheck.Model\StockCheck.Model.csproj", "{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{026586C4-806B-4E09-BD51-239E15A6BA62}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
@@ -10,9 +8,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{026586
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheck.ModelFs", "StockCheck.ModelFs\StockCheck.ModelFs.fsproj", "{A131582E-D9BB-4200-A933-699F0E7CDC53}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheck.Model.Tests", "StockCheck.Model.Tests\StockCheck.Model.Tests.fsproj", "{2D137C1E-A106-4233-94C6-54E9D0FBACA4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheck.Model.Test", "StockCheck.Model.Test\StockCheck.Model.Test.fsproj", "{2D137C1E-A106-4233-94C6-54E9D0FBACA4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheck.Model", "StockCheck.Model\StockCheck.Model.fsproj", "{A131582E-D9BB-4200-A933-699F0E7CDC53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,18 +18,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B4EDA0A3-2E2E-4FDF-86F8-95DD470A5239}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D137C1E-A106-4233-94C6-54E9D0FBACA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A131582E-D9BB-4200-A933-699F0E7CDC53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,9 +8,9 @@
     <ProjectGuid>a131582e-d9bb-4200-a933-699f0e7cdc53</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>StockCheck.ModelFs</RootNamespace>
-    <AssemblyName>StockCheck.ModelFs</AssemblyName>
+    <AssemblyName>StockCheck.Model</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>StockCheck.ModelFs</Name>
+    <Name>StockCheck.Model</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

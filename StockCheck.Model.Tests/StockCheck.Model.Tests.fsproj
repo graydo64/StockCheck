@@ -8,9 +8,9 @@
     <ProjectGuid>2d137c1e-a106-4233-94c6-54e9d0fbaca4</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>StockCheck.Model.Test</RootNamespace>
-    <AssemblyName>StockCheck.Model.Test</AssemblyName>
+    <AssemblyName>StockCheck.Model.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>StockCheck.Model.Test</Name>
+    <Name>StockCheck.Model.Tests</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -62,8 +62,8 @@
     <Compile Include="SalesItemTests.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\StockCheck.ModelFs\StockCheck.ModelFs.fsproj">
-      <Name>StockCheck.ModelFs</Name>
+    <ProjectReference Include="..\StockCheck.Model\StockCheck.Model.fsproj">
+      <Name>StockCheck.Model</Name>
       <Project>{a131582e-d9bb-4200-a933-699f0e7cdc53}</Project>
       <Private>True</Private>
     </ProjectReference>
