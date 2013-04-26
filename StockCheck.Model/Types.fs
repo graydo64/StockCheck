@@ -10,7 +10,10 @@ module Utils =
         else (sale - cost)/sale
 
     let LessTax price rate = 
-        price / (decimal 1 + rate)
+        price / (decimal 1 + decimal rate)
+
+    let ValueOfQuantity qty unit ppUnit =
+        decimal(qty / unit * float ppUnit)
 
 type SalesItem() = 
     let costPerUnitOfSale (costPerContainer: decimal) (containerSize: float) (unitOfSale: float) : decimal = 
@@ -58,17 +61,19 @@ type PeriodItem(salesItem : SalesItem) =
     member this.ContainersSold = this.Sales / salesItem.ContainerSize
     member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
     member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
-    member this.PurchasesTotal = this.PurchasesEx + Utils.LessTax this.PurchasesInc (decimal salesItem.TaxRate)
-    member this.SalesInc = decimal (this.Sales / salesItem.UnitOfSale * float salesItem.SalesPrice)
-    member this.SalesEx = Utils.LessTax (decimal this.SalesInc) (decimal salesItem.TaxRate)
+    member this.PurchasesTotal = this.PurchasesEx + Utils.LessTax this.PurchasesInc salesItem.TaxRate
+    member this.SalesInc = Utils.ValueOfQuantity this.Sales salesItem.UnitOfSale salesItem.SalesPrice
+    member this.SalesEx = Utils.LessTax (decimal this.SalesInc) salesItem.TaxRate
     member this.CostOfSalesEx = decimal this.ContainersSold * salesItem.CostPerContainer
-    member val SalesPerDay = 0 with get
-    member val DaysOnHand = 0 with get
+    member this.SalesPerDay (startDate: DateTime, endDate: DateTime) = 
+                0.
+    member this.DaysOnHand (startDate: DateTime, endDate: DateTime) =
+                0
     member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
     member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
-    member this.ClosingValueCostEx = decimal (this.ClosingStock / salesItem.ContainerSize) * salesItem.CostPerContainer
-    member this.ClosingValueSalesInc = decimal (this.ClosingStock / salesItem.UnitOfSale) * salesItem.SalesPrice
-    member this.ClosingValueSalesEx = Utils.LessTax this.ClosingValueSalesInc (decimal salesItem.TaxRate)
+    member this.ClosingValueCostEx = Utils.ValueOfQuantity this.ClosingStock salesItem.ContainerSize salesItem.CostPerContainer
+    member this.ClosingValueSalesInc = Utils.ValueOfQuantity this.ClosingStock salesItem.UnitOfSale salesItem.SalesPrice
+    member this.ClosingValueSalesEx = Utils.LessTax this.ClosingValueSalesInc salesItem.TaxRate
 
 type Period() = 
     member val EndOfPeriod = DateTime.MinValue with get, set
