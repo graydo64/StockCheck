@@ -2,7 +2,7 @@
 
 open NUnit.Framework
 open FsUnit
-open StockCheck.ModelFs
+open StockCheck.Model
 open Ploeh.AutoFixture
 
 [<TestFixture>]
