@@ -1,4 +1,4 @@
-﻿namespace StockCheck.ModelFs
+﻿namespace StockCheck.Model
 
 open System
 open System.Collections.Generic
