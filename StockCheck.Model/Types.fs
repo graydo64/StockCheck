@@ -13,13 +13,14 @@ module Utils =
         price / (decimal 1 + decimal rate)
 
     let ValueOfQuantity qty unit ppUnit =
-        decimal(qty / unit * float ppUnit)
+        decimal(qty * unit * float ppUnit)
 
 type SalesItem() = 
-    let costPerUnitOfSale (costPerContainer: decimal) (containerSize: float) (unitOfSale: float) : decimal = 
-        if costPerContainer = decimal 0 
-        then decimal 0 
-        else decimal ((float costPerContainer)/(containerSize/unitOfSale))
+    let costPerUnitOfSale (costPerContainer: decimal) (containerSize : float) (salesUnitsPerContainerUnit: float) : decimal =
+        match costPerContainer with
+            | 0M -> decimal 0
+            | _ -> decimal (float costPerContainer/(containerSize * salesUnitsPerContainerUnit))
+
     member val ContainerSize = 0. with get, set
     member val CostPerContainer = decimal 0 with get, set
     member val LedgerCode = String.Empty with get, set
@@ -27,8 +28,8 @@ type SalesItem() =
     member val SalesPrice = decimal 0 with get, set
     member val TaxRate = 0. with get, set
     member val UllagePerContainer = 0 with get, set
-    member val UnitOfSale = 0. with get, set
-    member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.UnitOfSale
+    member val SalesUnitsPerContainerUnit = 0. with get, set
+    member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.SalesUnitsPerContainerUnit
     member this.IdealGP = Utils.GrossProfit this.SalesPrice this.CostPerUnitOfSale
 
 type ItemReceived() =
@@ -63,7 +64,7 @@ type PeriodItem(salesItem : SalesItem) =
     member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
     member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
     member this.PurchasesTotal = this.PurchasesEx + lessTax this.PurchasesInc
-    member this.SalesInc = Utils.ValueOfQuantity this.Sales salesItem.UnitOfSale salesItem.SalesPrice
+    member this.SalesInc = Utils.ValueOfQuantity this.Sales salesItem.SalesUnitsPerContainerUnit salesItem.SalesPrice
     member this.SalesEx = lessTax this.SalesInc
     member this.CostOfSalesEx = decimal this.ContainersSold * salesItem.CostPerContainer
     member this.SalesPerDay (startDate: DateTime, endDate: DateTime) = this.Sales / float (endDate.Subtract(startDate).Days + 1)
@@ -71,7 +72,7 @@ type PeriodItem(salesItem : SalesItem) =
     member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
     member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
     member this.ClosingValueCostEx = Utils.ValueOfQuantity this.ClosingStock salesItem.ContainerSize salesItem.CostPerContainer
-    member this.ClosingValueSalesInc = Utils.ValueOfQuantity this.ClosingStock salesItem.UnitOfSale salesItem.SalesPrice
+    member this.ClosingValueSalesInc = Utils.ValueOfQuantity this.ClosingStock salesItem.SalesUnitsPerContainerUnit salesItem.SalesPrice
     member this.ClosingValueSalesEx = lessTax this.ClosingValueSalesInc
 
 type Period() = 
