@@ -18,11 +18,11 @@ type SalesItem = {
 
 type Persister() =
     let collection = 
-        createLocalMongoServer() 
+        createMongoServerWithConnString("mongodb://localhost/?connect=replicaset")
         |> getMongoDatabase "StockCheck" 
         |> getMongoCollection "StockItem"
 
-    member this.Save (si : StockCheck.ModelFs.SalesItem) =
+    member this.Save (si : StockCheck.Model.SalesItem) =
         let salesItem = {
             _id = ObjectId();
             ContainerSize = si.ContainerSize;
@@ -34,4 +34,6 @@ type Persister() =
             UllagePerContainer = si.UllagePerContainer;
             SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit
         }
-        collection.Insert(salesItem)
+        salesItem
+        |> collection.Insert
+        |> ignore
