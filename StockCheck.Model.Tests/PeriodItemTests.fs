@@ -229,8 +229,7 @@ type ``Given that a PeriodItem has snacks received`` () =
 [<TestFixture>]
 type ``Given that a PeriodItem has spirits received`` () =
     inherit PeriodItemSetup ()
-    let si = piSetup.InitialiseSpiritSalesItem
-    let periodItem = si |> piSetup.initialisePeriodItem
+    let periodItem = piSetup.InitialiseSpiritSalesItem |> piSetup.initialisePeriodItem
     let bottlesSold = 23. + (4. * 1.) - 25.
     let measuresSold = bottlesSold * (0.7 /0.035)
 
