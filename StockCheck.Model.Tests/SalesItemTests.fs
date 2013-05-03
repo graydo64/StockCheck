@@ -16,26 +16,36 @@ type ``Given that the cost per container is zero`` () =
 [<TestFixture>]
 type ``Given that the item is draught and the cost of sale is greater than zero`` () =
     let containerSize = 11.
-    let unitOfSale = 1. / 8.
     let costPerContainer = 110m
-    let saleUnitsPerContainer = containerSize / unitOfSale
-    let salesItem = new SalesItem(ContainerSize = containerSize, UnitOfSale = unitOfSale, CostPerContainer = costPerContainer)
+    let saleUnitsPerContainerUnit = 8.
+    let salesItem = new SalesItem(ContainerSize = containerSize, SalesUnitsPerContainerUnit = saleUnitsPerContainerUnit, CostPerContainer = costPerContainer)
 
     [<Test>] member x.
         ``The cost per unit of sale should be calculated correctly`` () =
-            salesItem.CostPerUnitOfSale |> should equal (float costPerContainer / saleUnitsPerContainer)
+            salesItem.CostPerUnitOfSale |> should equal (float costPerContainer / (containerSize * saleUnitsPerContainerUnit))
+
+[<TestFixture>]
+type ``Given that the item is bottled and the cost of sale is greater than zero`` () =
+    let containerSize = 24.
+    let costPerContainer = 11.50m
+    let saleUnitsPerContainerUnit = 1.
+    let salesItem = new SalesItem(ContainerSize = containerSize, SalesUnitsPerContainerUnit = saleUnitsPerContainerUnit, CostPerContainer = costPerContainer)
+
+    [<Test>] member x.
+        ``The cost per unit of sale should be calculated correctly`` () =
+            salesItem.CostPerUnitOfSale |> should equal (decimal (float costPerContainer / (containerSize * saleUnitsPerContainerUnit)))
 
 [<TestFixture>]
 type ``Given that the item is spirit and the cost of sale is greater than zero`` () =
     let containerSize = 0.7
     let unitOfSale = 0.035
     let costPerContainer = 22m
-    let saleUnitsPerContainer = containerSize / unitOfSale
-    let salesItem = new SalesItem(ContainerSize = containerSize, UnitOfSale = unitOfSale, CostPerContainer = costPerContainer)
+    let saleUnitsPerContainerUnit = 1. / unitOfSale
+    let salesItem = new SalesItem(ContainerSize = containerSize, SalesUnitsPerContainerUnit = saleUnitsPerContainerUnit, CostPerContainer = costPerContainer)
 
     [<Test>] member x.
         ``The cost per unit of sale should be calculated correctly`` () =
-            salesItem.CostPerUnitOfSale |> should equal (float costPerContainer / saleUnitsPerContainer)
+            salesItem.CostPerUnitOfSale |> should equal (decimal (float costPerContainer / (containerSize * saleUnitsPerContainerUnit)))
 
 [<TestFixture>]
 type ``Given that the Sales Price is zero`` () =
@@ -47,7 +57,7 @@ type ``Given that the Sales Price is zero`` () =
 
 [<TestFixture>]
 type ``Given that the Sales Price double the Cost price`` () =
-    let salesItem = new SalesItem(SalesPrice = 2m, ContainerSize = 1., UnitOfSale = 1., CostPerContainer = 1m)
+    let salesItem = new SalesItem(SalesPrice = 2m, ContainerSize = 1., SalesUnitsPerContainerUnit = 1., CostPerContainer = 1m)
 
     [<Test>] member x.
         ``The GP is 50 percent`` () =

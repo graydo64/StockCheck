@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>42ba5c53-b4ad-4052-92f8-0a1301d086fa</ProjectGuid>
+    <ProjectGuid>a11932c7-f45e-49bb-9cc4-f42a8e3fd228</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>StockCheck.Model.ExcelTests</RootNamespace>
-    <AssemblyName>StockCheck.Model.ExcelTests</AssemblyName>
+    <RootNamespace>StockCheck.Repository</RootNamespace>
+    <AssemblyName>StockCheck.Repository</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>StockCheck.Model.ExcelTests</Name>
+    <Name>StockCheck.Repository</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -22,7 +22,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\StockCheck.Model.ExcelTests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\StockCheck.Repository.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,33 +31,32 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\StockCheck.Model.ExcelTests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\StockCheck.Repository.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EPPlus">
-      <HintPath>..\packages\EPPlus.3.1.3.3\lib\net35\EPPlus.dll</HintPath>
+    <Reference Include="MongoDB.Bson">
+      <HintPath>..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Bson.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.2.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
+    <Reference Include="MongoDB.Driver">
+      <HintPath>..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Driver.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoFs">
+      <HintPath>..\packages\MongoFs.0.1.0.0\Lib\MongoFs.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library1.fs" />
-    <None Include="Script.fsx" />
+    <Compile Include="Repository.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
   </ItemGroup>
@@ -65,11 +64,6 @@
     <ProjectReference Include="..\StockCheck.Model\StockCheck.Model.fsproj">
       <Name>StockCheck.Model</Name>
       <Project>{a131582e-d9bb-4200-a933-699f0e7cdc53}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\StockCheck.Repository\StockCheck.Repository.fsproj">
-      <Name>StockCheck.Repository</Name>
-      <Project>{a11932c7-f45e-49bb-9cc4-f42a8e3fd228}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

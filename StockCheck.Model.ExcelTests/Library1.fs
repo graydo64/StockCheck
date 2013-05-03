@@ -6,13 +6,14 @@ open OfficeOpenXml
 open System.IO
 open System.Xml
 open StockCheck.Model
+open StockCheck.Repository
 
 let GetSI (range : ExcelRange) =
-    let salesItem = new SalesItem()
+    let salesItem = new StockCheck.Model.SalesItem()
     salesItem.LedgerCode <- (Seq.nth 0 range).Value.ToString()
     salesItem.Name <- (Seq.nth 1 range).Value.ToString()
     salesItem.ContainerSize <- float ((Seq.nth 2 range).Value.ToString())
-    salesItem.UnitOfSale <- float ((Seq.nth 3 range).Value.ToString())
+    salesItem.SalesUnitsPerContainerUnit <- float ((Seq.nth 3 range).Value.ToString())
     salesItem.CostPerContainer <- decimal ((Seq.nth 5 range).Value.ToString())
     salesItem.SalesPrice <- decimal ((Seq.nth 7 range).Value.ToString())
     salesItem.TaxRate <- float ((Seq.nth 9 range).Value.ToString())
@@ -38,6 +39,9 @@ let items =
     |> List.map (fun i -> (selector i)) 
     |> List.filter (fun r -> (Seq.nth 1 r).Text.ToString() <> "")
     |> List.map (fun r -> GetSI r)
+
+let persister = new Persister()
+items |> List.map (fun si -> persister.Save(si)) |> ignore
 
 [<Test>]
 let ``sheets name should be Catalogue`` () =
