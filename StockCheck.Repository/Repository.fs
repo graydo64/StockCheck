@@ -43,7 +43,7 @@ type Period = {
     Items : PeriodItem list
 }
 
-module MapToModel =
+module internal MapToModel =
 
     let irMap (ir : ItemReceived) =
         StockCheck.Model.ItemReceived ( 
@@ -85,19 +85,23 @@ type Query() =
     let db = createMongoServerWithConnString("mongodb://localhost/?connect=replicaset")
              |> getMongoDatabase "StockCheck"
     
-    member this.GetSalesItem (name : string) ledgerCode =
+    member internal this.GetSalesItem (name : string) (ledgerCode : string) =
         let collection = db |> getMongoCollection<SalesItem> "SalesItem"
-        let bsonName = BsonValue.Create(name)
-        collection.FindOne(Query.EQ("Name", bsonName))
+        let value = BsonValue.Create(name)
+        collection.FindOne(Query.EQ("Name", value))
 
-    member this.GetModelSalesItem salesItem =
-        MapToModel.siMap salesItem
+    member this.GetModelSalesItem (name : string) (ledgerCode : string) =
+        this.GetSalesItem name ledgerCode |> MapToModel.siMap 
 
-    member this.GetPeriod name =
+    member internal this.GetPeriod (name : string) =
         let collection = db |> getMongoCollection<Period> "Period"
-        collection.FindOne(Query.EQ("Name", name))
+        let value = BsonValue.Create(name)
+        collection.FindOne(Query.EQ("Name", value))
 
-module MapFromModel = 
+    member this.GetModelPeriod period =
+        MapToModel.pMap period
+
+module internal MapFromModel = 
     let irMap (ir : StockCheck.Model.ItemReceived) =
         { Quantity = ir.Quantity;
             ReceivedDate = ir.ReceivedDate;
@@ -113,16 +117,8 @@ module MapFromModel =
             ItemsReceived = pi.ItemsReceived |> Seq.map (fun i -> irMap i) |> List.ofSeq
         }
 
-type Persister() =
-
-    let db = createMongoServerWithConnString("mongodb://localhost/?connect=replicaset")
-             |> getMongoDatabase "StockCheck"
-
-    member this.Save (si : StockCheck.Model.SalesItem) =
-        let collection = 
-            db
-            |> getMongoCollection<SalesItem> "SalesItem"
-        let salesItem = {
+    let siMap (si : StockCheck.Model.SalesItem) =
+        {
             _id = ObjectId();
             ContainerSize = si.ContainerSize;
             CostPerContainer = si.CostPerContainer;
@@ -133,21 +129,34 @@ type Persister() =
             UllagePerContainer = si.UllagePerContainer;
             SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit
         }
-        salesItem
-        |> collection.Insert
+
+    let pMap (p : StockCheck.Model.Period) =
+        {
+            _id = ObjectId();
+            Name = p.Name;
+            StartOfPeriod = p.StartOfPeriod;
+            EndOfPeriod = p.EndOfPeriod;
+            Items = p.Items |> Seq.map (fun i -> piMap i) |> List.ofSeq
+        }
+
+type Persister() =
+
+    let db = createMongoServerWithConnString("mongodb://localhost/?connect=replicaset")
+             |> getMongoDatabase "StockCheck"
+
+    member this.Save (si : StockCheck.Model.SalesItem) =
+        let collection = 
+            db
+            |> getMongoCollection<SalesItem> "SalesItem"
+
+        MapFromModel.siMap si
+        |> collection.Save
         |> ignore
 
     member this.Save (p : StockCheck.Model.Period) = 
         let collection = 
             db
             |> getMongoCollection<Period> "Period"
-        let period = {
-            _id = ObjectId();
-            Name = p.Name;
-            StartOfPeriod = p.StartOfPeriod;
-            EndOfPeriod = p.EndOfPeriod;
-            Items = p.Items |> Seq.map (fun i -> MapFromModel.piMap i) |> List.ofSeq
-        }
-        period
-        |> collection.Insert
+        MapFromModel.pMap p
+        |> collection.Save
         |> ignore
