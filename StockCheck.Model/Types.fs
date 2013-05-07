@@ -75,7 +75,8 @@ type PeriodItem(salesItem : SalesItem) =
     member this.ClosingValueSalesInc = Utils.ValueOfQuantity this.ClosingStock salesItem.SalesUnitsPerContainerUnit salesItem.SalesPrice
     member this.ClosingValueSalesEx = lessTax this.ClosingValueSalesInc
 
-type Period() = 
+type Period() =
+    member val Name = String.Empty with get, set 
     member val EndOfPeriod = DateTime.MinValue with get, set
     member val StartOfPeriod = DateTime.MinValue with get, set
     member val Items = List<PeriodItem>() with get, set
