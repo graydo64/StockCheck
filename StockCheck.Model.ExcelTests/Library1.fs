@@ -44,9 +44,11 @@ let persister = new Persister()
 items |> List.map (fun si -> persister.Save(si)) |> ignore
 
 [<Test>]
+[<Ignore>]
 let ``sheets name should be Catalogue`` () =
     Seq.length sheets |> should equal 1
 
 [<Test>]
+[<Ignore>]
 let ``should get all of our stock items`` () =
     Seq.length items |> should equal (rows.Length - 12)

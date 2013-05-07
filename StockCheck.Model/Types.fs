@@ -71,7 +71,7 @@ type PeriodItem(salesItem : SalesItem) =
     member this.DaysOnHand (startDate: DateTime, endDate: DateTime) = this.ClosingStock / this.SalesPerDay(startDate, endDate) |> int
     member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
     member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
-    member this.ClosingValueCostEx = Utils.ValueOfQuantity this.ClosingStock salesItem.ContainerSize salesItem.CostPerContainer
+    member this.ClosingValueCostEx = Utils.ValueOfQuantity this.ClosingStock 1. (salesItem.CostPerContainer/decimal salesItem.ContainerSize)
     member this.ClosingValueSalesInc = Utils.ValueOfQuantity this.ClosingStock salesItem.SalesUnitsPerContainerUnit salesItem.SalesPrice
     member this.ClosingValueSalesEx = lessTax this.ClosingValueSalesInc
 
