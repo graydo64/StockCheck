@@ -122,6 +122,10 @@ type ``Given that a PeriodItem has draught items received`` () =
         ``The DaysOnHand amount is correct`` () =
             periodItem.DaysOnHand(new DateTime(2013, 04, 01), new DateTime(2013, 04, 03)) |> should equal ((25. / (gallonsSold / 3.)) |> int)
 
+    [<Test>] member x.
+        ``The Profit is correct`` () =
+            periodItem.Profit |> should equal (decimal pintsSold * periodItem.SalesItem.MarkUp)
+
 [<TestFixture>]
 type ``Given that a PeriodItem has Tax inclusive draught items received`` () as this =
     inherit PeriodItemSetup ()

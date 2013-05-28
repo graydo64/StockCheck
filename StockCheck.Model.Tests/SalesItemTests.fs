@@ -62,3 +62,15 @@ type ``Given that the Sales Price double the Cost price`` () =
     [<Test>] member x.
         ``The GP is 50 percent`` () =
             salesItem.IdealGP |> should equal 0.5
+
+    [<Test>] member x.
+        ``The Mark-Up should be calculated correctly`` () =
+            salesItem.MarkUp |> should equal (salesItem.SalesPrice - salesItem.CostPerUnitOfSale)
+
+[<TestFixture>]
+type ``Given a draught product with a Sales Price`` () =
+    let salesItem = new SalesItem(SalesPrice = 3.25m, ContainerSize = 9., SalesUnitsPerContainerUnit = 8., CostPerContainer = 144m)
+
+    [<Test>] member x.
+        ``The Mark-Up should be 1.25`` () =
+            salesItem.MarkUp |> should equal 1.25m

@@ -68,6 +68,11 @@
       <Project>{a131582e-d9bb-4200-a933-699f0e7cdc53}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\StockCheck.Repository\StockCheck.Repository.fsproj">
+      <Name>StockCheck.Repository</Name>
+      <Project>{a11932c7-f45e-49bb-9cc4-f42a8e3fd228}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
