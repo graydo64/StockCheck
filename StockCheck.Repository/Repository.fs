@@ -85,6 +85,9 @@ module internal MapToModel =
 type Query(connectionString : string) =
     let db = createMongoServerWithConnString(connectionString)
              |> getMongoDatabase "StockCheck"
+
+    let getModelSalesItem (si : SalesItem) =
+        MapToModel.siMap si
     
     member internal this.GetSalesItem (name : string) (ledgerCode : string) =
         let collection = db |> getMongoCollection<SalesItem> "SalesItem"
@@ -103,11 +106,18 @@ type Query(connectionString : string) =
         let collection = db |> getMongoCollection<Period> "Period"
         collection.FindAll().ToList<Period>()
 
+    member internal this.GetSalesItems =
+        let collection = db |> getMongoCollection<SalesItem> "SalesItem"
+        collection.FindAll().ToList<SalesItem>()
+
     member this.GetModelPeriod period =
         MapToModel.pMap period
 
     member this.GetModelPeriods =
         this.GetPeriods |> Seq.map this.GetModelPeriod
+
+    member this.GetModelSalesItems =
+        this.GetSalesItems |> Seq.map getModelSalesItem
         
 
 module internal MapFromModel = 

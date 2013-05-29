@@ -103,6 +103,7 @@
     <None Include="App.config" />
     <None Include="packages.config" />
     <Compile Include="PeriodsController.fs" />
+    <Compile Include="SalesItemsController.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\StockCheck.Model\StockCheck.Model.fsproj">
