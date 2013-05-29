@@ -1,6 +1,7 @@
 ﻿namespace StockCheck.Repository
 
 open System
+open System.Linq
 open MongoDB.Bson
 open MongoDB.Driver.Builders
 open System.ComponentModel.DataAnnotations
@@ -31,7 +32,7 @@ type PeriodItem = {
     SalesItem : SalesItem
     OpeningStock : float
     ClosingStock : float
-    ItemsReceived : ItemReceived list
+    ItemsReceived : ItemReceived seq
 }
 
 [<CLIMutable>]
@@ -40,7 +41,7 @@ type Period = {
     Name : string
     StartOfPeriod : DateTime
     EndOfPeriod : DateTime
-    Items : PeriodItem list
+    Items : PeriodItem seq
 }
 
 module internal MapToModel =
@@ -73,7 +74,7 @@ module internal MapToModel =
         modelItem
 
     let pMap (p : Period) =
-        let items = p.Items |> List.map (fun i -> piMap i)
+        let items = p.Items |> Seq.map piMap
         StockCheck.Model.Period ( 
             Name = p.Name, 
             StartOfPeriod = p.StartOfPeriod, 
@@ -81,8 +82,8 @@ module internal MapToModel =
             Items = System.Collections.Generic.List<StockCheck.Model.PeriodItem> items
             )
 
-type Query() =
-    let db = createMongoServerWithConnString("mongodb://localhost/?connect=replicaset")
+type Query(connectionString : string) =
+    let db = createMongoServerWithConnString(connectionString)
              |> getMongoDatabase "StockCheck"
     
     member internal this.GetSalesItem (name : string) (ledgerCode : string) =
@@ -98,8 +99,16 @@ type Query() =
         let value = BsonValue.Create(name)
         collection.FindOne(Query.EQ("Name", value))
 
+    member internal this.GetPeriods =
+        let collection = db |> getMongoCollection<Period> "Period"
+        collection.FindAll().ToList<Period>()
+
     member this.GetModelPeriod period =
         MapToModel.pMap period
+
+    member this.GetModelPeriods =
+        this.GetPeriods |> Seq.map this.GetModelPeriod
+        
 
 module internal MapFromModel = 
     let irMap (ir : StockCheck.Model.ItemReceived) =
@@ -109,8 +118,8 @@ module internal MapFromModel =
             InvoicedAmountInc = float ir.InvoicedAmountInc
         }
 
-    let piMap (pi : StockCheck.Model.PeriodItem) =
-        let query = new Query()
+    let piMap (connectionString : string) (pi : StockCheck.Model.PeriodItem) =
+        let query = new Query(connectionString)
         { SalesItem = query.GetSalesItem pi.SalesItem.Name  pi.SalesItem.LedgerCode;
             OpeningStock = pi.OpeningStock;
             ClosingStock = pi.ClosingStock;
@@ -130,19 +139,21 @@ module internal MapFromModel =
             SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit
         }
 
-    let pMap (p : StockCheck.Model.Period) =
+    let pMap (connectionString : string) (p : StockCheck.Model.Period) =
         {
             _id = ObjectId();
             Name = p.Name;
             StartOfPeriod = p.StartOfPeriod;
             EndOfPeriod = p.EndOfPeriod;
-            Items = p.Items |> Seq.map (fun i -> piMap i) |> List.ofSeq
+            Items = p.Items |> Seq.map (fun i -> piMap connectionString i) |> List.ofSeq
         }
 
-type Persister() =
+type Persister(connectionString : string) =
 
-    let db = createMongoServerWithConnString("mongodb://localhost/?connect=replicaset")
+    let db = createMongoServerWithConnString(connectionString)
              |> getMongoDatabase "StockCheck"
+
+    let periodMap = MapFromModel.pMap connectionString
 
     member this.Save (si : StockCheck.Model.SalesItem) =
         let collection = 
@@ -157,6 +168,6 @@ type Persister() =
         let collection = 
             db
             |> getMongoCollection<Period> "Period"
-        MapFromModel.pMap p
+        periodMap p
         |> collection.Save
         |> ignore

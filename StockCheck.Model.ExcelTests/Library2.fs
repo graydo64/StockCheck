@@ -11,7 +11,7 @@ period.Name <- "April 2013"
 period.StartOfPeriod <- new DateTime(2013, 4, 4)
 period.EndOfPeriod <- new DateTime(2013, 4, 28)
 
-let query = StockCheck.Repository.Query()
+let query = StockCheck.Repository.Query("mongodb://localhost")
 let salesItems = 
         [
         (query.GetModelSalesItem "Kronenbourg" "1000", 63., 30.)
@@ -41,8 +41,8 @@ let gui = period.Items |> Seq.filter (fun i -> i.SalesItem.Name = "Guinness") |>
 gui.ReceiveItems (new DateTime(2013, 4, 14)) 1. (decimal 1 * gui.SalesItem.CostPerContainer) (decimal 0)
 gui.ReceiveItems (new DateTime(2013, 4, 28)) 1. (decimal 1 * gui.SalesItem.CostPerContainer) (decimal 0)
 
-let persister = new Persister()
-//persister.Save(period)
+let persister = new Persister("mongodb://localhost")
+////persister.Save(period)
 
 [<Test>]
 [<Ignore>]

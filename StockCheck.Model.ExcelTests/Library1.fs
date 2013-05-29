@@ -6,9 +6,10 @@ open OfficeOpenXml
 open System.IO
 open System.Xml
 open StockCheck.Model
+open StockCheck.Repository
 
 let GetSI (range : ExcelRange) =
-    let salesItem = new SalesItem()
+    let salesItem = new StockCheck.Model.SalesItem()
     salesItem.LedgerCode <- (Seq.nth 0 range).Value.ToString()
     salesItem.Name <- (Seq.nth 1 range).Value.ToString()
     salesItem.ContainerSize <- float ((Seq.nth 2 range).Value.ToString())
@@ -23,7 +24,7 @@ let SelectRow (sheet : ExcelWorksheet) (i : int) =
     sheet.Select(rangeString)
     sheet.SelectedRange
 
-let file = new FileInfo(@"C:\Users\g_wilson\Desktop\GBS.xlsx")
+let file = new FileInfo(@"C:\Users\graeme\Downloads\Golden Ball Stock May.xlsx")
 let package = new ExcelPackage(file)
 let cat = package.Workbook.Worksheets 
 let sheets = cat |> Seq.filter (fun a -> a.Name = "Catalogue")
@@ -31,13 +32,20 @@ let sheet = sheets |> Seq.head
 
 let selector i = SelectRow sheet i
 
-let rows = [3..259]
+let rows = [3..174]
 
 let items = 
     rows 
     |> List.map (fun i -> (selector i)) 
     |> List.filter (fun r -> (Seq.nth 1 r).Text.ToString() <> "")
     |> List.map (fun r -> GetSI r)
+
+////let persister = new Persister("mongodb://localhost")
+////
+////let saveSalesItem (i : StockCheck.Model.SalesItem) =
+////    persister.Save(i)
+////
+////let saveOut = items |> List.map (fun i -> saveSalesItem i)
 
 [<Test>]
 [<Ignore>]
