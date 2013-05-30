@@ -1,0 +1,14 @@
+﻿<div>
+    <strong class="error">{{ error }}</strong>
+    <strong ng-show="loading">loading...</strong>
+    <table>
+        <tr ng-repeat="salesitem in salesitems | orderBy: ['LedgerCode', 'Name']">
+            <td>{{ salesitem.LedgerCode }}</td>
+            <td>{{ salesitem.Name }}</td>
+            <td>{{ salesitem.ContainerSize }}</td>
+            <td>{{ salesitem.CostPerContainer | currency }}</td>
+            <td>{{ salesitem.SalesPrice | currency }}</td>
+            <td><a href="salesitem.html?name={{ salesitem.Name }}&ledgercode={{ salesitem.LedgerCode }}">View</a></td>
+        </tr>
+    </table>
+</div>

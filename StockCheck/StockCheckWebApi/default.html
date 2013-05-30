@@ -1,0 +1,36 @@
+﻿<!doctype html>
+<html lang="en" ng-app="stockCheck">
+<head>
+    <meta charset="utf-8">
+    <title>StockCheck</title>
+    <link href="Content/Site.css" rel="stylesheet" />
+    <script src="Scripts/angular.js"></script>
+    <script src="Scripts/angular-resource.js"></script>
+    <script src="Scripts/i18n/angular-locale_en-gb.js"></script>
+    <script src="Scripts/app.js"></script>
+    <script src="Scripts/PeriodsController.js"></script>
+    <script src="Scripts/SalesItemsController.js"></script>
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="navbar">
+            <div class="navbar-inner">
+                <a class="brand" href="#/">StockCheck</a>
+                <ul class="nav">
+                    <li ng-class="{active: routeIs('/')}"><a href="#/">Home</a></li>
+                    <li ng-class="{active: routeIs('/sales-items')}"><a href="#/sales-items">Sales Items</a></li>
+                    <li ng-class="{active: routeIs('/periods')}"><a href="#/periods">Periods</a></li>
+                </ul>
+
+                <ul class="nav pull-right">
+                    <li ng-class="{active: routeIs('/help')}"><a href="#/help">Help</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <ng-view></ng-view>
+    </div>
+</body>
+</html>

@@ -9,8 +9,8 @@ module Utils =
 
     let GrossProfit sale cost =
         match sale with
-        | dsale when dsale = (decimal 0) -> decimal 0
-        | _ -> (MarkUp sale cost)/sale
+        | dsale when dsale = (decimal 0) -> 0.
+        | _ -> float ((MarkUp sale cost)/sale)
 
     let LessTax rate price = 
         price / (decimal 1 + decimal rate)

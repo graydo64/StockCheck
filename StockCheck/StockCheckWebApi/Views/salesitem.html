@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html ng-app>
+<head>
+    <title>Periods</title>
+    <script src="../Scripts/angular.min.js"></script>
+    <script>
+        angular.module('myApp', [], function ($locationProvider) {
+            $locationProvider.html5Mode(true);
+        });
+    </script>
+</head>
+<body>
+    <script src="../Scripts/SalesItemController.js"></script>
+    <div ng-controller="SalesItemController">
+        <strong class="error">{{ error }}</strong>
+        <strong ng-show="loading">loading...</strong>
+        <div>
+                        <strong ng-hide="editMode">{{ salesitem.LedgerCode }}</strong>
+            <input ng-show="editMode" type="text" ng-model="salesitem.LedgerCode" />
+
+        </div>
+<!--        <div ng-repeat="period in periods">
+            <strong ng-hide="editMode">{{ period.Name }}</strong>
+            <input ng-show="editMode" type="text" ng-model="period.Name" />
+            <span ng-hide="editMode">{{ period.StartOfPeriod }}</span>
+            <span ng-hide="editMode">{{ period.EndOfPeriod }}</span>
+        </div>-->
+        <div>
+            <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
+            <a ng-click="save()" href="javascript:;">Save</a>
+        </div>
+    </div>
+</body>
+</html>

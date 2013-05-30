@@ -1,24 +1,14 @@
-﻿<!DOCTYPE html>
-<html ng-app>
-<head>
-    <title>Periods</title>
-    <script src="../Scripts/angular.min.js"></script>
-</head>
-<body>
-    <script src="../Scripts/PeriodsController.js"></script>
-    <div ng-controller="PeriodsController">
-        <strong class="error">{{ error }}</strong>
-        <strong ng-show="loading">loading...</strong>
-        <div ng-repeat="period in periods">
-            <strong ng-hide="editMode">{{ period.Name }}</strong>
-            <input ng-show="editMode" type="text" ng-model="period.Name" />
-            <span ng-hide="editMode">{{ period.StartOfPeriod }}</span>
-            <span ng-hide="editMode">{{ period.EndOfPeriod }}</span>
-        </div>
-        <div ng-show="periods.length > 0">
-            <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
-            <a ng-click="save()" href="javascript:;">Save</a>
-        </div>
+﻿<div>
+    <strong class="error">{{ error }}</strong>
+    <strong ng-show="loading">loading...</strong>
+    <div ng-repeat="period in periods">
+        <strong ng-hide="editMode">{{ period.Name }}</strong>
+        <input ng-show="editMode" type="text" ng-model="period.Name" />
+        <span ng-hide="editMode">{{ period.StartOfPeriod | date }}</span>
+        <span ng-hide="editMode">{{ period.EndOfPeriod | date }}</span>
     </div>
-</body>
-</html>
+    <div ng-show="periods.length > 0">
+        <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
+        <a ng-click="save()" href="javascript:;">Save</a>
+    </div>
+</div>

@@ -1,4 +1,6 @@
-﻿function PeriodsController($scope, $http) {
+﻿'use strict';
+
+function PeriodsController($scope, $http) {
     $scope.loading = true;
     $scope.editMode = false;
 
@@ -23,4 +25,4 @@
             $scope.loading = false;
         });
     };
-}
+};
