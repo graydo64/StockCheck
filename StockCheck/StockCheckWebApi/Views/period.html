@@ -1,0 +1,46 @@
+﻿<div>
+    <script type="text/javascript">
+        $(function () {
+            $("#datepicker").datepicker();
+        });
+    </script>
+    <strong class="error">{{ error }}</strong>
+    <strong ng-show="loading">loading...</strong>
+    <div>
+        <label>Name</label>
+        <strong ng-hide="editMode">{{ period.Name }}</strong>
+        <input ng-show="editMode" type="text" ng-model="period.Name" />
+    </div>
+    <div>
+        <label>Start Date</label>
+        <strong ng-hide="editMode">{{ period.StartOfPeriod | date }}</strong>
+        <input ng-show="editMode" type="text" ng-model="period.StartOfPeriod" id="datepicker" />
+    </div>
+    <div>
+        <label>End Date</label>
+        <strong ng-hide="editMode">{{ period.EndOfPeriod | date }}</strong>
+        <input ng-show="editMode" type="date" ng-model="period.EndOfPeriod" />
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Ledger Code</th>
+                <th>Product</th>
+                <th>Opening</th>
+                <th>Received</th>
+                <th>Closing</th>
+            </tr>
+        </thead>
+        <tr ng-repeat="item in period.Items">
+            <td>{{ item.SalesItemLedgerCode }}</td>
+            <td>{{ item.SalesItemName }}</td>
+            <td>{{ item.OpeningStock }}</td>
+            <td>{{ item.ItemsReceived }}</td>
+            <td>{{ item.ClosingStock }}</td>
+        </tr>
+    </table>
+    <div>
+        <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
+        <a ng-click="save()" href="javascript:;">Save</a>
+    </div>
+</div>

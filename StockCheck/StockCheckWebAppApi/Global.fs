@@ -48,6 +48,8 @@ type Global() =
 
     static member RegisterRoutes(routes:RouteCollection) =
         routes.IgnoreRoute( "{resource}.axd/{*pathInfo}" )
+//        routes.MapHttpRoute( "PeriodInit", "api/{controller}/{action}/{id}",
+//            { controller = "Period"; action = "InitFrom"; id = UrlParameter.Optional } ) |> ignore
         routes.MapHttpRoute( "DefaultApi", "api/{controller}/{id}", 
             { id = RouteParameter.Optional } ) |> ignore
         routes.MapRoute("Default", "{controller}/{action}/{id}", 

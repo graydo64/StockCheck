@@ -24,6 +24,7 @@ type SalesItem() =
             | 0M -> decimal 0
             | _ -> decimal (float costPerContainer/(containerSize * salesUnitsPerContainerUnit))
 
+    member val Id = String.Empty with get, set
     member val ContainerSize = 0. with get, set
     member val CostPerContainer = decimal 0 with get, set
     member val LedgerCode = String.Empty with get, set
@@ -81,6 +82,7 @@ type PeriodItem(salesItem : SalesItem) =
     member this.ClosingValueSalesEx = lessTax this.ClosingValueSalesInc
 
 type Period() =
+    member val Id = String.Empty with get, set
     member val Name = String.Empty with get, set 
     member val EndOfPeriod = DateTime.MinValue with get, set
     member val StartOfPeriod = DateTime.MinValue with get, set

@@ -12,6 +12,7 @@ open System.Runtime.Serialization
 [<CLIMutable>]
 [<DataContract>]
 type SalesItemsViewModel = {
+    [<DataMember>]Id : string
     [<DataMember>]LedgerCode : string
     [<DataMember>]Name : string
     [<DataMember>]ContainerSize : float
@@ -26,9 +27,10 @@ type SalesItemsController() =
 
     member x.Get() =
         repo.GetModelSalesItems |> Seq.map (fun i -> {
-            LedgerCode = i.LedgerCode; 
-            Name = i.Name; 
-            ContainerSize = i.ContainerSize; 
-            CostPerContainer = i.CostPerContainer; 
-            SalesPrice = i.SalesPrice
-        })
+                                                        Id = i.Id;
+                                                        LedgerCode = i.LedgerCode; 
+                                                        Name = i.Name; 
+                                                        ContainerSize = i.ContainerSize; 
+                                                        CostPerContainer = i.CostPerContainer; 
+                                                        SalesPrice = i.SalesPrice
+                                                    })

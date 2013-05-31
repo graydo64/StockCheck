@@ -1,12 +1,13 @@
-﻿function SalesItemController($scope, $http, $location) {
+﻿function SalesItemController($scope, $http, $routeParams, $window) {
     $scope.loading = true;
     $scope.editMode = false;
 
-    //$locationProvider.html5Mode(true);
-    var qs = $location
-    $http.get('../api/salesitem/').success(function (data) {
+    var id = $routeParams.id;
+    $http.get('../api/salesitem/?Id=' + id).success(function (data) {
         $scope.salesitem = data;
         $scope.loading = false;
+        $scope.idealGPpc = $window.Math.round(10000 * data.IdealGP) / 100;
+        $scope.taxRatepc = $window.Math.round(100 * data.TaxRate);
     })
     .error(function () {
         $scope.error = "An Error has occurred while loading Sales Item."

@@ -1,14 +1,30 @@
 ﻿<div>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
-    <div ng-repeat="period in periods">
-        <strong ng-hide="editMode">{{ period.Name }}</strong>
-        <input ng-show="editMode" type="text" ng-model="period.Name" />
-        <span ng-hide="editMode">{{ period.StartOfPeriod | date }}</span>
-        <span ng-hide="editMode">{{ period.EndOfPeriod | date }}</span>
-    </div>
-    <div ng-show="periods.length > 0">
-        <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
-        <a ng-click="save()" href="javascript:;">Save</a>
-    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Start</th>
+                <th>End</th>
+            </tr>
+        </thead>
+        <tr ng-repeat="period in periods">
+            <td>
+                <strong>{{ period.Name }}</strong>
+            </td>
+            <td>
+                {{ period.StartOfPeriod | date }}
+            </td>
+            <td>
+                {{ period.EndOfPeriod | date }}
+            </td>
+            <td>
+                <a href="#/period/{{ period.Id }}">View</a>
+            </td>
+            <td>
+                <a href="#/period/init-from/{{ period.Id }}">Clone</a>
+            </td>
+        </tr>
+    </table>
 </div>

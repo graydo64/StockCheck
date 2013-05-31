@@ -4,12 +4,19 @@
     <meta charset="utf-8">
     <title>StockCheck</title>
     <link href="Content/Site.css" rel="stylesheet" />
+    <script src="Scripts/jquery-1.6.4.js"></script>
+    <script src="Scripts/jquery-ui-1.8.11.js"></script>
     <script src="Scripts/angular.js"></script>
     <script src="Scripts/angular-resource.js"></script>
     <script src="Scripts/i18n/angular-locale_en-gb.js"></script>
     <script src="Scripts/app.js"></script>
     <script src="Scripts/PeriodsController.js"></script>
+    <script src="Scripts/PeriodController.js"></script>
     <script src="Scripts/SalesItemsController.js"></script>
+    <script src="Scripts/SalesItemController.js"></script>
+    <script>
+        //$.datepicker.setDefaults($.datepicker.regional["en-gb"]);
+    </script>
 </head>
 <body>
 
@@ -19,9 +26,9 @@
             <div class="navbar-inner">
                 <a class="brand" href="#/">StockCheck</a>
                 <ul class="nav">
-                    <li ng-class="{active: routeIs('/')}"><a href="#/">Home</a></li>
-                    <li ng-class="{active: routeIs('/sales-items')}"><a href="#/sales-items">Sales Items</a></li>
-                    <li ng-class="{active: routeIs('/periods')}"><a href="#/periods">Periods</a></li>
+                    <li><a href="#/">Home</a></li>
+                    <li><a href="#/sales-items">Sales Items</a></li>
+                    <li><a href="#/periods">Periods</a></li>
                 </ul>
 
                 <ul class="nav pull-right">

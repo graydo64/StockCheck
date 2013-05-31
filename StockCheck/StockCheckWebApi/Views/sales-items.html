@@ -8,7 +8,7 @@
             <td>{{ salesitem.ContainerSize }}</td>
             <td>{{ salesitem.CostPerContainer | currency }}</td>
             <td>{{ salesitem.SalesPrice | currency }}</td>
-            <td><a href="salesitem.html?name={{ salesitem.Name }}&ledgercode={{ salesitem.LedgerCode }}">View</a></td>
+            <td><a href="#/sales-item/{{ salesitem.Id }}">View</a></td>
         </tr>
     </table>
 </div>

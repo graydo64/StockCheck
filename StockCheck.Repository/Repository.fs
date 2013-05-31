@@ -56,6 +56,7 @@ module internal MapToModel =
 
     let siMap (si : SalesItem) =
         StockCheck.Model.SalesItem ( 
+            Id = si._id.ToString(),
             ContainerSize = si.ContainerSize,
             CostPerContainer = si.CostPerContainer,
             LedgerCode = si.LedgerCode,
@@ -76,6 +77,7 @@ module internal MapToModel =
     let pMap (p : Period) =
         let items = p.Items |> Seq.map piMap
         StockCheck.Model.Period ( 
+            Id = p._id.ToString(),
             Name = p.Name, 
             StartOfPeriod = p.StartOfPeriod, 
             EndOfPeriod = p.EndOfPeriod, 
@@ -94,8 +96,10 @@ type Query(connectionString : string) =
         let value = BsonValue.Create(name)
         collection.FindOne(Query.EQ("Name", value))
 
-    member this.GetModelSalesItem (name : string) (ledgerCode : string) =
-        this.GetSalesItem name ledgerCode |> MapToModel.siMap 
+    member internal this.GetSalesItemById (id : string) =
+        let collection = db |> getMongoCollection<SalesItem> "SalesItem"
+        let value = BsonValue.Create(ObjectId.Parse(id))
+        collection.FindOne(Query.EQ("_id", value))        
 
     member internal this.GetPeriod (name : string) =
         let collection = db |> getMongoCollection<Period> "Period"
@@ -109,6 +113,12 @@ type Query(connectionString : string) =
     member internal this.GetSalesItems =
         let collection = db |> getMongoCollection<SalesItem> "SalesItem"
         collection.FindAll().ToList<SalesItem>()
+
+    member this.GetModelSalesItemById (id : string) =
+        this.GetSalesItemById id |> MapToModel.siMap
+
+    member this.GetModelSalesItem (name : string) (ledgerCode : string) =
+        this.GetSalesItem name ledgerCode |> MapToModel.siMap 
 
     member this.GetModelPeriod period =
         MapToModel.pMap period
@@ -138,7 +148,9 @@ module internal MapFromModel =
 
     let siMap (si : StockCheck.Model.SalesItem) =
         {
-            _id = ObjectId();
+            _id = match si.Id with
+                    | sid when sid = String.Empty -> ObjectId()
+                    | _ -> ObjectId.Parse(si.Id);
             ContainerSize = si.ContainerSize;
             CostPerContainer = si.CostPerContainer;
             LedgerCode = si.LedgerCode;
@@ -151,7 +163,9 @@ module internal MapFromModel =
 
     let pMap (connectionString : string) (p : StockCheck.Model.Period) =
         {
-            _id = ObjectId();
+            _id = match p.Id with
+                    | pid when pid = String.Empty -> ObjectId()
+                    | _ -> ObjectId.Parse(p.Id);
             Name = p.Name;
             StartOfPeriod = p.StartOfPeriod;
             EndOfPeriod = p.EndOfPeriod;
