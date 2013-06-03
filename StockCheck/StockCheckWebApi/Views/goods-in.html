@@ -1,0 +1,10 @@
+﻿<div>
+    <div><input type="text" id="searchFilter" ng-model="filter" ng-change="filterSalesItems()"/><input type="button" id="searchButton" value="Find..." ng-click="filterSalesItems()" /></div>
+    <table>
+        <tr ng-repeat="salesitem in filteredItems | orderBy: ['LedgerCode', 'Name']">
+            <td>{{ salesitem.LedgerCode }}</td>
+            <td>{{ salesitem.Name }}</td>
+            <td>{{ salesitem.ContainerSize }}</td>
+        </tr>
+    </table>
+</div>

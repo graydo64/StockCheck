@@ -23,6 +23,10 @@ angular.module('stockCheck', ['ngResource']).
                 controller: PeriodController,
                 templateUrl: 'Views/period.html'
             }).
+            when('/goods-in/:id', {
+                controller: GoodsInController,
+                templateUrl: 'Views/goods-in.html'
+            }).
             when('/help', {
                 templateUrl: 'Views/help.html'
             });

@@ -152,6 +152,7 @@
     <Content Include="Scripts\angular.js" />
     <Content Include="Scripts\angular.min.js" />
     <Content Include="Scripts\app.js" />
+    <Content Include="Scripts\GoodsInController.js" />
     <Content Include="Scripts\PeriodController.js" />
     <Content Include="Scripts\SalesItemController.js" />
     <Content Include="Scripts\SalesItemsController.js" />
@@ -464,6 +465,7 @@
     <Content Include="Scripts\modernizr-2.0.6-development-only.js" />
     <Content Include="Scripts\modernizr-2.5.3.js" />
     <Content Include="Scripts\PeriodsController.js" />
+    <Content Include="Views\goods-in.html" />
     <Content Include="Views\help.html" />
     <Content Include="Views\period.html" />
     <Content Include="Views\sales-item.html" />
