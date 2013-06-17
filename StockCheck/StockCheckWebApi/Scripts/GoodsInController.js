@@ -3,6 +3,11 @@
     $scope.editMode = false;
     $scope.filter = '';
 
+    $scope.quantity = 0;
+    $scope.receivedDate = (new Date()).toLocaleDateString();
+    $scope.invoicedAmountEx = 0;
+    $scope.invoicedAmountInc = 0;
+
     var periodId = $routeParams.id;
 
     $http.get('../api/salesitems/').success(function (data) {
@@ -22,4 +27,12 @@
         });
     }
     $scope.filterSalesItems = items;
+
+    $scope.toggleRow = function (salesitem) {
+        $scope.active = salesitem;
+    };
+
+    $scope.save = function () {
+        alert("Save me!");
+    }
 }

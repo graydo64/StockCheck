@@ -1,10 +1,35 @@
 ﻿<div>
-    <div><input type="text" id="searchFilter" ng-model="filter" ng-change="filterSalesItems()"/><input type="button" id="searchButton" value="Find..." ng-click="filterSalesItems()" /></div>
+    <div>
+        <input type="text" id="searchFilter" ng-model="filter" ng-change="filterSalesItems()" /><input type="button" id="searchButton" value="Find..." ng-click="filterSalesItems()" />
+    </div>
     <table>
-        <tr ng-repeat="salesitem in filteredItems | orderBy: ['LedgerCode', 'Name']">
+        <tr ng-repeat="salesitem in filteredItems | orderBy: ['LedgerCode', 'Name']"
+            ng-click="toggleRow(salesitem)"
+            ng-class="{active : active.Id == salesitem.Id}">
             <td>{{ salesitem.LedgerCode }}</td>
             <td>{{ salesitem.Name }}</td>
             <td>{{ salesitem.ContainerSize }}</td>
         </tr>
     </table>
+    <div>
+        <div>
+            <label class="goods-in-label">Quantity</label>
+            <input type="text" ng-model="quantity" />
+        </div>
+        <div>
+            <label class="goods-in-label">Date Received</label>
+            <input type="text" ng-model="receivedDate" />
+        </div>
+        <div>
+            <label class="goods-in-label">Invoiced Amount Ex</label>
+            <input type="text" ng-model="invoicedAmountEx" />
+        </div>
+        <div>
+            <label class="goods-in-label">Invoiced Amount Inc</label>
+            <input type="text" ng-model="invoicedAmountInc" />
+        </div>
+        <div>
+            <a ng-click="save()" href="javascript:;">Save</a>
+        </div>
+    </div>
 </div>
