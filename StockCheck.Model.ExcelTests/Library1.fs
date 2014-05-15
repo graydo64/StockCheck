@@ -9,13 +9,21 @@ open StockCheck.Model
 open StockCheck.Repository
 
 let GetSI (range : ExcelRange) =
+    let costPerContainer =
+        match (Seq.nth 5 range).Value with 
+        | null -> "0" 
+        | _ -> (Seq.nth 5 range).Value.ToString()
+    let salesPrice =
+        match (Seq.nth 7 range).Value with 
+        | null -> "0" 
+        | _ -> (Seq.nth 7 range).Value.ToString()
     let salesItem = new StockCheck.Model.SalesItem()
     salesItem.LedgerCode <- (Seq.nth 0 range).Value.ToString()
     salesItem.Name <- (Seq.nth 1 range).Value.ToString()
     salesItem.ContainerSize <- float ((Seq.nth 2 range).Value.ToString())
     salesItem.SalesUnitsPerContainerUnit <- float ((Seq.nth 3 range).Value.ToString())
-    salesItem.CostPerContainer <- decimal ((Seq.nth 5 range).Value.ToString())
-    salesItem.SalesPrice <- decimal ((Seq.nth 7 range).Value.ToString())
+    salesItem.CostPerContainer <- decimal (costPerContainer)
+    salesItem.SalesPrice <- decimal (salesPrice)
     salesItem.TaxRate <- float ((Seq.nth 9 range).Value.ToString())
     salesItem
 
@@ -40,12 +48,12 @@ let items =
     |> List.filter (fun r -> (Seq.nth 1 r).Text.ToString() <> "")
     |> List.map (fun r -> GetSI r)
 
-////let persister = new Persister("mongodb://localhost")
-////
-////let saveSalesItem (i : StockCheck.Model.SalesItem) =
-////    persister.Save(i)
-////
-////let saveOut = items |> List.map (fun i -> saveSalesItem i)
+let persister = new Persister("mongodb://localhost")
+
+let saveSalesItem (i : StockCheck.Model.SalesItem) =
+    persister.Save(i)
+
+let saveOut = items |> List.map (fun i -> saveSalesItem i)
 
 [<Test>]
 [<Ignore>]

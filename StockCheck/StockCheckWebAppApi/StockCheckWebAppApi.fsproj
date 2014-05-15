@@ -107,6 +107,7 @@
     <Compile Include="PeriodsController.fs" />
     <Compile Include="SalesItemsController.fs" />
     <Compile Include="SalesItemController.fs" />
+    <Compile Include="GoodsInController.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\StockCheck.Model\StockCheck.Model.fsproj">

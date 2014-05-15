@@ -12,15 +12,6 @@ open System.Runtime.Serialization
 
 [<CLIMutable>]
 [<DataContract>]
-type ItemReceivedViewModel = {
-    [<DataMember>]Quantity : float
-    [<DataMember>]ReceivedDate : DateTime
-    [<DataMember>]InvoicedAmountEx : decimal
-    [<DataMember>]InvoicedAmountInc : decimal
-}
-
-[<CLIMutable>]
-[<DataContract>]
 type PeriodItemViewModel = {
     [<DataMember>]OpeningStock : float
     [<DataMember>]ClosingStock : float
@@ -87,7 +78,7 @@ type PeriodController() =
             ClosingValueSalesInc = decimal p.ClosingValueSalesInc;
             ClosingValueSalesEx = decimal p.ClosingValueSalesEx;
         }
-                
+               
     member x.Get(id : string, ()) =
         let p = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = id) |> Seq.head
         mapToViewModel p
@@ -104,7 +95,8 @@ type PeriodController() =
         p.StartOfPeriod <- period.StartOfPeriod
         persister.Save(p)
 
-    member x.InitFrom(periodId : string) =
-        let period = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = periodId) |> Seq.head
+    [<HttpGet>]
+    member x.InitFrom(id : string) =
+        let period = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = id) |> Seq.head
         let newp = StockCheck.Model.Period.InitialiseFromClone(period)
         mapToViewModel newp

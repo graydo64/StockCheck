@@ -42,7 +42,7 @@ gui.ReceiveItems (new DateTime(2013, 4, 14)) 1. (decimal 1 * gui.SalesItem.CostP
 gui.ReceiveItems (new DateTime(2013, 4, 28)) 1. (decimal 1 * gui.SalesItem.CostPerContainer) (decimal 0)
 
 let persister = new Persister("mongodb://localhost")
-////persister.Save(period)
+persister.Save(period)
 
 [<Test>]
 [<Ignore>]

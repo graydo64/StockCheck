@@ -4,17 +4,14 @@
     <meta charset="utf-8">
     <title>StockCheck</title>
     <link href="Content/Site.css" rel="stylesheet" />
-    <script src="Scripts/jquery-1.6.4.js"></script>
-    <script src="Scripts/jquery-ui-1.8.11.js"></script>
+    <link href="Content/bootstrap.css" rel="stylesheet" />
     <script src="Scripts/angular.js"></script>
+    <script src="Scripts/angular-route.js"></script>
     <script src="Scripts/angular-resource.js"></script>
+    <script src="Scripts/angular-ui/ui-bootstrap-tpls.js"></script>
     <script src="Scripts/i18n/angular-locale_en-gb.js"></script>
     <script src="Scripts/app.js"></script>
-    <script src="Scripts/PeriodsController.js"></script>
-    <script src="Scripts/PeriodController.js"></script>
-    <script src="Scripts/SalesItemsController.js"></script>
-    <script src="Scripts/SalesItemController.js"></script>
-    <script src="Scripts/GoodsInController.js"></script>
+    <script src="Scripts/Controllers.js"></script>
     <script type="text/javascript">
     </script>
 </head>
@@ -22,22 +19,17 @@
 
     <div class="container">
 
-        <div class="navbar">
-            <div class="navbar-inner">
-                <a class="brand" href="#/">StockCheck</a>
-                <ul class="nav">
-                    <li><a href="#/">Home</a></li>
-                    <li><a href="#/sales-items">Sales Items</a></li>
-                    <li><a href="#/periods">Periods</a></li>
-                </ul>
-
-                <ul class="nav pull-right">
-                    <li ng-class="{active: routeIs('/help')}"><a href="#/help">Help</a></li>
-                </ul>
-            </div>
+        <div class="row">
+            <h1>Stock Check</h1>
         </div>
-
-        <ng-view></ng-view>
+        <div class="row">
+            <div class="col-md-2"><a href="#/">Home</a></div>
+            <div class="col-md-2"><a href="#/sales-items">Sales Items</a></div>
+            <div class="col-md-2"><a href="#/periods">Periods</a></div>
+            <div class="col-md-2"><a href="#/help">Help</a></div>
+        </div>
+        <div class="divider"></div>
+        <div ng-view></div>
     </div>
 </body>
 </html>

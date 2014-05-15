@@ -1,8 +1,20 @@
-﻿<div>
-    <div>
-        <input type="text" id="searchFilter" ng-model="filter" ng-change="filterSalesItems()" /><input type="button" id="searchButton" value="Find..." ng-click="filterSalesItems()" />
+﻿<script type="text/ng-template" id="customSalesItemTemplate.html">
+    <a>
+        <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
+    </a>
+</script>
+<div>
+    <div class="row">
+        <input type="text"
+               ng-model="filter"
+               placeholder="Sales Item"
+               typeahead="salesItem.Value for salesItem in getSalesItem($viewValue)"
+               typeahead-loading="loadingSalesItems"
+               typeahead-template-url="customSalesItemTemplate.html"
+               typeahead-on-select="onSelect($item, $model, $label)"
+               class="form-control" />
     </div>
-    <table>
+    <table class="table table-striped">
         <tr ng-repeat="salesitem in filteredItems | orderBy: ['LedgerCode', 'Name']"
             ng-click="toggleRow(salesitem)"
             ng-class="{active : active.Id == salesitem.Id}">
@@ -12,24 +24,36 @@
         </tr>
     </table>
     <div>
-        <div>
-            <label class="goods-in-label">Quantity</label>
-            <input type="text" ng-model="quantity" />
+        <div class="row">
+            <label class="col-sm-6 control-label">Quantity</label>
+            <input type="text" class="form-control" ng-model="quantity" />
         </div>
-        <div>
-            <label class="goods-in-label">Date Received</label>
-            <input type="text" ng-model="receivedDate" />
+        <div class="row">
+            <label class="col-sm-6 control-label">Date Received</label>
+            <p class="input-group">
+                <input type="text" 
+                       class="form-control" 
+                       ng-model="receivedDate" 
+                       datepicker-popup="{{format}}"
+                       is-open="opened"
+                       datepicker-options="dateOptions"
+                       ng-required="true"
+                       close-text="Close" />
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+            </p>
         </div>
-        <div>
-            <label class="goods-in-label">Invoiced Amount Ex</label>
-            <input type="text" ng-model="invoicedAmountEx" />
+        <div class="row">
+            <label class="col-sm-6 control-label">Invoiced Amount Ex</label>
+            <input type="text" class="form-control" ng-model="invoicedAmountEx" />
         </div>
-        <div>
-            <label class="goods-in-label">Invoiced Amount Inc</label>
-            <input type="text" ng-model="invoicedAmountInc" />
+        <div class="row">
+            <label class="col-sm-6 control-label">Invoiced Amount Inc</label>
+            <input type="text" class="form-control" ng-model="invoicedAmountInc" />
         </div>
-        <div>
-            <a ng-click="save()" href="javascript:;">Save</a>
+        <div class="row">
+            <button class="btn btn-default" ng-click="save()">Save</button>
         </div>
     </div>
 </div>

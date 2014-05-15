@@ -1,27 +1,59 @@
 ﻿<div>
-    <script type="text/javascript">
-        $(function () {
-            $("#datepicker").datepicker();
-        });
-    </script>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
-    <div>
-        <label>Name</label>
-        <strong ng-hide="editMode">{{ period.Name }}</strong>
-        <input ng-show="editMode" type="text" ng-model="period.Name" />
+    <div class="row">
+        <div class="col-md-4">
+            <label class="col-sm-6 control-label">Name</label>
+            <strong ng-hide="editMode">{{ period.Name }}</strong>
+            <p class="input-group">
+                <input ng-show="editMode"
+                       class="form-control"
+                       type="text"
+                       ng-model="period.Name" />
+            </p>
+        </div>
     </div>
-    <div>
-        <label>Start Date</label>
-        <strong ng-hide="editMode">{{ period.StartOfPeriod | date }}</strong>
-        <input ng-show="editMode" type="text" ng-model="period.StartOfPeriod" id="datepicker" />
+    <div class="row">
+        <div class="col-md-4">
+            <label class="col-sm-6 control-label">Start Date</label>
+            <strong ng-hide="editMode">{{ period.StartOfPeriod | date }}</strong>
+            <p class="input-group">
+                <input ng-show="editMode"
+                       class="form-control"
+                       type="text"
+                       ng-model="period.StartOfPeriod"
+                       datepicker-popup="{{format}}"
+                       is-open="openedStart"
+                       datepicker-options="dateOptions"
+                       ng-required="true"
+                       close-text="Close" />
+                <span class="input-group-btn" ng-show="editMode">
+                    <button type="button" class="btn btn-default" ng-click="openStart($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+            </p>
+        </div>
     </div>
-    <div>
-        <label>End Date</label>
-        <strong ng-hide="editMode">{{ period.EndOfPeriod | date }}</strong>
-        <input ng-show="editMode" type="date" ng-model="period.EndOfPeriod" />
+    <div class="row">
+        <div class="col-md-4">
+            <label class="col-sm-6 control-label">End Date</label>
+            <strong ng-hide="editMode">{{ period.EndOfPeriod | date }}</strong>
+            <p class="input-group">
+                <input ng-show="editMode"
+                       class="form-control"
+                       type="text"
+                       ng-model="period.EndOfPeriod"
+                       datepicker-popup="{{format}}"
+                       is-open="openedEnd"
+                       datepicker-options="dateOptions"
+                       ng-required="true"
+                       close-text="Close" />
+                <span class="input-group-btn" ng-show="editMode">
+                    <button type="button" class="btn btn-default" ng-click="openEnd($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                </span>
+            </p>
+        </div>
     </div>
-    <table>
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Ledger Code</th>
@@ -39,9 +71,15 @@
             <td>{{ item.ClosingStock }}</td>
         </tr>
     </table>
-    <div>
-        <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
-        <a ng-click="save()" href="javascript:;">Save</a>
-        <a href="#/goods-in/{{ period.Id}}">Goods In</a>
+    <div class="row">
+        <div class="col-md-2">
+            <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
+        </div>
+        <div class="col-md-2">
+            <a ng-show="editMode" ng-click="save()" href="javascript:;">Save</a>
+        </div>
+        <div class="col-md-2">
+            <a href="#/goods-in/{{ period.Id}}">Goods In</a>
+        </div>
     </div>
 </div>

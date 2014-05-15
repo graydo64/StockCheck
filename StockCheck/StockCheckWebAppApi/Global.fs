@@ -48,12 +48,13 @@ type Global() =
 
     static member RegisterRoutes(routes:RouteCollection) =
         routes.IgnoreRoute( "{resource}.axd/{*pathInfo}" )
-//        routes.MapHttpRoute( "PeriodInit", "api/{controller}/{action}/{id}",
-//            { controller = "Period"; action = "InitFrom"; id = UrlParameter.Optional } ) |> ignore
+        routes.MapHttpRoute( "WithoutId", "api/period", {controller = "Period"; action = "Put"; id = UrlParameter.Optional} ) |>ignore
+        routes.MapHttpRoute( "WithInitAction", "api/period/init-from/{id}", {controller = "Period"; action = "InitFrom"; id = UrlParameter.Optional} ) |>ignore
+        routes.MapHttpRoute( "WithoutAction", "api/period/{id}", {controller = "Period"; action = "Get"; id = UrlParameter.Optional} ) |>ignore
         routes.MapHttpRoute( "DefaultApi", "api/{controller}/{id}", 
             { id = RouteParameter.Optional } ) |> ignore
-        routes.MapRoute("Default", "{controller}/{action}/{id}", 
-            { controller = "Home"; action = "Index"; id = UrlParameter.Optional } ) |> ignore
+//        routes.MapRoute("Default", "{controller}/{action}/{id}", 
+//            { controller = "Home"; action = "Index"; id = UrlParameter.Optional } ) |> ignore
 
     member this.Start() =
         AreaRegistration.RegisterAllAreas()

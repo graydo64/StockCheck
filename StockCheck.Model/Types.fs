@@ -38,10 +38,12 @@ type SalesItem() =
     member this.IdealGP = Utils.GrossProfit this.SalesPrice this.CostPerUnitOfSale
 
 type ItemReceived() =
+    member val Id = String.Empty with get, set
     member val Quantity = 0. with get, set
     member val ReceivedDate = DateTime.MinValue with get, set
     member val InvoicedAmountEx = decimal 0 with get, set
     member val InvoicedAmountInc = decimal 0 with get, set
+    member val Reference = String.Empty with get, set
 
 type PeriodItem(salesItem : SalesItem) = 
     let itemsReceived = List<ItemReceived>()
@@ -51,16 +53,18 @@ type PeriodItem(salesItem : SalesItem) =
     member val ClosingStock = 0. with get, set
     member val SalesItem = salesItem
     member this.ItemsReceived = itemsReceived;
-    member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
+    member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc reference =
             let item = ItemReceived()
             item.Quantity <- quantity
             item.ReceivedDate <- receivedDate
             item.InvoicedAmountEx <- invoiceAmountEx
             item.InvoicedAmountInc <- invoiceAmountInc
+            item.Reference <- reference
             this.ItemsReceived.Add(item)
     member this.CopyForNextPeriod () =
             let periodItem = PeriodItem (salesItem)
             periodItem.OpeningStock <- this.ClosingStock
+            periodItem.ClosingStock <- 0.
             periodItem
     member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun i -> i.Quantity)
     member this.TotalUnits = this.ContainersReceived * salesItem.ContainerSize
@@ -90,18 +94,23 @@ type Period() =
     member val ClosingValueCostEx = decimal 0 with get
     member val ClosingValueSalesInc = 0 with get
     member val ClosingValueSalesEx = 0 with get
+    static member private CloseToStart (item: PeriodItem) =
+            item.OpeningStock <- item.ClosingStock
+            item.ClosingStock <- 0.
     static member private InitialiseFrom (source: Period) =
             let period = Period()
             period.StartOfPeriod <- source.EndOfPeriod.AddDays(1.)
+            period.EndOfPeriod <- period.StartOfPeriod
             period
     static member InitialiseFromClone source =
             let period = Period.InitialiseFrom source
-            period.Items.AddRange(source.Items)
+            period.Items.AddRange(source.Items |> Seq.map(fun i -> i.CopyForNextPeriod()))
             period
     static member InitialiseWithoutZeroCarriedItems source =
             let period = Period.InitialiseFrom source
             let items = source.Items |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.)
             period.Items.AddRange(items)
+            period.Items |> Seq.iter (fun i -> Period.CloseToStart i)
             period
 
 

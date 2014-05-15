@@ -1,7 +1,16 @@
 ﻿<div>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
-    <table>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Ledger Code</th>
+                <th>Name</th>
+                <th>Container Size</th>
+                <th>Cost/Container</th>
+                <th>Sales Price</th>
+            </tr>
+        </thead>
         <tr ng-repeat="salesitem in salesitems | orderBy: ['LedgerCode', 'Name']">
             <td>{{ salesitem.LedgerCode }}</td>
             <td>{{ salesitem.Name }}</td>

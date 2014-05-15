@@ -24,6 +24,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheckWebAppApi", "Stoc
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheckWebAppTests", "StockCheck\StockCheckWebAppTests\StockCheckWebAppTests.fsproj", "{25102AF8-150F-4BA6-B519-E3FD5A70FC2C}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheckWebAppApi2", "StockCheckWebAppApi2\StockCheckWebAppApi2.fsproj", "{0B7FB550-7C87-4F01-83DB-EC47A1316A03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{25102AF8-150F-4BA6-B519-E3FD5A70FC2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25102AF8-150F-4BA6-B519-E3FD5A70FC2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25102AF8-150F-4BA6-B519-E3FD5A70FC2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B7FB550-7C87-4F01-83DB-EC47A1316A03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B7FB550-7C87-4F01-83DB-EC47A1316A03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B7FB550-7C87-4F01-83DB-EC47A1316A03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B7FB550-7C87-4F01-83DB-EC47A1316A03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

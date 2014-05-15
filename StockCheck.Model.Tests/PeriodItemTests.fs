@@ -59,7 +59,7 @@ type ``Given that goods have been received`` () as this =
     let salesItem = piSetup.InitialiseDraughtSalesItem
     let periodItem = new PeriodItem(salesItem)
     do
-        periodItem.ReceiveItems itemReceived.ReceivedDate itemReceived.Quantity itemReceived.InvoicedAmountEx itemReceived.InvoicedAmountInc
+        periodItem.ReceiveItems itemReceived.ReceivedDate itemReceived.Quantity itemReceived.InvoicedAmountEx itemReceived.InvoicedAmountInc itemReceived.Reference
 
     [<Test>] member x.
         ``The goods are added to the items received collection`` () =
@@ -78,6 +78,10 @@ type ``Given that a PeriodItem is being copied for the next period`` () as this 
     [<Test>] member x.
         ``The opening stock of the new item matches the closing stock of the source item`` () =
             periodItem2.OpeningStock |> should equal periodItem1.ClosingStock
+
+    [<Test>] member x.
+        ``The closing stock of the new item is zero`` () =
+            periodItem2.ClosingStock |> should equal (0.)
             
     [<Test>] member x.
         ``The SalesItem of the new PeriodItem matches the source SalesItem`` () =

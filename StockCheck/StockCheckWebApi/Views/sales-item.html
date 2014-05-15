@@ -1,61 +1,61 @@
 ﻿<div>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
-    <div>
-        <label>Ledger Code</label>
-        <strong ng-hide="editMode">{{ salesitem.LedgerCode }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.LedgerCode" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Ledger Code</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.LedgerCode }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.LedgerCode" />
     </div>
-    <div>
-        <label>Product Name</label>
-        <strong ng-hide="editMode">{{ salesitem.Name }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.Name" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Product Name</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.Name }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.Name" />
     </div>
-    <div>
-        <label>Container Size</label>
-        <strong ng-hide="editMode">{{ salesitem.ContainerSize }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.ContainerSize" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Container Size</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.ContainerSize }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.ContainerSize" />
     </div>
-    <div>
-        <label>Units per Container</label>
-        <strong ng-hide="editMode">{{ salesitem.SalesUnitsPerContainerUnit }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.SalesUnitsPerContainerUnit" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Units per Container</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.SalesUnitsPerContainerUnit }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.SalesUnitsPerContainerUnit" />
     </div>
-    <div>
-        <label>Cost per Container</label>
-        <strong ng-hide="editMode">{{ salesitem.CostPerContainer | currency }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.CostPerContainer" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Cost per Container</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.CostPerContainer | currency }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.CostPerContainer" />
     </div>
-    <div>
-        <label>Cost per Unit</label>
-        <strong>{{ salesitem.CostPerUnitOfSale | currency }}</strong>
+    <div class="row">
+        <label class="col-sm-2 control-label">Cost per Unit</label>
+        <strong class="col-md-6">{{ salesitem.CostPerUnitOfSale | currency }}</strong>
     </div>
-    <div>
-        <label>Sales Price</label>
-        <strong ng-hide="editMode">{{ salesitem.SalesPrice | currency }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.SalesPrice" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Sales Price</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.SalesPrice | currency }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.SalesPrice" />
     </div>
-    <div>
-        <label>Mark Up</label>
-        <strong>{{ salesitem.MarkUp | currency }}</strong>
+    <div class="row">
+        <label class="col-sm-2 control-label">Mark Up</label>
+        <strong class="col-md-6">{{ salesitem.MarkUp | currency }}</strong>
     </div>
-    <div>
-        <label>Ideal GP</label>
-        <strong>{{ idealGPpc }}%</strong>
+    <div class="row">
+        <label class="col-sm-2 control-label">Ideal GP</label>
+        <strong class="col-md-6">{{ idealGPpc }}%</strong>
     </div>
-    <div>
-        <label>Tax Rate</label>
-        <strong ng-hide="editMode">{{ taxRatepc }}%</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.TaxRate" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Tax Rate</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ taxRatepc }}%</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="taxRatepc" />
     </div>
-    <div>
-        <label>Ullage per Container</label>
-        <strong ng-hide="editMode">{{ salesitem.UllagePerContainer }}</strong>
-        <input ng-show="editMode" type="text" ng-model="salesitem.UllagePerContainer" />
+    <div class="row">
+        <label class="col-sm-2 control-label">Ullage per Container</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.UllagePerContainer }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.UllagePerContainer" />
     </div>
 
-    <div>
-        <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
-        <a ng-click="save()" href="javascript:;">Save</a>
+    <div class="row">
+        <div class="col-md-2"><a ng-click="toggleEdit()" href="javascript:;">Edit</a></div>
+        <div class="col-md-2"><a ng-click="save()" href="javascript:;" ng-show="editMode">Save</a></div>  
     </div>
 </div>
