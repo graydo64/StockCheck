@@ -1,0 +1,111 @@
+﻿<script type="text/ng-template" id="customSalesItemTemplate.html">
+    <a>
+        <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
+    </a>
+</script>
+<form name="invoiceForm" ng-controller="InvoiceController" ng-submit="submitAll()" novalidate>
+    <div>
+        <div class="row">
+            <div class="col-md-4">
+                <label class="col-sm-6 control-label">Invoice Number</label>
+                <p class="input-group">
+                    <input type="text" class="form-control" ng-model="invoice.InvoiceNumber" />
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label class="col-sm-6 control-label">Supplier</label>
+                <p class="input-group">
+                    <input type="text" class="form-control" ng-model="invoice.Supplier" />
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label class="col-sm-6 control-label">Invoice Date</label>
+                <p class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           ng-model="invoice.InvoiceDate"
+                           datepicker-popup="{{format}}"
+                           is-open="openedInvoiceDate"
+                           datepicker-options="dateOptions"
+                           ng-required="true"
+                           close-text="Close" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="openInvoiceDate($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <label class="col-sm-6 control-label">Delivery Date</label>
+                <p class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           ng-model="invoice.DeliveryDate"
+                           datepicker-popup="{{format}}"
+                           is-open="openedDeliveryDate"
+                           datepicker-options="dateOptions"
+                           ng-required="true"
+                           close-text="Close" />
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="openDeliveryDate($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                    </span>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <!--<input type="search" ng-model="query" placeholder="filter sales items..." />-->
+            <!--<ul>
+                <li ng-repeat="line in invoice.InvoiceLines">
+                    {{line.Supplier}} , {{line.DeliveryDate}}
+                </li>
+            </ul>-->
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>LineId</th>
+                        <th>ItemId</th>
+                        <th>Sales Item</th>
+                        <th>Quantity</th>
+                        <th>Amount Ex</th>
+                        <th>Amount Inc</th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="line in invoice.InvoiceLines" ng-form="subForm" ng-controller="InvoiceLineController">
+                    <td>
+                        {{ line.Id }}
+                    </td>
+                    <td>
+                        {{ line.SalesItemId }}
+                    </td>
+                    <td>
+                        <input type="text"
+                               ng-model="filter"
+                               placeholder="Sales Item"
+                               typeahead="salesItem.Value for salesItem in getSalesItem($viewValue)"
+                               typeahead-loading="loadingSalesItems"
+                               typeahead-template-url="customSalesItemTemplate.html"
+                               typeahead-on-select="onSelect($item, $model, $label)"
+                               class="form-control" />
+                    </td>
+                    <td class="col-sm-1">
+                        <input class="form-control" type="text" required name="name" ng-model="line.Quantity" />
+                    </td>
+                    <td class="col-sm-1">
+                        <input class="form-control" type="text" required name="name" ng-model="line.InvoicedAmountEx" />
+                    </td>
+                    <td class="col-sm-1">
+                        <input class="form-control" type="text" required name="name" ng-model="line.InvoicedAmountInc" />
+                    </td>
+                    <td>
+                        <a ng-click="newLine()" href="javascript:;">New</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</form>

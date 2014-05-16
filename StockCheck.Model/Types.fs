@@ -113,4 +113,17 @@ type Period() =
             period.Items |> Seq.iter (fun i -> Period.CloseToStart i)
             period
 
+type InvoiceLine(salesItem : SalesItem) =
+    member val Id = String.Empty with get, set
+    member val SalesItem = salesItem with get, set
+    member val Quantity = 0. with get, set
+    member val InvoicedAmountEx = decimal 0. with get, set
+    member val InvoicedAmountInc = decimal 0. with get, set
 
+type Invoice() =
+    member val Id = String.Empty with get, set
+    member val Supplier = String.Empty with get, set
+    member val InvoiceNumber = String.Empty with get, set
+    member val InvoiceDate = DateTime.MinValue with get, set
+    member val DeliveryDate = DateTime.MinValue with get, set
+    member val InvoiceLines = List<InvoiceLine>() with get, set

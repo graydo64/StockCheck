@@ -78,11 +78,13 @@ type PeriodController() =
             ClosingValueSalesInc = decimal p.ClosingValueSalesInc;
             ClosingValueSalesEx = decimal p.ClosingValueSalesEx;
         }
-               
+           
+    [<Route("api/period/{id}")>]    
     member x.Get(id : string, ()) =
         let p = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = id) |> Seq.head
         mapToViewModel p
 
+    [<Route("api/period")>]    
     member x.Put(period : PeriodViewModel) =
         let persister = new StockCheck.Repository.Persister("mongodb://localhost")
 
@@ -96,6 +98,7 @@ type PeriodController() =
         persister.Save(p)
 
     [<HttpGet>]
+    [<Route("api/period/init-from/{id}")>]
     member x.InitFrom(id : string) =
         let period = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = id) |> Seq.head
         let newp = StockCheck.Model.Period.InitialiseFromClone(period)

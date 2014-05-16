@@ -203,3 +203,71 @@ function GoodsInController($scope, $http, $routeParams) {
 
     $scope.dateOptions = globalDateOptions;
 }]);
+
+stockCheckControllers.controller('InvoiceLineController', ['$scope',
+function InvoiceLineController($scope) {
+    $scope.onSelect = function ($item, $model, $label) {
+        $scope.line.SalesItemId = $item.Key;
+    }
+
+    $scope.getSalesItem = function (val) {
+        var values = $scope.Views.filter(function (salesItem) {
+            return (salesItem.Value.toLowerCase().indexOf(val.toLowerCase()) > -1)
+        });
+        return values;
+    };
+}]);
+
+stockCheckControllers.controller('InvoiceController', ['$scope', '$http', '$routeParams',
+function InvoiceController($scope, $http, $routeParams) {
+
+    $scope.loading = true;
+
+    $http.get('../api/invoice/').success(function (data) {
+        $scope.invoice = data;
+        $scope.loading = false;
+    })
+    .error(function () {
+        $scope.error = "An Error has occurred while loading the Invoice."
+        $scope.loading = false;
+    });
+
+    $http.get('../api/salesitems/').success(function (data) {
+        $scope.salesItems = data;
+        $scope.loading = false;
+        $scope.Views = [];
+        for (var item in data) {
+            var salesItem = data[item];
+            $scope.Views.push({
+                Key: salesItem.Id,
+                Value: salesItem.LedgerCode + ", " + salesItem.Name + " (" + salesItem.ContainerSize + ")"
+            })
+        }
+    })
+    .error(function () {
+        $scope.error = "An Error has occurred while loading the Sales Item list."
+        $scope.loading = false;
+    });
+
+    $scope.openInvoiceDate = function ($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        $scope.openedInvoiceDate = true;
+    };
+
+    $scope.openDeliveryDate = function ($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        $scope.openedDeliveryDate = true;
+    };
+
+    $scope.dateOptions = globalDateOptions;
+
+    $scope.submitAll = function () {
+        alert("Sumbit All");
+    };
+
+    $scope.newLine = function () {
+        $scope.invoice.InvoiceLines.push({});
+    }
+}]);

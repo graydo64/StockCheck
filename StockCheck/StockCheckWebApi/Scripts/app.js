@@ -28,6 +28,10 @@ stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConf
                     controller: 'GoodsInController',
                     templateUrl: 'Views/goods-in.html'
                 }).
+                when('/invoice', {
+                    controller: 'InvoiceController',
+                    templateUrl: 'Views/invoice.html'
+                }).
                 when('/help', {
                     templateUrl: 'Views/help.html'
                 }).
