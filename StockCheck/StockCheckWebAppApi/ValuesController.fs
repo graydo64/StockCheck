@@ -4,17 +4,31 @@ open System.Web
 open System.Web.Mvc
 open System.Net.Http
 open System.Web.Http
+open System.Runtime.Serialization
+
+[<CLIMutable>]
+[<DataContract>]
+type SupplierView =
+    { [<DataMember>] Id : string
+      [<DataMember>] Name : string }
 
 type ValuesController() =
     inherit ApiController()
+    let repo = new StockCheck.Repository.Query("mongodb://localhost")
+    let persister = new StockCheck.Repository.Persister("mongodb://localhost")
 
-    // GET /api/values
-    member x.Get() = [| "value1"; "value2" |] |> Array.toSeq
-    // GET /api/values/5
-    member x.Get (id:int) = "value"
-    // POST /api/values
-    member x.Post ([<FromBody>] value:string) = ()
-    // PUT /api/values/5
-    member x.Put (id:int) ([<FromBody>] value:string) = ()
-    // DELETE /api/values/5
-    member x.Delete (id:int) = ()
+    let supMap (s : StockCheck.Model.Supplier) =
+        { SupplierView.Id = s.Id
+          Name = s.Name }
+
+    [<Route("api/suppliers")>]
+    member x.Get() =
+        let suppliers = repo.GetModelSuppliers
+        suppliers |> Seq.map supMap
+
+    [<Route("api/supplier")>]
+    member x.Put(supplier : SupplierView) =
+        let modelSupplier = StockCheck.Model.Supplier()
+        modelSupplier.Id <- supplier.Id
+        modelSupplier.Name <- supplier.Name
+        persister.Save modelSupplier

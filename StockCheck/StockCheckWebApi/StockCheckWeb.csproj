@@ -447,6 +447,7 @@
     <Content Include="Views\help.html" />
     <Content Include="Views\invoice.html" />
     <Content Include="Views\period.html" />
+    <Content Include="Views\invoices.html" />
     <Content Include="Views\sales-item.html" />
     <Content Include="Views\periods.html" />
     <Content Include="Views\sales-items.html" />

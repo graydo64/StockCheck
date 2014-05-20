@@ -59,7 +59,7 @@ type ``Given that goods have been received`` () as this =
     let salesItem = piSetup.InitialiseDraughtSalesItem
     let periodItem = new PeriodItem(salesItem)
     do
-        periodItem.ReceiveItems itemReceived.ReceivedDate itemReceived.Quantity itemReceived.InvoicedAmountEx itemReceived.InvoicedAmountInc itemReceived.Reference
+        periodItem.ReceiveItems itemReceived.ReceivedDate itemReceived.Quantity itemReceived.InvoicedAmountEx itemReceived.InvoicedAmountInc
 
     [<Test>] member x.
         ``The goods are added to the items received collection`` () =

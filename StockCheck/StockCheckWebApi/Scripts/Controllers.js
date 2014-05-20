@@ -61,6 +61,8 @@ function PeriodController($scope, $http, $routeParams, $location) {
     };
 
     $scope.dateOptions = globalDateOptions;
+
+    $scope.predicate = ["SalesItemLedgerCode", "SalesItemName"]
 }]);
 
 stockCheckControllers.controller('PeriodsController', ['$scope', '$http',
@@ -142,6 +144,8 @@ function SalesItemsController($scope, $http) {
         $scope.error = "An Error has occurred while loading Sales Items."
         $scope.loading = false;
     });
+
+    $scope.predicate = ["LedgerCode", "Name", "ContainerSize"]
 }]);
 
 stockCheckControllers.controller('GoodsInController', ['$scope', '$http', '$routeParams',
@@ -206,6 +210,18 @@ function GoodsInController($scope, $http, $routeParams) {
 
 stockCheckControllers.controller('InvoiceLineController', ['$scope',
 function InvoiceLineController($scope) {
+
+    $scope.setSalesItem = function () {
+        if ($scope.line.SalesItemId != "") {
+            for (var i in $scope.Views) {
+                var si = $scope.Views[i]
+                if (si.Key === $scope.line.SalesItemId) {
+                    $scope.filter = si.Value;
+                }
+            }
+        }
+    }
+
     $scope.onSelect = function ($item, $model, $label) {
         $scope.line.SalesItemId = $item.Key;
     }
@@ -216,21 +232,33 @@ function InvoiceLineController($scope) {
         });
         return values;
     };
+
+    $scope.checkQuantity = function(){
+        if($scope.line.Quantity === "0"){
+            $scope.line.InvoicedAmountEx = 0;
+        }
+    }
 }]);
 
 stockCheckControllers.controller('InvoiceController', ['$scope', '$http', '$routeParams',
 function InvoiceController($scope, $http, $routeParams) {
 
     $scope.loading = true;
+    var id = $routeParams.id;
 
-    $http.get('../api/invoice/').success(function (data) {
-        $scope.invoice = data;
-        $scope.loading = false;
-    })
-    .error(function () {
-        $scope.error = "An Error has occurred while loading the Invoice."
-        $scope.loading = false;
-    });
+    if (id === "0") {
+        $scope.invoice = { InvoiceLines: [{InvoicedAmountEx: 0, InvoicedAmountInc: 0}]};
+    }
+    else {
+        $http.get('../api/invoice/' + id).success(function (data) {
+            $scope.invoice = data;
+            $scope.loading = false;
+        })
+        .error(function () {
+            $scope.error = "An Error has occurred while loading the Invoice."
+            $scope.loading = false;
+        });
+    }
 
     $http.get('../api/salesitems/').success(function (data) {
         $scope.salesItems = data;
@@ -242,10 +270,20 @@ function InvoiceController($scope, $http, $routeParams) {
                 Key: salesItem.Id,
                 Value: salesItem.LedgerCode + ", " + salesItem.Name + " (" + salesItem.ContainerSize + ")"
             })
-        }
+        };
+        $scope.setSalesItem();
     })
     .error(function () {
         $scope.error = "An Error has occurred while loading the Sales Item list."
+        $scope.loading = false;
+    });
+
+    $http.get('../api/suppliers/').success(function (data) {
+        $scope.suppliers = data;
+        $scope.loading = false;
+    })
+    .error(function () {
+        $scope.error = "An Error has occurred while loading the Suppliers list."
         $scope.loading = false;
     });
 
@@ -264,10 +302,45 @@ function InvoiceController($scope, $http, $routeParams) {
     $scope.dateOptions = globalDateOptions;
 
     $scope.submitAll = function () {
-        alert("Sumbit All");
+        var newSupplier = true;
+        for (var i in $scope.suppliers) {
+            if ($scope.invoice.Supplier === $scope.suppliers[i].Name) {
+                newSupplier = false;
+            }
+        }
+
+        if (newSupplier) {
+            $http.put('../api/supplier/', {Name : $scope.invoice.Supplier}).success(function (data) {
+            }).error(function (data) {
+                $scope.error = "An error occurred while saving the Sales Item." + data;
+                $scope.loading = false;
+            });
+        }
+
+        $http.put('../api/invoice/', $scope.invoice).success(function (data) {
+            alert("Saved Successfully");
+        }).error(function (data) {
+            $scope.error = "An error occurred while saving the Sales Item." + data;
+            $scope.loading = false;
+        });
     };
 
     $scope.newLine = function () {
-        $scope.invoice.InvoiceLines.push({});
+        $scope.invoice.InvoiceLines.push({InvoicedAmountEx : 0, InvoicedAmountInc : 0});
     }
+}]);
+
+stockCheckControllers.controller('InvoicesController', ['$scope', '$http',
+function InvoicesController($scope, $http) {
+    $scope.loading = true;
+    $scope.editMode = false;
+
+    $http.get('../api/invoices/').success(function (data) {
+        $scope.invoices = data;
+        $scope.loading = false;
+    })
+    .error(function () {
+        $scope.error = "An Error has occurred while loading Invoices."
+        $scope.loading = false;
+    });
 }]);

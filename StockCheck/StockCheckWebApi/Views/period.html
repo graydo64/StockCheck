@@ -1,4 +1,4 @@
-﻿<div>
+﻿<form name="periodForm" ng-controller="PeriodController" ng-submit="submitAll()" novalidate>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
     <div class="row">
@@ -58,17 +58,29 @@
             <tr>
                 <th>Ledger Code</th>
                 <th>Product</th>
+                <th>Container</th>
                 <th>Opening</th>
                 <th>Received</th>
                 <th>Closing</th>
+                <th>Sales Qty</th>
             </tr>
         </thead>
-        <tr ng-repeat="item in period.Items">
+        <tr ng-repeat="item in period.Items | orderBy:predicate" ng-form="subForm">
             <td>{{ item.SalesItemLedgerCode }}</td>
             <td>{{ item.SalesItemName }}</td>
-            <td>{{ item.OpeningStock }}</td>
+            <td>{{ item.Container }}</td>
+            <td class="col-sm-1">
+                <span ng-hide="editMode">{{ item.OpeningStock }}</span>
+                <input ng-show="editMode" class="form-control" type="number" required name="openingStock" ng-model="item.OpeningStock" />
+                <span class="alert" ng-show="subForm.openingStock.$error.number">Must be numeric!</span>
+            </td>
             <td>{{ item.ItemsReceived }}</td>
-            <td>{{ item.ClosingStock }}</td>
+            <td class="col-sm-1">
+                <span ng-hide="editMode">{{ item.ClosingStock }}</span>
+                <input ng-show="editMode" class="form-control" type="number" required name="closingStock" ng-model="item.ClosingStock" />
+                <span class="alert" ng-show="subForm.closingStock.$error.number">Must be numeric!</span>
+            </td>
+            <td>{{ item.SalesQty }}</td>
         </tr>
     </table>
     <div class="row">
@@ -82,4 +94,4 @@
             <a href="#/goods-in/{{ period.Id}}">Goods In</a>
         </div>
     </div>
-</div>
+</form>

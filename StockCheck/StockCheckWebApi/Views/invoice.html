@@ -17,7 +17,11 @@
             <div class="col-md-4">
                 <label class="col-sm-6 control-label">Supplier</label>
                 <p class="input-group">
-                    <input type="text" class="form-control" ng-model="invoice.Supplier" />
+                    <input type="text"
+                           ng-model="invoice.Supplier"
+                           placeholder="Supplier..."
+                           typeahead="supplier.Name for supplier in suppliers | filter:invoice.Supplier"
+                           class="form-control" />
                 </p>
             </div>
         </div>
@@ -67,8 +71,8 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>LineId</th>
-                        <th>ItemId</th>
+                        <th class="hidden">LineId</th>
+                        <th>Sales Item Id</th>
                         <th>Sales Item</th>
                         <th>Quantity</th>
                         <th>Amount Ex</th>
@@ -76,7 +80,7 @@
                     </tr>
                 </thead>
                 <tr ng-repeat="line in invoice.InvoiceLines" ng-form="subForm" ng-controller="InvoiceLineController">
-                    <td>
+                    <td class="hidden">
                         {{ line.Id }}
                     </td>
                     <td>
@@ -84,7 +88,7 @@
                     </td>
                     <td>
                         <input type="text"
-                               ng-model="filter"
+                               ng-model="line.SalesItemDescription"
                                placeholder="Sales Item"
                                typeahead="salesItem.Value for salesItem in getSalesItem($viewValue)"
                                typeahead-loading="loadingSalesItems"
@@ -93,13 +97,15 @@
                                class="form-control" />
                     </td>
                     <td class="col-sm-1">
-                        <input class="form-control" type="text" required name="name" ng-model="line.Quantity" />
+                        <input class="form-control" type="number" required name="quantity" ng-model="line.Quantity" ng-change="checkQuantity()" required />
+                        <span class="alert" ng-show="subForm.quantity.$error.number">Nan</span>
+                        <span class="alert" ng-show="subForm.quantity.$error.required">Required</span>
                     </td>
                     <td class="col-sm-1">
-                        <input class="form-control" type="text" required name="name" ng-model="line.InvoicedAmountEx" />
+                        <input class="form-control" type="number" required name="amountEx" ng-model="line.InvoicedAmountEx" />
                     </td>
                     <td class="col-sm-1">
-                        <input class="form-control" type="text" required name="name" ng-model="line.InvoicedAmountInc" />
+                        <input class="form-control" type="number" required name="amountInc" ng-model="line.InvoicedAmountInc" />
                     </td>
                     <td>
                         <a ng-click="newLine()" href="javascript:;">New</a>
@@ -107,5 +113,6 @@
                 </tr>
             </table>
         </div>
+        <div><button ng-disabled="invoiceForm.$invalid" class="btn btn-primary" type="submit" id="submitButton">Submit</button></div>
     </div>
 </form>

@@ -1,23 +1,31 @@
 ﻿<div>
-    <strong class="error">{{ error }}</strong>
-    <strong ng-show="loading">loading...</strong>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Ledger Code</th>
-                <th>Name</th>
-                <th>Container Size</th>
-                <th>Cost/Container</th>
-                <th>Sales Price</th>
+    <div class="divider"></div>
+    <div class="row">
+        <strong class="error">{{ error }}</strong>
+        <strong ng-show="loading">loading...</strong>
+    </div>
+    <div class="row">
+        <input class="form-control" ng-model="searchText" placeholder="filter..." />
+    </div>
+    <div class="row">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Ledger Code</th>
+                    <th>Name</th>
+                    <th>Container Size</th>
+                    <th>Cost/Container</th>
+                    <th>Sales Price</th>
+                </tr>
+            </thead>
+            <tr ng-repeat="salesitem in salesitems | filter:searchText | orderBy:predicate">
+                <td>{{ salesitem.LedgerCode }}</td>
+                <td>{{ salesitem.Name }}</td>
+                <td>{{ salesitem.ContainerSize }}</td>
+                <td>{{ salesitem.CostPerContainer | currency }}</td>
+                <td>{{ salesitem.SalesPrice | currency }}</td>
+                <td><a href="#/sales-item/{{ salesitem.Id }}">View</a></td>
             </tr>
-        </thead>
-        <tr ng-repeat="salesitem in salesitems | orderBy: ['LedgerCode', 'Name']">
-            <td>{{ salesitem.LedgerCode }}</td>
-            <td>{{ salesitem.Name }}</td>
-            <td>{{ salesitem.ContainerSize }}</td>
-            <td>{{ salesitem.CostPerContainer | currency }}</td>
-            <td>{{ salesitem.SalesPrice | currency }}</td>
-            <td><a href="#/sales-item/{{ salesitem.Id }}">View</a></td>
-        </tr>
-    </table>
+        </table>
+    </div>
 </div>

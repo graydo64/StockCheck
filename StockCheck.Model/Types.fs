@@ -43,7 +43,6 @@ type ItemReceived() =
     member val ReceivedDate = DateTime.MinValue with get, set
     member val InvoicedAmountEx = decimal 0 with get, set
     member val InvoicedAmountInc = decimal 0 with get, set
-    member val Reference = String.Empty with get, set
 
 type PeriodItem(salesItem : SalesItem) = 
     let itemsReceived = List<ItemReceived>()
@@ -53,13 +52,12 @@ type PeriodItem(salesItem : SalesItem) =
     member val ClosingStock = 0. with get, set
     member val SalesItem = salesItem
     member this.ItemsReceived = itemsReceived;
-    member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc reference =
+    member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
             let item = ItemReceived()
             item.Quantity <- quantity
             item.ReceivedDate <- receivedDate
             item.InvoicedAmountEx <- invoiceAmountEx
             item.InvoicedAmountInc <- invoiceAmountInc
-            item.Reference <- reference
             this.ItemsReceived.Add(item)
     member this.CopyForNextPeriod () =
             let periodItem = PeriodItem (salesItem)
@@ -127,3 +125,7 @@ type Invoice() =
     member val InvoiceDate = DateTime.MinValue with get, set
     member val DeliveryDate = DateTime.MinValue with get, set
     member val InvoiceLines = List<InvoiceLine>() with get, set
+
+type Supplier() =
+    member val Id = String.Empty with get, set
+    member val Name = String.Empty with get, set

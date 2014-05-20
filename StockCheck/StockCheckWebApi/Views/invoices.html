@@ -1,0 +1,39 @@
+﻿<div>
+    <strong class="error">{{ error }}</strong>
+    <strong ng-show="loading">loading...</strong>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Supplier</th>
+                <th>Invoice Date</th>
+                <th>Delivery Date</th>
+                <th>Total Ex</th>
+            </tr>
+        </thead>
+        <tr ng-repeat="invoice in invoices">
+            <td>
+                {{ invoice.InvoiceNumber }}
+            </td>
+            <td>
+                {{ invoice.Supplier }}
+            </td>
+            <td>
+                {{ invoice.InvoiceDate | date }}
+            </td>
+            <td>
+                {{ invoice.DeliveryDate | date }}
+            </td>
+            <td>
+                {{ invoice.TotalEx | currency }}
+            </td>
+            <td>
+                <a href="#/invoice/{{ invoice.Id }}">View</a>
+            </td>
+
+        </tr>
+    </table>
+    <div class="row">
+        <a href="#/invoice/0">New</a>
+    </div>
+</div>
