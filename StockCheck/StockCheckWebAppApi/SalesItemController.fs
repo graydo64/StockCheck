@@ -59,7 +59,8 @@ type SalesItemController() =
           IdealGP = i.IdealGP }
     
     member x.Put(salesItem : SalesItemView) = 
-        let i = repo.GetModelSalesItem salesItem.Name salesItem.LedgerCode
+        let i = StockCheck.Model.SalesItem()
+        i.Id <- salesItem.Id
         i.ContainerSize <- salesItem.ContainerSize
         i.CostPerContainer <- salesItem.CostPerContainer
         i.LedgerCode <- salesItem.LedgerCode

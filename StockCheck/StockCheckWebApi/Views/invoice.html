@@ -3,13 +3,13 @@
         <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
     </a>
 </script>
-<form name="invoiceForm" ng-controller="InvoiceController" ng-submit="submitAll()" novalidate>
+<form name="invoiceForm" ng-submit="submitAll()" ng-controller="InvoiceController" novalidate>
     <div>
         <div class="row">
             <div class="col-md-4">
                 <label class="col-sm-6 control-label">Invoice Number</label>
                 <p class="input-group">
-                    <input type="text" class="form-control" ng-model="invoice.InvoiceNumber" />
+                    <input type="text" class="form-control" ng-model="invoice.invoiceNumber" />
                 </p>
             </div>
         </div>
@@ -18,10 +18,11 @@
                 <label class="col-sm-6 control-label">Supplier</label>
                 <p class="input-group">
                     <input type="text"
-                           ng-model="invoice.Supplier"
+                           ng-model="invoice.supplier"
                            placeholder="Supplier..."
-                           typeahead="supplier.Name for supplier in suppliers | filter:invoice.Supplier"
-                           class="form-control" />
+                           typeahead="supplier.name for supplier in suppliers | filter:invoice.supplier"
+                           class="form-control"
+                           required />
                 </p>
             </div>
         </div>
@@ -31,7 +32,7 @@
                 <p class="input-group">
                     <input type="text"
                            class="form-control"
-                           ng-model="invoice.InvoiceDate"
+                           ng-model="invoice.invoiceDate"
                            datepicker-popup="{{format}}"
                            is-open="openedInvoiceDate"
                            datepicker-options="dateOptions"
@@ -49,7 +50,7 @@
                 <p class="input-group">
                     <input type="text"
                            class="form-control"
-                           ng-model="invoice.DeliveryDate"
+                           ng-model="invoice.deliveryDate"
                            datepicker-popup="{{format}}"
                            is-open="openedDeliveryDate"
                            datepicker-options="dateOptions"
@@ -62,12 +63,6 @@
             </div>
         </div>
         <div class="row">
-            <!--<input type="search" ng-model="query" placeholder="filter sales items..." />-->
-            <!--<ul>
-                <li ng-repeat="line in invoice.InvoiceLines">
-                    {{line.Supplier}} , {{line.DeliveryDate}}
-                </li>
-            </ul>-->
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -79,33 +74,33 @@
                         <th>Amount Inc</th>
                     </tr>
                 </thead>
-                <tr ng-repeat="line in invoice.InvoiceLines" ng-form="subForm" ng-controller="InvoiceLineController">
+                <tr ng-repeat="line in invoice.invoiceLines" ng-form="subForm" ng-controller="InvoiceLineController">
                     <td class="hidden">
-                        {{ line.Id }}
+                        {{ line.id }}
                     </td>
                     <td>
-                        {{ line.SalesItemId }}
+                        {{ line.salesItemId }}
                     </td>
                     <td>
                         <input type="text"
-                               ng-model="line.SalesItemDescription"
+                               ng-model="line.salesItemDescription"
                                placeholder="Sales Item"
                                typeahead="salesItem.Value for salesItem in getSalesItem($viewValue)"
                                typeahead-loading="loadingSalesItems"
                                typeahead-template-url="customSalesItemTemplate.html"
                                typeahead-on-select="onSelect($item, $model, $label)"
-                               class="form-control" />
+                               class="form-control" 
+                               focus-me
+                               required />
                     </td>
                     <td class="col-sm-1">
-                        <input class="form-control" type="number" required name="quantity" ng-model="line.Quantity" ng-change="checkQuantity()" required />
-                        <span class="alert" ng-show="subForm.quantity.$error.number">Nan</span>
-                        <span class="alert" ng-show="subForm.quantity.$error.required">Required</span>
+                        <input class="form-control" type="number" required name="quantity" ng-model="line.quantity" ng-change="checkQuantity()" required />
                     </td>
                     <td class="col-sm-1">
-                        <input class="form-control" type="number" required name="amountEx" ng-model="line.InvoicedAmountEx" />
+                        <input class="form-control" type="number" required name="amountEx" ng-model="line.invoicedAmountEx" />
                     </td>
                     <td class="col-sm-1">
-                        <input class="form-control" type="number" required name="amountInc" ng-model="line.InvoicedAmountInc" />
+                        <input class="form-control" type="number" required name="amountInc" ng-model="line.invoicedAmountInc" />
                     </td>
                     <td>
                         <a ng-click="newLine()" href="javascript:;">New</a>

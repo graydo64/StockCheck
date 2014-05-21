@@ -13,22 +13,22 @@
         </thead>
         <tr ng-repeat="invoice in invoices">
             <td>
-                {{ invoice.InvoiceNumber }}
+                {{ invoice.invoiceNumber }}
             </td>
             <td>
-                {{ invoice.Supplier }}
+                {{ invoice.supplier }}
             </td>
             <td>
-                {{ invoice.InvoiceDate | date }}
+                {{ invoice.invoiceDate | date }}
             </td>
             <td>
-                {{ invoice.DeliveryDate | date }}
+                {{ invoice.deliveryDate | date }}
             </td>
             <td>
-                {{ invoice.TotalEx | currency }}
+                {{ invoice.totalEx | currency }}
             </td>
             <td>
-                <a href="#/invoice/{{ invoice.Id }}">View</a>
+                <a href="#/invoice/{{ invoice.id }}">View</a>
             </td>
 
         </tr>

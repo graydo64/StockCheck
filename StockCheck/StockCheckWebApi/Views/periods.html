@@ -11,19 +11,19 @@
         </thead>
         <tr ng-repeat="period in periods">
             <td>
-                <strong>{{ period.Name }}</strong>
+                <strong>{{ period.name }}</strong>
             </td>
             <td>
-                {{ period.StartOfPeriod | date }}
+                {{ period.startOfPeriod | date }}
             </td>
             <td>
-                {{ period.EndOfPeriod | date }}
+                {{ period.endOfPeriod | date }}
             </td>
             <td>
-                <a href="#/period/{{ period.Id }}">View</a>
+                <a href="#/period/{{ period.id }}">View</a>
             </td>
             <td>
-                <a href="#/period/init-from/{{ period.Id }}">Clone</a>
+                <a href="#/period/init-from/{{ period.id }}">Clone</a>
             </td>
         </tr>
     </table>

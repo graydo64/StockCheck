@@ -24,10 +24,6 @@ stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConf
                     controller: 'PeriodController',
                     templateUrl: 'Views/period.html'
                 }).
-                when('/goods-in/:id', {
-                    controller: 'GoodsInController',
-                    templateUrl: 'Views/goods-in.html'
-                }).
                 when('/invoices', {
                     controller: 'InvoicesController',
                     templateUrl: 'Views/invoices.html'
@@ -47,3 +43,12 @@ stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConf
 
             datepickerPopupConfig.datepickerPopup = "dd/MM/yyyy";
         }]);
+
+stockCheckApp.directive('focusMe', function () {
+    return {
+        link: function (scope, element, attrs) {
+            element[0].focus();
+        }
+    };
+
+});

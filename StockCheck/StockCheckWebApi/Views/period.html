@@ -1,27 +1,32 @@
-﻿<form name="periodForm" ng-controller="PeriodController" ng-submit="submitAll()" novalidate>
+﻿<script type="text/ng-template" id="customSalesItemTemplate.html">
+    <a>
+        <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
+    </a>
+</script>
+<form name="periodForm" ng-submit="submitAll()" novalidate ng-controller="PeriodController">
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
     <div class="row">
         <div class="col-md-4">
             <label class="col-sm-6 control-label">Name</label>
-            <strong ng-hide="editMode">{{ period.Name }}</strong>
+            <strong ng-hide="editMode">{{ period.name }}</strong>
             <p class="input-group">
                 <input ng-show="editMode"
                        class="form-control"
                        type="text"
-                       ng-model="period.Name" />
+                       ng-model="period.name" />
             </p>
         </div>
     </div>
     <div class="row">
         <div class="col-md-4">
             <label class="col-sm-6 control-label">Start Date</label>
-            <strong ng-hide="editMode">{{ period.StartOfPeriod | date }}</strong>
+            <strong ng-hide="editMode">{{ period.startOfPeriod | date }}</strong>
             <p class="input-group">
                 <input ng-show="editMode"
                        class="form-control"
                        type="text"
-                       ng-model="period.StartOfPeriod"
+                       ng-model="period.startOfPeriod"
                        datepicker-popup="{{format}}"
                        is-open="openedStart"
                        datepicker-options="dateOptions"
@@ -36,12 +41,12 @@
     <div class="row">
         <div class="col-md-4">
             <label class="col-sm-6 control-label">End Date</label>
-            <strong ng-hide="editMode">{{ period.EndOfPeriod | date }}</strong>
+            <strong ng-hide="editMode">{{ period.endOfPeriod | date }}</strong>
             <p class="input-group">
                 <input ng-show="editMode"
                        class="form-control"
                        type="text"
-                       ng-model="period.EndOfPeriod"
+                       ng-model="period.endOfPeriod"
                        datepicker-popup="{{format}}"
                        is-open="openedEnd"
                        datepicker-options="dateOptions"
@@ -65,22 +70,33 @@
                 <th>Sales Qty</th>
             </tr>
         </thead>
-        <tr ng-repeat="item in period.Items | orderBy:predicate" ng-form="subForm">
-            <td>{{ item.SalesItemLedgerCode }}</td>
-            <td>{{ item.SalesItemName }}</td>
-            <td>{{ item.Container }}</td>
+        <tr ng-repeat="item in period.items | orderBy:predicate" ng-form="subForm" ng-controller="PeriodItemController">
+            <td ng-hide="editMode">{{ item.salesItemLedgerCode }}</td>
+            <td ng-hide="editMode">{{ item.salesItemName }}</td>
+            <td ng-hide="editMode">{{ item.container }}</td>
+            <td colspan="3" ng-show="editMode">
+                <input type="text"
+                       ng-model="salesItemDescription"
+                       placeholder="Sales Item"
+                       typeahead="salesItem.Value for salesItem in salesItemsViews | filter:salesItemDescription"
+                       typeahead-loading="loadingSalesItems"
+                       typeahead-template-url="customSalesItemTemplate.html"
+                       typeahead-on-select="onSelect($item, $model, $label)"
+                       class="form-control"
+                       required />
+            </td>
             <td class="col-sm-1">
-                <span ng-hide="editMode">{{ item.OpeningStock }}</span>
-                <input ng-show="editMode" class="form-control" type="number" required name="openingStock" ng-model="item.OpeningStock" />
+                <span ng-hide="editMode">{{ item.openingStock }}</span>
+                <input ng-show="editMode" class="form-control" type="number" required name="openingStock" ng-model="item.openingStock" />
                 <span class="alert" ng-show="subForm.openingStock.$error.number">Must be numeric!</span>
             </td>
-            <td>{{ item.ItemsReceived }}</td>
+            <td>{{ item.itemsReceived }}</td>
             <td class="col-sm-1">
-                <span ng-hide="editMode">{{ item.ClosingStock }}</span>
-                <input ng-show="editMode" class="form-control" type="number" required name="closingStock" ng-model="item.ClosingStock" />
+                <span ng-hide="editMode">{{ item.closingStock }}</span>
+                <input ng-show="editMode" class="form-control" type="number" required name="closingStock" ng-model="item.closingStock" />
                 <span class="alert" ng-show="subForm.closingStock.$error.number">Must be numeric!</span>
             </td>
-            <td>{{ item.SalesQty }}</td>
+            <td>{{ item.salesQty }}</td>
         </tr>
     </table>
     <div class="row">
@@ -88,10 +104,10 @@
             <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
         </div>
         <div class="col-md-2">
-            <a ng-show="editMode" ng-click="save()" href="javascript:;">Save</a>
-        </div>
+            <a ng-show="editMode" ng-click="toggleNewMode()" href="javascript:;">New</a>
+        </div>        
         <div class="col-md-2">
-            <a href="#/goods-in/{{ period.Id}}">Goods In</a>
+            <a ng-show="editMode" ng-click="save()" href="javascript:;">Save</a>
         </div>
     </div>
 </form>

@@ -18,9 +18,9 @@
         <tr ng-repeat="salesitem in filteredItems | orderBy: ['LedgerCode', 'Name']"
             ng-click="toggleRow(salesitem)"
             ng-class="{active : active.Id == salesitem.Id}">
-            <td>{{ salesitem.LedgerCode }}</td>
-            <td>{{ salesitem.Name }}</td>
-            <td>{{ salesitem.ContainerSize }}</td>
+            <td>{{ salesitem.ledgerCode }}</td>
+            <td>{{ salesitem.name }}</td>
+            <td>{{ salesitem.containerSize }}</td>
         </tr>
     </table>
     <div>

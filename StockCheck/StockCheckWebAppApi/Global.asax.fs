@@ -22,6 +22,7 @@ type Global() =
             { controller = "{controller}"; id = RouteParameter.Optional } // Parameter defaults
         ) |> ignore
         // Additional Web API settings
+        config.Formatters.JsonFormatter.SerializerSettings.ContractResolver <- Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
 
     member x.Application_Start() =
         GlobalConfiguration.Configure(Action<_> Global.RegisterWebApi)

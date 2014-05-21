@@ -5,10 +5,55 @@
 
 var stockCheckControllers = angular.module('stockCheckControllers', []);
 
+stockCheckControllers.controller('PeriodItemController', ['$scope',
+function PeriodItemController($scope) {
+
+    var views = $scope.$parent.getSalesItemsViews();
+    for (var i in views) {
+        var salesItem = views[i];
+        if (salesItem.Key === $scope.item.salesItemId) {
+            $scope.salesItemDescription = salesItem.Value;
+            break;
+        }
+    }
+
+    $scope.onSelect = function ($item, $model, $label) {
+        var views = $scope.getSalesItems();
+        for (var i in views) {
+            var si = views[i];
+            if (si.id === $item.Key) {
+                $scope.item.salesItemId = si.id;
+                $scope.item.salesItemName = si.name;
+                $scope.item.salesItemLedgerCode = si.ledgerCode;
+                $scope.item.container = si.containerSize;
+                break;
+            }
+        }
+    }
+}]);
+
 stockCheckControllers.controller('PeriodController', ['$scope', '$http', '$routeParams', '$location',
 function PeriodController($scope, $http, $routeParams, $location) {
     $scope.loading = true;
     $scope.editMode = false;
+
+    $http.get('../api/salesitems/').success(function (data) {
+        $scope.salesItems = data;
+        $scope.loading = false;
+
+        $scope.salesItemsViews = [];
+        for (var item in data) {
+            var salesItem = data[item];
+            $scope.salesItemsViews.push({
+                Key: salesItem.id,
+                Value: salesItem.ledgerCode + ", " + salesItem.name + " (" + salesItem.containerSize + ")"
+            })
+        }
+    })
+    .error(function () {
+        $scope.error = "An Error has occurred while loading the Sales Item list."
+        $scope.loading = false;
+    });
 
     var id = $routeParams.id;
     if ($routeParams.action === 'init-from') {
@@ -35,13 +80,23 @@ function PeriodController($scope, $http, $routeParams, $location) {
         });
     }
 
+    $scope.getItemCount = function () {
+        return $scope.period.items.length;
+    }
     $scope.toggleEdit = function () {
         $scope.editMode = !$scope.editMode;
+        if (!$scope.editMode) {
+            $scope.predicate = basePredicate;
+        }
+        else {
+            $scope.predicate = [];
+        }
     };
 
     $scope.save = function () {
         $http.put('../api/period/', $scope.period).success(function (data) {
             alert("Saved Successfully");
+            $scope.predicate = basePredicate;
         }).error(function (data) {
             $scope.error = "An error occurred while saving the Period." + data;
             $scope.loading = false;
@@ -62,7 +117,21 @@ function PeriodController($scope, $http, $routeParams, $location) {
 
     $scope.dateOptions = globalDateOptions;
 
-    $scope.predicate = ["SalesItemLedgerCode", "SalesItemName"]
+    var basePredicate = ["salesItemLedgerCode", "salesItemName"]
+    $scope.predicate = basePredicate;
+
+    $scope.toggleNewMode = function () {
+        $scope.period.items.push({ openingStock: 0, closingStock: 0, itemsReceived: 0, salesQty: 0 });
+        $scope.newMode = !$scope.newMode;
+    }
+
+    $scope.getSalesItems = function () {
+        return $scope.salesItems;
+    }
+
+    $scope.getSalesItemsViews = function () {
+        return $scope.salesItemsViews;
+    }
 }]);
 
 stockCheckControllers.controller('PeriodsController', ['$scope', '$http',
@@ -99,11 +168,11 @@ function SalesItemController($scope, $http, $routeParams, $window) {
     $scope.editMode = false;
 
     $scope.updateSalesItem = function (id) {
-        $http.get('../api/salesitem/?Id=' + id).success(function (data) {
+        $http.get('../api/salesitem/?id=' + id).success(function (data) {
             $scope.salesitem = data;
             $scope.loading = false;
-            $scope.idealGPpc = $window.Math.round(10000 * data.IdealGP) / 100;
-            $scope.taxRatepc = $window.Math.round(100 * data.TaxRate);
+            $scope.idealGPpc = $window.Math.round(10000 * data.idealGP) / 100;
+            $scope.taxRatepc = $window.Math.round(100 * data.taxRate);
         })
         .error(function () {
             $scope.error = "An Error has occurred while loading Sales Item."
@@ -120,10 +189,10 @@ function SalesItemController($scope, $http, $routeParams, $window) {
     };
 
     $scope.save = function () {
-        $scope.salesitem.TaxRate = $scope.taxRatepc / 100;
+        $scope.salesitem.taxRate = $scope.taxRatepc / 100;
         $http.put('../api/salesitem/', $scope.salesitem).success(function (data) {
             alert("Saved Successfully");
-            $scope.updateSalesItem($scope.salesitem.Id);
+            $scope.updateSalesItem($scope.salesitem.id);
         }).error(function (data) {
             $scope.error = "An error occurred while saving the Sales Item." + data;
             $scope.loading = false;
@@ -148,74 +217,14 @@ function SalesItemsController($scope, $http) {
     $scope.predicate = ["LedgerCode", "Name", "ContainerSize"]
 }]);
 
-stockCheckControllers.controller('GoodsInController', ['$scope', '$http', '$routeParams',
-function GoodsInController($scope, $http, $routeParams) {
-    $scope.loading = true;
-    $scope.editMode = false;
-    $scope.filter = '';
-
-    $scope.quantity = 0;
-    $scope.receivedDate = (new Date()).toLocaleDateString();
-    $scope.invoicedAmountEx = 0;
-    $scope.invoicedAmountInc = 0;
-    $scope.selectedId = "";
-
-    var periodId = $routeParams.id;
-
-    $http.get('../api/salesitems/').success(function (data) {
-        $scope.salesItems = data;
-        $scope.loading = false;
-
-        $scope.Views = [];
-        for (var item in data) {
-            var salesItem = data[item];
-            $scope.Views.push({
-                Key: salesItem.Id,
-                Value: salesItem.LedgerCode + ", " + salesItem.Name + " (" + salesItem.ContainerSize + ")"
-            })
-        }
-    })
-    .error(function () {
-        $scope.error = "An Error has occurred while loading the Sales Item list."
-        $scope.loading = false;
-    });
-
-    $scope.getSalesItem = function (val) {
-        var values = $scope.Views.filter(function (salesItem) {
-            return (salesItem.Value.toLowerCase().indexOf(val.toLowerCase()) > -1)
-        });
-        return values;
-    };
-
-    $scope.onSelect = function ($item, $model, $label) {
-        $scope.selectedId = $item.Key;
-    }
-
-    $scope.toggleRow = function (salesitem) {
-        $scope.active = salesitem;
-    };
-
-    $scope.save = function () {
-        alert("Save me!");
-    }
-
-    $scope.open = function ($event) {
-        $event.preventDefault();
-        $event.stopPropagation();
-        $scope.opened = true;
-    };
-
-    $scope.dateOptions = globalDateOptions;
-}]);
-
 stockCheckControllers.controller('InvoiceLineController', ['$scope',
 function InvoiceLineController($scope) {
 
     $scope.setSalesItem = function () {
-        if ($scope.line.SalesItemId != "") {
-            for (var i in $scope.Views) {
-                var si = $scope.Views[i]
-                if (si.Key === $scope.line.SalesItemId) {
+        if ($scope.line.salesItemId != "") {
+            for (var i in $scope.salesItemsViews) {
+                var si = $scope.salesItemsViews[i]
+                if (si.Key === $scope.line.salesItemId) {
                     $scope.filter = si.Value;
                 }
             }
@@ -223,19 +232,19 @@ function InvoiceLineController($scope) {
     }
 
     $scope.onSelect = function ($item, $model, $label) {
-        $scope.line.SalesItemId = $item.Key;
+        $scope.line.salesItemId = $item.Key;
     }
 
     $scope.getSalesItem = function (val) {
-        var values = $scope.Views.filter(function (salesItem) {
+        var values = $scope.salesItemsViews.filter(function (salesItem) {
             return (salesItem.Value.toLowerCase().indexOf(val.toLowerCase()) > -1)
         });
         return values;
     };
 
     $scope.checkQuantity = function(){
-        if($scope.line.Quantity === "0"){
-            $scope.line.InvoicedAmountEx = 0;
+        if($scope.line.quantity === "0"){
+            $scope.line.invoicedAmountEx = 0;
         }
     }
 }]);
@@ -247,7 +256,7 @@ function InvoiceController($scope, $http, $routeParams) {
     var id = $routeParams.id;
 
     if (id === "0") {
-        $scope.invoice = { InvoiceLines: [{InvoicedAmountEx: 0, InvoicedAmountInc: 0}]};
+        $scope.invoice = { invoiceLines: [{invoicedAmountEx: 0, invoicedAmountInc: 0}]};
     }
     else {
         $http.get('../api/invoice/' + id).success(function (data) {
@@ -263,14 +272,15 @@ function InvoiceController($scope, $http, $routeParams) {
     $http.get('../api/salesitems/').success(function (data) {
         $scope.salesItems = data;
         $scope.loading = false;
-        $scope.Views = [];
+
+        $scope.salesItemsViews = [];
         for (var item in data) {
             var salesItem = data[item];
-            $scope.Views.push({
-                Key: salesItem.Id,
-                Value: salesItem.LedgerCode + ", " + salesItem.Name + " (" + salesItem.ContainerSize + ")"
+            $scope.salesItemsViews.push({
+                Key: salesItem.id,
+                Value: salesItem.ledgerCode + ", " + salesItem.name + " (" + salesItem.containerSize + ")"
             })
-        };
+        }
         $scope.setSalesItem();
     })
     .error(function () {
@@ -304,13 +314,13 @@ function InvoiceController($scope, $http, $routeParams) {
     $scope.submitAll = function () {
         var newSupplier = true;
         for (var i in $scope.suppliers) {
-            if ($scope.invoice.Supplier === $scope.suppliers[i].Name) {
+            if ($scope.invoice.Supplier === $scope.suppliers[i].name) {
                 newSupplier = false;
             }
         }
 
         if (newSupplier) {
-            $http.put('../api/supplier/', {Name : $scope.invoice.Supplier}).success(function (data) {
+            $http.put('../api/supplier/', {name : $scope.invoice.supplier}).success(function (data) {
             }).error(function (data) {
                 $scope.error = "An error occurred while saving the Sales Item." + data;
                 $scope.loading = false;
@@ -326,7 +336,7 @@ function InvoiceController($scope, $http, $routeParams) {
     };
 
     $scope.newLine = function () {
-        $scope.invoice.InvoiceLines.push({InvoicedAmountEx : 0, InvoicedAmountInc : 0});
+        $scope.invoice.invoiceLines.push({invoicedAmountEx : 0, invoicedAmountInc : 0});
     }
 }]);
 

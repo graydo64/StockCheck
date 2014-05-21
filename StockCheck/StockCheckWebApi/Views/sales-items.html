@@ -19,12 +19,12 @@
                 </tr>
             </thead>
             <tr ng-repeat="salesitem in salesitems | filter:searchText | orderBy:predicate">
-                <td>{{ salesitem.LedgerCode }}</td>
-                <td>{{ salesitem.Name }}</td>
-                <td>{{ salesitem.ContainerSize }}</td>
-                <td>{{ salesitem.CostPerContainer | currency }}</td>
-                <td>{{ salesitem.SalesPrice | currency }}</td>
-                <td><a href="#/sales-item/{{ salesitem.Id }}">View</a></td>
+                <td>{{ salesitem.ledgerCode }}</td>
+                <td>{{ salesitem.name }}</td>
+                <td>{{ salesitem.containerSize }}</td>
+                <td>{{ salesitem.costPerContainer | currency }}</td>
+                <td>{{ salesitem.salesPrice | currency }}</td>
+                <td><a href="#/sales-item/{{ salesitem.id }}">View</a></td>
             </tr>
         </table>
     </div>

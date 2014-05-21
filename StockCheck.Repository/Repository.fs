@@ -169,24 +169,13 @@ type Query(connectionString : string) =
                  Query.LTE("DeliveryDate", BsonValue.Create(endDate)))
         collection.Find(query).ToList<Invoice>()
     
-    member this.GetModelSalesItemById(id : string) = this.GetSalesItemById id |> MapToModel.siMap
-    member this.GetModelSalesItem (name : string) (ledgerCode : string) = 
-        this.GetSalesItem name ledgerCode |> MapToModel.siMap
-    member this.GetModelPeriod period = MapToModel.pMap period
+    member this.GetModelSalesItemById id = this.GetSalesItemById id |> MapToModel.siMap
     
     member this.GetModelPeriodById id = 
         let p = this.GetPeriod id
         let invoices = this.GetInvoicesByDateRange p.StartOfPeriod p.EndOfPeriod
-        let project (dt : DateTime) (il : InvoiceLine seq) = il |> Seq.map (fun i -> getItemReceived dt i)
-        let getItemsReceived (invoice : Invoice) = project invoice.DeliveryDate invoice.InvoiceLines
-        
-        let res = 
-            seq { 
-                for invoice in invoices do
-                    yield! getItemsReceived invoice
-            }
-        
-        let modelPeriod = MapToModel.pMap p
+        let projectAsItemReceived dt il = il |> Seq.map (fun i -> getItemReceived dt i)
+        let itemsReceived = invoices |> Seq.collect(fun i -> projectAsItemReceived i.DeliveryDate i.InvoiceLines)
         
         let getPeriodItem (salesItem : SalesItem) = 
             let items = p.Items.Where(fun i -> i.SalesItem._id = salesItem._id)
@@ -198,27 +187,29 @@ type Query(connectionString : string) =
                   ClosingStock = 0.
                   ItemsReceived = [] }
         
-        let salesItemsList = 
-            invoices
-            |> Seq.collect (fun i -> i.InvoiceLines |> Seq.map (fun il -> il.SalesItem))
-            |> Seq.distinct
-        
-        let periodItems = salesItemsList |> Seq.map getPeriodItem
+        let invoicePeriodItems = 
+                invoices
+                |> Seq.collect (fun i -> i.InvoiceLines |> Seq.map (fun il -> il.SalesItem))
+                |> Seq.distinct
+                |> Seq.map getPeriodItem
+
+        let periodItems = Seq.concat [invoicePeriodItems; p.Items] |> Seq.distinct
+
+        let modelPeriod = MapToModel.pMap p
         modelPeriod.Items.Clear()
         modelPeriod.Items.AddRange(periodItems |> Seq.map MapToModel.piMap)
-        let collectInvoiceLines (salesItemId : string) = res.Where(fun r -> r.SalesItemId = ObjectId.Parse(salesItemId))
         modelPeriod.Items
         |> Seq.iter (fun mpi -> 
-               collectInvoiceLines mpi.SalesItem.Id
+               itemsReceived.Where(fun r -> r.SalesItemId = ObjectId.Parse(mpi.SalesItem.Id))
                |> Seq.iter 
                       (fun ir -> mpi.ReceiveItems ir.ReceivedDate ir.Quantity ir.InvoicedAmountEx ir.InvoicedAmountInc)
                |> ignore)
         |> ignore
         modelPeriod
     
-    member this.GetModelPeriods = this.GetPeriods |> Seq.map this.GetModelPeriod
+    member this.GetModelPeriods = this.GetPeriods |> Seq.map MapToModel.pMap
     member this.GetModelSalesItems = this.GetSalesItems |> Seq.map getModelSalesItem
-    member this.GetModelInvoice(id : string) = this.GetInvoice id |> MapToModel.iMap
+    member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
     member this.GetModelInvoices = this.GetInvoices |> Seq.map MapToModel.iMap
     member this.GetModelSuppliers = this.GetSuppliers |> Seq.map MapToModel.supMap
 
