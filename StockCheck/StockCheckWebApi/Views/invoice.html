@@ -3,7 +3,7 @@
         <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
     </a>
 </script>
-<form name="invoiceForm" ng-submit="submitAll()" ng-controller="InvoiceController" novalidate>
+<form name="invoiceForm" ng-submit="submitAll()" novalidate>
     <div>
         <div class="row">
             <div class="col-md-4">
@@ -67,7 +67,7 @@
                 <thead>
                     <tr>
                         <th class="hidden">LineId</th>
-                        <th>Sales Item Id</th>
+                        <th class="hidden">Sales Item Id</th>
                         <th>Sales Item</th>
                         <th>Quantity</th>
                         <th>Amount Ex</th>
@@ -78,7 +78,7 @@
                     <td class="hidden">
                         {{ line.id }}
                     </td>
-                    <td>
+                    <td class="hidden">
                         {{ line.salesItemId }}
                     </td>
                     <td>

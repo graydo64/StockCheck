@@ -3,7 +3,7 @@
         <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
     </a>
 </script>
-<form name="periodForm" ng-submit="submitAll()" novalidate ng-controller="PeriodController">
+<form name="periodForm" ng-submit="submitAll()" novalidate>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
     <div class="row">
