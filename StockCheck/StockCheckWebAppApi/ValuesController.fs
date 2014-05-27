@@ -14,8 +14,8 @@ type SupplierView =
 
 type ValuesController() =
     inherit ApiController()
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
-    let persister = new StockCheck.Repository.Persister("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
+    let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
 
     let supMap (s : StockCheck.Model.Supplier) =
         { SupplierView.Id = s.Id

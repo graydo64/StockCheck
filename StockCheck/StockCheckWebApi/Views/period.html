@@ -4,6 +4,7 @@
     </a>
 </script>
 <form name="periodForm" ng-submit="submitAll()" novalidate>
+    <h2>Period View</h2>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
     <div class="row">
@@ -58,6 +59,9 @@
             </p>
         </div>
     </div>
+    <div class="row">
+        <input class="form-control" ng-model="searchText" placeholder="filter..." />
+    </div>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -70,7 +74,7 @@
                 <th>Sales Qty</th>
             </tr>
         </thead>
-        <tr ng-repeat="item in period.items | orderBy:predicate" ng-form="subForm" ng-controller="PeriodItemController">
+        <tr ng-repeat="item in period.items | filter:searchText | orderBy:predicate" ng-form="subForm" ng-controller="PeriodItemController">
             <td ng-hide="editMode">{{ item.salesItemLedgerCode }}</td>
             <td ng-hide="editMode">{{ item.salesItemName }}</td>
             <td ng-hide="editMode">{{ item.container }}</td>

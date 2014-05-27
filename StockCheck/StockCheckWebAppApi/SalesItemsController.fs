@@ -23,7 +23,7 @@ type SalesItemsViewModel = {
 type SalesItemsController() =
     inherit ApiController()
 
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
 
     member x.Get() =
         repo.GetModelSalesItems |> Seq.map (fun i -> {

@@ -48,12 +48,12 @@ let items =
     |> List.filter (fun r -> (Seq.nth 1 r).Text.ToString() <> "")
     |> List.map (fun r -> GetSI r)
 
-let persister = new Persister("mongodb://localhost")
+//let persister = new Persister("mongodb://localhost")
+//
+//let saveSalesItem (i : StockCheck.Model.SalesItem) =
+//    persister.Save(i)
 
-let saveSalesItem (i : StockCheck.Model.SalesItem) =
-    persister.Save(i)
-
-let saveOut = items |> List.map (fun i -> saveSalesItem i)
+//let saveOut = items |> List.map (fun i -> saveSalesItem i)
 
 [<Test>]
 [<Ignore>]

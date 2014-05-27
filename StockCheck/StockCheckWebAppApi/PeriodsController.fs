@@ -10,6 +10,8 @@ open System.Linq
 open System.Collections.Generic
 open System.ComponentModel.DataAnnotations
 open System.Runtime.Serialization
+open Raven.Client
+open Raven.Client.Embedded
 
 [<CLIMutable>]
 [<DataContract>]
@@ -44,9 +46,34 @@ type PeriodViewModel =
       [<DataMember>] ClosingValueSalesInc : decimal
       [<DataMember>] ClosingValueSalesEx : decimal }
 
+//[<AbstractClass>]
+//type RavenController() =
+//    inherit ApiController()
+//
+//    let store : EmbeddableDocumentStore = RavenController.lazyStore
+//    let openSession : IAsyncDocumentSession = store.OpenAsyncSession()
+//
+//    static member private lazyStore =
+//        let store = new EmbeddableDocumentStore()
+//        store.DataDirectory <- "Data"
+//        store.UseEmbeddedHttpServer <- true
+//        store.Initialize() |> ignore
+//        store
+//
+//    member val Store = store with get
+//    member val Session = openSession with get, set
+//    override x.ExecuteAsync (controllerContext : System.Web.Http.Controllers.HttpControllerContext, cancellationToken : System.Threading.CancellationToken) : System.Threading.Tasks.Task<HttpResponseMessage> =
+//            async {
+//                x.Session <- openSession
+//                let! result = base.ExecuteAsync()
+//                do! Session.SaveChangesAsync()
+//                return result
+//            }
+
 type PeriodsController() = 
     inherit ApiController()
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
+
     member x.Get() = 
         repo.GetModelPeriods |> Seq.map (fun i -> 
                                     { PeriodsViewModel.Id = i.Id
@@ -57,7 +84,7 @@ type PeriodsController() =
 
 type PeriodController() = 
     inherit ApiController()
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     
     let mapToPI (pi : StockCheck.Model.PeriodItem) = 
         { PeriodItemViewModel.OpeningStock = pi.OpeningStock
@@ -95,7 +122,7 @@ type PeriodController() =
     
     [<Route("api/period")>]
     member x.Put(period : PeriodViewModel) = 
-        let persister = new StockCheck.Repository.Persister("mongodb://localhost")
+        let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
         let periods = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = period.Id)
         
         let p = 

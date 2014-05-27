@@ -66,12 +66,12 @@ module InvoiceControllerHelper =
 
 type InvoicesController() = 
     inherit ApiController()
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     member x.Get() = repo.GetModelInvoices |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
 
 type InvoiceController() = 
     inherit ApiController()
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     
     let mapToInvoiceLine (invoiceLine : InvoiceLineViewModel) = 
         let salesItem = repo.GetModelSalesItemById(invoiceLine.SalesItemId)
@@ -88,7 +88,7 @@ type InvoiceController() =
         | _ -> repo.GetModelInvoice id |> InvoiceControllerHelper.mapToInvoiceViewModel
     
     member x.Put(invoice : InvoiceViewModel) = 
-        let persister = new StockCheck.Repository.Persister("mongodb://localhost")
+        let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
         let modelInvoice = new StockCheck.Model.Invoice()
         let modelLines = invoice.InvoiceLines |> Seq.map (fun il -> mapToInvoiceLine il)
         modelInvoice.Id <- invoice.Id

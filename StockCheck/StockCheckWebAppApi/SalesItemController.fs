@@ -40,8 +40,8 @@ type SalesItemViewResponse =
 
 type SalesItemController() = 
     inherit ApiController()
-    let repo = new StockCheck.Repository.Query("mongodb://localhost")
-    let persister = new StockCheck.Repository.Persister("mongodb://localhost")
+    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
+    let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
     
     member x.Get((id : string), ()) = 
         let i = repo.GetModelSalesItemById id

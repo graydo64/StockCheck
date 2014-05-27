@@ -181,7 +181,13 @@ function SalesItemController($scope, $http, $routeParams, $window) {
     };
 
     var id = $routeParams.id;
-    $scope.updateSalesItem(id);
+    if (id === "0") {
+        $scope.salesitem = {};
+        $scope.loading = false;
+    }
+    else {
+        $scope.updateSalesItem(id);
+    }
 
 
     $scope.toggleEdit = function () {

@@ -3,13 +3,12 @@
 open System
 open System.Collections.Generic
 open System.Linq
-open MongoDB.Bson
-open MongoDB.Driver.Builders
 open System.ComponentModel.DataAnnotations
+open Raven.Client.Embedded
 
 [<CLIMutable>]
 type SalesItem = 
-    { _id : ObjectId
+    { Id : string
       ContainerSize : float
       CostPerContainer : decimal
       LedgerCode : string
@@ -21,7 +20,7 @@ type SalesItem =
 
 [<CLIMutable>]
 type ItemReceived = 
-    { SalesItemId : ObjectId
+    { SalesItemId : string
       Quantity : float
       ReceivedDate : DateTime
       InvoicedAmountEx : decimal
@@ -36,7 +35,7 @@ type PeriodItem =
 
 [<CLIMutable>]
 type Period = 
-    { _id : ObjectId
+    { Id : string
       Name : string
       StartOfPeriod : DateTime
       EndOfPeriod : DateTime
@@ -44,7 +43,7 @@ type Period =
 
 [<CLIMutable>]
 type InvoiceLine = 
-    { _id : ObjectId
+    { Id : string
       SalesItem : SalesItem
       Quantity : float
       InvoicedAmountEx : decimal
@@ -52,7 +51,7 @@ type InvoiceLine =
 
 [<CLIMutable>]
 type Invoice = 
-    { _id : ObjectId
+    { Id : string
       Supplier : string
       InvoiceNumber : string
       InvoiceDate : DateTime
@@ -61,7 +60,7 @@ type Invoice =
 
 [<CLIMutable>]
 type Supplier = 
-    { _id : ObjectId
+    { Id : string
       Name : string }
 
 module internal MapToModel = 
@@ -70,10 +69,12 @@ module internal MapToModel =
             (Quantity = ir.Quantity, ReceivedDate = ir.ReceivedDate, InvoicedAmountEx = decimal ir.InvoicedAmountEx, 
              InvoicedAmountInc = decimal ir.InvoicedAmountInc)
     let siMap (si : SalesItem) = 
-        StockCheck.Model.SalesItem
-            (Id = si._id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
-             LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
-             UllagePerContainer = si.UllagePerContainer, SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit)
+        match si with
+            | i when String.IsNullOrEmpty(i.Id) -> StockCheck.Model.SalesItem()
+            | _ -> StockCheck.Model.SalesItem
+                    (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
+                        LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
+                        UllagePerContainer = si.UllagePerContainer, SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit)
     
     let piMap (pi : PeriodItem) = 
         let modelItem = StockCheck.Model.PeriodItem(siMap pi.SalesItem)
@@ -84,13 +85,13 @@ module internal MapToModel =
     let pMap (p : Period) = 
         let items = p.Items |> Seq.map piMap
         StockCheck.Model.Period
-            (Id = p._id.ToString(), Name = p.Name, StartOfPeriod = p.StartOfPeriod, EndOfPeriod = p.EndOfPeriod, 
+            (Id = p.Id.ToString(), Name = p.Name, StartOfPeriod = p.StartOfPeriod, EndOfPeriod = p.EndOfPeriod, 
              Items = List<StockCheck.Model.PeriodItem> items)
     
     let ilMap (il : InvoiceLine) = 
         let salesItem = siMap il.SalesItem
         let modelItem = StockCheck.Model.InvoiceLine(salesItem)
-        modelItem.Id <- il._id.ToString()
+        modelItem.Id <- il.Id.ToString()
         modelItem.Quantity <- il.Quantity
         modelItem.InvoicedAmountEx <- il.InvoicedAmountEx
         modelItem.InvoicedAmountInc <- il.InvoicedAmountInc
@@ -99,20 +100,21 @@ module internal MapToModel =
     let iMap (i : Invoice) = 
         let lines = i.InvoiceLines |> Seq.map ilMap
         StockCheck.Model.Invoice
-            (Id = i._id.ToString(), Supplier = i.Supplier, InvoiceNumber = i.InvoiceNumber, InvoiceDate = i.InvoiceDate, 
+            (Id = i.Id.ToString(), Supplier = i.Supplier, InvoiceNumber = i.InvoiceNumber, InvoiceDate = i.InvoiceDate, 
              DeliveryDate = i.DeliveryDate, InvoiceLines = List<StockCheck.Model.InvoiceLine>(lines))
     
     let supMap (s : Supplier) = 
         let supplier = StockCheck.Model.Supplier()
-        supplier.Id <- s._id.ToString()
+        supplier.Id <- s.Id.ToString()
         supplier.Name <- s.Name
         supplier
 
-type Query(connectionString : string) = 
-    let db = createMongoServerWithConnString (connectionString) |> getMongoDatabase "StockCheck"
+type Query(documentStore : EmbeddableDocumentStore) = 
+
+    let session = documentStore.OpenSession()
     
     let getItemReceived (dt : DateTime) (il : InvoiceLine) = 
-        { ItemReceived.SalesItemId = il.SalesItem._id
+        { ItemReceived.SalesItemId = il.SalesItem.Id
           InvoicedAmountEx = il.InvoicedAmountEx
           InvoicedAmountInc = il.InvoicedAmountInc
           Quantity = il.Quantity
@@ -121,53 +123,34 @@ type Query(connectionString : string) =
     let getModelSalesItem (si : SalesItem) = MapToModel.siMap si
     
     member internal this.GetSuppliers = 
-        let collection = db |> getMongoCollection<Supplier> "Supplier"
-        collection.FindAll().ToList<Supplier>()
+        session.Query<Supplier>().ToList()
     
     member internal this.GetSalesItem (name : string) (ledgerCode : string) = 
-        let collection = db |> getMongoCollection<SalesItem> "SalesItem"
-        let value = BsonValue.Create(name)
-        collection.FindOne(Query.EQ("Name", value))
+        session.Query<SalesItem>().Where(fun i -> i.Name = name).FirstOrDefault()
     
     member internal this.GetSalesItemById(id : string) = 
-        let collection = db |> getMongoCollection<SalesItem> "SalesItem"
-        let value = BsonValue.Create(ObjectId.Parse(id))
-        collection.FindOne(Query.EQ("_id", value))
+        session.Load<SalesItem>(id)
     
     member internal this.GetPeriod(id : string) = 
-        let collection = db |> getMongoCollection<Period> "Period"
-        let value = BsonValue.Create(ObjectId.Parse(id))
-        collection.FindOne(Query.EQ("_id", value))
+        session.Load<Period>(id)
     
     member internal this.GetPeriodByName(name : string) = 
-        let collection = db |> getMongoCollection<Period> "Period"
-        let value = BsonValue.Create(name)
-        collection.FindOne(Query.EQ("Name", value))
+        session.Query<Period>().Where(fun i -> i.Name = name).FirstOrDefault()
     
     member internal this.GetPeriods = 
-        let collection = db |> getMongoCollection<Period> "Period"
-        collection.FindAll().ToList<Period>()
+        session.Query<Period>().ToList()
     
     member internal this.GetSalesItems = 
-        let collection = db |> getMongoCollection<SalesItem> "SalesItem"
-        collection.FindAll().ToList<SalesItem>()
+        session.Query<SalesItem>().ToList()
     
     member internal this.GetInvoice(id : string) = 
-        let collection = db |> getMongoCollection<Invoice> "Invoice"
-        let invoiceId = BsonValue.Create(ObjectId.Parse(id))
-        collection.FindOne(Query.EQ("_id", invoiceId))
+        session.Load<Invoice>(id)
     
     member internal this.GetInvoices = 
-        let collection = db |> getMongoCollection<Invoice> "Invoice"
-        collection.FindAll().ToList<Invoice>()
+        session.Query<Invoice>().ToList()
     
     member internal this.GetInvoicesByDateRange startDate endDate = 
-        let collection = db |> getMongoCollection<Invoice> "Invoice"
-        let query = 
-            Query.And
-                (Query.GTE("DeliveryDate", BsonValue.Create(startDate)), 
-                 Query.LTE("DeliveryDate", BsonValue.Create(endDate)))
-        collection.Find(query).ToList<Invoice>()
+        session.Query<Invoice>().Where(fun i -> i.DeliveryDate >= startDate && i.DeliveryDate <= endDate).ToList()
     
     member this.GetModelSalesItemById id = this.GetSalesItemById id |> MapToModel.siMap
     
@@ -178,7 +161,7 @@ type Query(connectionString : string) =
         let itemsReceived = invoices |> Seq.collect(fun i -> projectAsItemReceived i.DeliveryDate i.InvoiceLines)
         
         let getPeriodItem (salesItem : SalesItem) = 
-            let items = p.Items.Where(fun i -> i.SalesItem._id = salesItem._id)
+            let items = p.Items.Where(fun i -> i.SalesItem.Id = salesItem.Id)
             match items.Any() with
             | true -> items.First()
             | _ -> 
@@ -200,7 +183,7 @@ type Query(connectionString : string) =
         modelPeriod.Items.AddRange(periodItems |> Seq.map MapToModel.piMap)
         modelPeriod.Items
         |> Seq.iter (fun mpi -> 
-               itemsReceived.Where(fun r -> r.SalesItemId = ObjectId.Parse(mpi.SalesItem.Id))
+               itemsReceived.Where(fun r -> r.SalesItemId = mpi.SalesItem.Id)
                |> Seq.iter 
                       (fun ir -> mpi.ReceiveItems ir.ReceivedDate ir.Quantity ir.InvoicedAmountEx ir.InvoicedAmountInc)
                |> ignore)
@@ -214,27 +197,24 @@ type Query(connectionString : string) =
     member this.GetModelSuppliers = this.GetSuppliers |> Seq.map MapToModel.supMap
 
 module internal MapFromModel = 
-    let idMap id = 
-        match id with
-        | i when String.IsNullOrEmpty(i) -> ObjectId.GenerateNewId()
-        | _ -> ObjectId.Parse(id)
+    let idMap id = id
     
     let irMap (ir : StockCheck.Model.ItemReceived) = 
-        { SalesItemId = ObjectId.Parse(ir.Id)
+        { SalesItemId = ir.Id
           Quantity = ir.Quantity
           ReceivedDate = ir.ReceivedDate
           InvoicedAmountEx = ir.InvoicedAmountEx
           InvoicedAmountInc = ir.InvoicedAmountInc }
     
-    let piMap (connectionString : string) (pi : StockCheck.Model.PeriodItem) = 
-        let query = new Query(connectionString)
+    let piMap (documentStore) (pi : StockCheck.Model.PeriodItem) = 
+        let query = new Query(documentStore)
         { SalesItem = query.GetSalesItem pi.SalesItem.Name pi.SalesItem.LedgerCode
           OpeningStock = pi.OpeningStock
           ClosingStock = pi.ClosingStock
           ItemsReceived = List<ItemReceived>() }
     
     let siMap (si : StockCheck.Model.SalesItem) = 
-        { _id = idMap si.Id
+        { Id = idMap si.Id
           ContainerSize = si.ContainerSize
           CostPerContainer = si.CostPerContainer
           LedgerCode = si.LedgerCode
@@ -244,60 +224,51 @@ module internal MapFromModel =
           UllagePerContainer = si.UllagePerContainer
           SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit }
     
-    let pMap (connectionString : string) (p : StockCheck.Model.Period) = 
-        { _id = idMap p.Id
+    let pMap (documentStore) (p : StockCheck.Model.Period) = 
+        { Id = idMap p.Id
           Name = p.Name
           StartOfPeriod = p.StartOfPeriod
           EndOfPeriod = p.EndOfPeriod
           Items = 
               p.Items
-              |> Seq.map (fun i -> piMap connectionString i)
+              |> Seq.map (fun i -> piMap documentStore i)
               |> List.ofSeq }
     
     let ilMap (il : StockCheck.Model.InvoiceLine) = 
-        { _id = idMap il.Id
+        { Id = idMap il.Id
           SalesItem = siMap il.SalesItem
           Quantity = il.Quantity
           InvoicedAmountEx = il.InvoicedAmountEx
           InvoicedAmountInc = il.InvoicedAmountInc }
     
     let iMap (i : StockCheck.Model.Invoice) = 
-        { _id = idMap i.Id
+        { Id = idMap i.Id
           Supplier = i.Supplier
           InvoiceNumber = i.InvoiceNumber
           InvoiceDate = i.InvoiceDate
           DeliveryDate = i.DeliveryDate
           InvoiceLines = i.InvoiceLines |> Seq.map ilMap }
 
-type Persister(connectionString : string) = 
-    let db = createMongoServerWithConnString (connectionString) |> getMongoDatabase "StockCheck"
-    let periodMap = MapFromModel.pMap connectionString
-    
+type Persister(documentStore : EmbeddableDocumentStore) = 
+    let session = documentStore.OpenSession()
+
+    let periodMap = MapFromModel.pMap documentStore
+
+    let saveDocument d =
+        d |> session.Store
+        session.SaveChanges()
+
     member this.Save(si : StockCheck.Model.SalesItem) = 
-        let collection = db |> getMongoCollection<SalesItem> "SalesItem"
-        MapFromModel.siMap si
-        |> collection.Save
-        |> ignore
+        MapFromModel.siMap si |> saveDocument
     
     member this.Save(p : StockCheck.Model.Period) = 
-        let collection = db |> getMongoCollection<Period> "Period"
-        periodMap p
-        |> collection.Save
-        |> ignore
+        periodMap p |> saveDocument
     
     member this.Save(i : StockCheck.Model.Invoice) = 
-        let collection = db |> getMongoCollection<Invoice> "Invoice"
-        let dbObject = MapFromModel.iMap i
-        dbObject
-        |> collection.Save
-        |> ignore
+        MapFromModel.iMap i |> saveDocument
     
     member this.Save(s : StockCheck.Model.Supplier) = 
-        let collection = db |> getMongoCollection<Invoice> "Supplier"
-        
         let supplier = 
-            { Supplier._id = MapFromModel.idMap s.Id
+            { Supplier.Id = MapFromModel.idMap s.Id
               Name = s.Name }
-        supplier
-        |> collection.Save
-        |> ignore
+        supplier |> saveDocument
