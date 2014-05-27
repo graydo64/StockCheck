@@ -12,9 +12,17 @@ stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConf
                     controller: 'PeriodsController',
                     templateUrl: 'Views/periods.html'
                 }).
+                when('/sales-item/', {
+                    controller: 'SalesItemController',
+                    templateUrl: 'Views/sales-item.html'
+                }).
                 when('/sales-item/:id', {
                     controller: 'SalesItemController',
                     templateUrl: 'Views/sales-item.html'
+                }).
+                when('/period/', {
+                    controller: 'PeriodController',
+                    templateUrl: 'Views/period.html'
                 }).
                 when('/period/:id', {
                     controller: 'PeriodController',

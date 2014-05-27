@@ -7,6 +7,7 @@ open System.IO
 open System.Xml
 open StockCheck.Model
 open StockCheck.Repository
+open Raven.Client.Document
 
 let GetSI (range : ExcelRange) =
     let costPerContainer =
@@ -32,7 +33,7 @@ let SelectRow (sheet : ExcelWorksheet) (i : int) =
     sheet.Select(rangeString)
     sheet.SelectedRange
 
-let file = new FileInfo(@"C:\Users\graeme\Downloads\Golden Ball Stock May.xlsx")
+let file = new FileInfo(@"C:\Users\graeme\Downloads\Golden Ball Stock March 2014.xlsx")
 let package = new ExcelPackage(file)
 let cat = package.Workbook.Worksheets 
 let sheets = cat |> Seq.filter (fun a -> a.Name = "Catalogue")
@@ -40,7 +41,7 @@ let sheet = sheets |> Seq.head
 
 let selector i = SelectRow sheet i
 
-let rows = [3..174]
+let rows = [3..241]
 
 let items = 
     rows 
@@ -48,12 +49,17 @@ let items =
     |> List.filter (fun r -> (Seq.nth 1 r).Text.ToString() <> "")
     |> List.map (fun r -> GetSI r)
 
-//let persister = new Persister("mongodb://localhost")
-//
-//let saveSalesItem (i : StockCheck.Model.SalesItem) =
-//    persister.Save(i)
+let store = new DocumentStore()
+store.Url <- "http://localhost:8880/"
+store.Conventions.IdentityPartsSeparator <- "-"
+store.Initialize() |> ignore
 
-//let saveOut = items |> List.map (fun i -> saveSalesItem i)
+let persister = new Persister(store)
+//
+let saveSalesItem (i : StockCheck.Model.SalesItem) =
+    persister.Save(i)
+
+let saveOut = items |> List.map (fun i -> saveSalesItem i)
 
 [<Test>]
 [<Ignore>]
@@ -61,6 +67,5 @@ let ``sheets name should be Catalogue`` () =
     Seq.length sheets |> should equal 1
 
 [<Test>]
-[<Ignore>]
 let ``should get all of our stock items`` () =
     Seq.length items |> should equal (rows.Length - 12)

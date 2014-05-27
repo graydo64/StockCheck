@@ -4,7 +4,8 @@ open System
 open System.Collections.Generic
 open System.Linq
 open System.ComponentModel.DataAnnotations
-open Raven.Client.Embedded
+open Raven.Client
+open Raven.Client.Document
 
 [<CLIMutable>]
 type SalesItem = 
@@ -109,9 +110,9 @@ module internal MapToModel =
         supplier.Name <- s.Name
         supplier
 
-type Query(documentStore : EmbeddableDocumentStore) = 
+type Query(documentStore : IDocumentStore) = 
 
-    let session = documentStore.OpenSession()
+    let session = documentStore.OpenSession("StockCheck")
     
     let getItemReceived (dt : DateTime) (il : InvoiceLine) = 
         { ItemReceived.SalesItemId = il.SalesItem.Id
@@ -141,7 +142,7 @@ type Query(documentStore : EmbeddableDocumentStore) =
         session.Query<Period>().ToList()
     
     member internal this.GetSalesItems = 
-        session.Query<SalesItem>().ToList()
+        session.Query<SalesItem>().Take(1024).ToList()
     
     member internal this.GetInvoice(id : string) = 
         session.Load<Invoice>(id)
@@ -191,21 +192,18 @@ type Query(documentStore : EmbeddableDocumentStore) =
         modelPeriod
     
     member this.GetModelPeriods = this.GetPeriods |> Seq.map MapToModel.pMap
-    member this.GetModelSalesItems = this.GetSalesItems |> Seq.map getModelSalesItem
+    member this.GetModelSalesItems = 
+                let itmes = this.GetSalesItems 
+                itmes |> Seq.map getModelSalesItem
     member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
     member this.GetModelInvoices = this.GetInvoices |> Seq.map MapToModel.iMap
     member this.GetModelSuppliers = this.GetSuppliers |> Seq.map MapToModel.supMap
 
 module internal MapFromModel = 
-    let idMap id = id
-    
-    let irMap (ir : StockCheck.Model.ItemReceived) = 
-        { SalesItemId = ir.Id
-          Quantity = ir.Quantity
-          ReceivedDate = ir.ReceivedDate
-          InvoicedAmountEx = ir.InvoicedAmountEx
-          InvoicedAmountInc = ir.InvoicedAmountInc }
-    
+    let idMap id = match id with
+                    | x when String.IsNullOrEmpty(x) -> Guid.NewGuid().ToString()
+                    | _ -> id
+        
     let piMap (documentStore) (pi : StockCheck.Model.PeriodItem) = 
         let query = new Query(documentStore)
         { SalesItem = query.GetSalesItem pi.SalesItem.Name pi.SalesItem.LedgerCode
@@ -249,13 +247,13 @@ module internal MapFromModel =
           DeliveryDate = i.DeliveryDate
           InvoiceLines = i.InvoiceLines |> Seq.map ilMap }
 
-type Persister(documentStore : EmbeddableDocumentStore) = 
-    let session = documentStore.OpenSession()
+type Persister(documentStore : IDocumentStore) = 
 
     let periodMap = MapFromModel.pMap documentStore
 
     let saveDocument d =
-        d |> session.Store
+        use session = documentStore.OpenSession("StockCheck")
+        session.Store(d)
         session.SaveChanges()
 
     member this.Save(si : StockCheck.Model.SalesItem) = 

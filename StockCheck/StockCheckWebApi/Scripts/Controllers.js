@@ -69,6 +69,10 @@ function PeriodController($scope, $http, $routeParams, $location) {
             });
         }
     }
+    else if (id === undefined) {
+        $scope.period = { items: []}
+        $scope.loading = false
+    }
     else {
         $http.get('../api/period/' + id).success(function (data) {
             $scope.period = data;
@@ -181,7 +185,7 @@ function SalesItemController($scope, $http, $routeParams, $window) {
     };
 
     var id = $routeParams.id;
-    if (id === "0") {
+    if (id === undefined) {
         $scope.salesitem = {};
         $scope.loading = false;
     }
@@ -220,7 +224,7 @@ function SalesItemsController($scope, $http) {
         $scope.loading = false;
     });
 
-    $scope.predicate = ["LedgerCode", "Name", "ContainerSize"]
+    $scope.predicate = ["ledgerCode", "name", "containerSize"]
 }]);
 
 stockCheckControllers.controller('InvoiceLineController', ['$scope',
