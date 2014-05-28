@@ -1,6 +1,11 @@
 ﻿<div>
+    <h2>Invoices</h2>
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
+    <div class="row">
+        <span class="col-md-2"><input class="form-control" ng-model="searchText" placeholder="filter..." /></span>
+        <span class="col-md-2"><a href="#/invoice/0">New</a></span>
+    </div>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -11,7 +16,7 @@
                 <th>Total Ex</th>
             </tr>
         </thead>
-        <tr ng-repeat="invoice in invoices">
+        <tr ng-repeat="invoice in invoices | filter:searchText | orderBy:predicate">
             <td>
                 {{ invoice.invoiceNumber }}
             </td>
@@ -33,7 +38,4 @@
 
         </tr>
     </table>
-    <div class="row">
-        <a href="#/invoice/0">New</a>
-    </div>
 </div>

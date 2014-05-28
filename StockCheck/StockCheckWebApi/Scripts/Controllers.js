@@ -32,8 +32,8 @@ function PeriodItemController($scope) {
     }
 }]);
 
-stockCheckControllers.controller('PeriodController', ['$scope', '$http', '$routeParams', '$location',
-function PeriodController($scope, $http, $routeParams, $location) {
+stockCheckControllers.controller('PeriodController', ['$scope', '$http', '$routeParams', '$location', '$window', '$rootScope',
+function PeriodController($scope, $http, $routeParams, $location, $window, $rootScope) {
     $scope.loading = true;
     $scope.editMode = false;
 
@@ -169,7 +169,7 @@ function PeriodsController($scope, $http) {
 stockCheckControllers.controller('SalesItemController', ['$scope', '$http', '$routeParams', '$window',
 function SalesItemController($scope, $http, $routeParams, $window) {
     $scope.loading = true;
-    $scope.editMode = false;
+    $scope.editMode = true;
 
     $scope.updateSalesItem = function (id) {
         $http.get('../api/salesitem/?id=' + id).success(function (data) {
@@ -202,7 +202,9 @@ function SalesItemController($scope, $http, $routeParams, $window) {
         $scope.salesitem.taxRate = $scope.taxRatepc / 100;
         $http.put('../api/salesitem/', $scope.salesitem).success(function (data) {
             alert("Saved Successfully");
-            $scope.updateSalesItem($scope.salesitem.id);
+            if (id !== undefined) {
+                $scope.updateSalesItem($scope.salesitem.id);
+            }
         }).error(function (data) {
             $scope.error = "An error occurred while saving the Sales Item." + data;
             $scope.loading = false;
@@ -266,7 +268,7 @@ function InvoiceController($scope, $http, $routeParams) {
     var id = $routeParams.id;
 
     if (id === "0") {
-        $scope.invoice = { invoiceLines: [{invoicedAmountEx: 0, invoicedAmountInc: 0}]};
+        $scope.invoice = { invoiceLines: [{ invoicedAmountEx: 0, invoicedAmountInc: 0 }] };
     }
     else {
         $http.get('../api/invoice/' + id).success(function (data) {
@@ -324,7 +326,7 @@ function InvoiceController($scope, $http, $routeParams) {
     $scope.submitAll = function () {
         var newSupplier = true;
         for (var i in $scope.suppliers) {
-            if ($scope.invoice.Supplier === $scope.suppliers[i].name) {
+            if ($scope.invoice.supplier === $scope.suppliers[i].name) {
                 newSupplier = false;
             }
         }
@@ -356,6 +358,12 @@ function InvoicesController($scope, $http) {
     $scope.editMode = false;
 
     $http.get('../api/invoices/').success(function (data) {
+        for (var i in data) {
+            var inv = data[i];
+            inv.invoiceDateDate = new Date(inv.invoiceDate);
+            inv.deliveryDateDate = new Date(inv.deliveryDate);
+        }
+
         $scope.invoices = data;
         $scope.loading = false;
     })
@@ -363,4 +371,6 @@ function InvoicesController($scope, $http) {
         $scope.error = "An Error has occurred while loading Invoices."
         $scope.loading = false;
     });
+
+    $scope.predicate = ["-invoiceDateDate", "deliveryDateDate"]
 }]);

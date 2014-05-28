@@ -7,7 +7,6 @@ open System.Web.Http
 open System.Web.Routing
 open Raven.Client
 open Raven.Client.Document
-open Raven.Client.Embedded
 
 type HttpRoute = {
     controller : string

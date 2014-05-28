@@ -11,7 +11,6 @@ open System.Collections.Generic
 open System.ComponentModel.DataAnnotations
 open System.Runtime.Serialization
 open Raven.Client
-open Raven.Client.Embedded
 
 [<CLIMutable>]
 [<DataContract>]

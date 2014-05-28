@@ -112,7 +112,7 @@ module internal MapToModel =
 
 type Query(documentStore : IDocumentStore) = 
 
-    let session = documentStore.OpenSession("StockCheck")
+    let dbName = "StockCheck"
     
     let getItemReceived (dt : DateTime) (il : InvoiceLine) = 
         { ItemReceived.SalesItemId = il.SalesItem.Id
@@ -124,33 +124,43 @@ type Query(documentStore : IDocumentStore) =
     let getModelSalesItem (si : SalesItem) = MapToModel.siMap si
     
     member internal this.GetSuppliers = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<Supplier>().ToList()
     
     member internal this.GetSalesItem (name : string) (ledgerCode : string) = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<SalesItem>().Where(fun i -> i.Name = name).FirstOrDefault()
     
     member internal this.GetSalesItemById(id : string) = 
+        use session = documentStore.OpenSession(dbName)
         session.Load<SalesItem>(id)
     
     member internal this.GetPeriod(id : string) = 
+        use session = documentStore.OpenSession(dbName)
         session.Load<Period>(id)
     
     member internal this.GetPeriodByName(name : string) = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<Period>().Where(fun i -> i.Name = name).FirstOrDefault()
     
     member internal this.GetPeriods = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<Period>().ToList()
     
     member internal this.GetSalesItems = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<SalesItem>().Take(1024).ToList()
     
     member internal this.GetInvoice(id : string) = 
+        use session = documentStore.OpenSession(dbName)
         session.Load<Invoice>(id)
     
     member internal this.GetInvoices = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<Invoice>().ToList()
     
     member internal this.GetInvoicesByDateRange startDate endDate = 
+        use session = documentStore.OpenSession(dbName)
         session.Query<Invoice>().Where(fun i -> i.DeliveryDate >= startDate && i.DeliveryDate <= endDate).ToList()
     
     member this.GetModelSalesItemById id = this.GetSalesItemById id |> MapToModel.siMap

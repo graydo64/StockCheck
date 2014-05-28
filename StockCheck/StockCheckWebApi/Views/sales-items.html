@@ -6,7 +6,8 @@
         <strong ng-show="loading">loading...</strong>
     </div>
     <div class="row">
-        <input class="form-control" ng-model="searchText" placeholder="filter..." />
+        <span class="col-md-2"><input class="form-control" ng-model="searchText" placeholder="filter..." /></span>
+        <span class="col-md-2"><a href="#/sales-item/">New</a></span>
     </div>
     <div class="row">
         <table class="table table-striped">
@@ -28,10 +29,5 @@
                 <td><a href="#/sales-item/{{ salesitem.id }}">View</a></td>
             </tr>
         </table>
-    </div>
-    <div class="row">
-        <div class="col-md-2">
-            <a href="#/sales-item/">New</a>
-        </div>
     </div>
 </div>

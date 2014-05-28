@@ -9,7 +9,7 @@
             <div class="col-md-4">
                 <label class="col-sm-6 control-label">Invoice Number</label>
                 <p class="input-group">
-                    <input type="text" class="form-control" ng-model="invoice.invoiceNumber" />
+                    <input type="text" name="invoiceNumberControl" class="form-control" ng-model="invoice.invoiceNumber" />
                 </p>
             </div>
         </div>
@@ -89,7 +89,7 @@
                                typeahead-loading="loadingSalesItems"
                                typeahead-template-url="customSalesItemTemplate.html"
                                typeahead-on-select="onSelect($item, $model, $label)"
-                               class="form-control" 
+                               class="form-control"
                                focus-me
                                required />
                     </td>
