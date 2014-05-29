@@ -60,7 +60,8 @@
         </div>
     </div>
     <div class="row">
-        <input class="form-control" ng-model="searchText" placeholder="filter..." />
+        <span class="col-md-2"><input class="form-control" ng-model="searchText" placeholder="filter..." /></span>
+        <span class="col-md-2"><a ng-show="editMode" ng-click="toggleNewMode()" href="javascript:;">New</a></span>
     </div>
     <table class="table table-striped">
         <thead>
@@ -72,6 +73,7 @@
                 <th>Received</th>
                 <th>Closing</th>
                 <th>Sales Qty</th>
+                <th></th>
             </tr>
         </thead>
         <tr ng-repeat="item in period.items | filter:searchText | orderBy:predicate" ng-form="subForm" ng-controller="PeriodItemController">
@@ -101,6 +103,7 @@
                 <span class="alert" ng-show="subForm.closingStock.$error.number">Must be numeric!</span>
             </td>
             <td>{{ item.salesQty }}</td>
+            <td><span ng-show="editMode"><a ng-click="toggleNewMode()" href="javascript:;">New</a></span></td>
         </tr>
     </table>
     <div class="row" id="bottom">
@@ -108,10 +111,10 @@
             <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
         </div>
         <div class="col-md-2">
-            <a ng-show="editMode" ng-click="toggleNewMode()" href="javascript:;">New</a>
-        </div>        
-        <div class="col-md-2">
             <a ng-show="editMode" ng-click="save()" href="javascript:;">Save</a>
         </div>
+    </div>
+    <div class="row">
+        <div class="panel panel-footer" id="panelFooter">&nbsp;</div>
     </div>
 </form>

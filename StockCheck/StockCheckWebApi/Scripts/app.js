@@ -1,5 +1,7 @@
 ﻿'use strict';
 
+var pathBase = "../api/";
+
 var stockCheckApp = angular.module('stockCheck', ['ngRoute', 'stockCheckControllers', 'ui.bootstrap']);
 stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConfig',
         function ($routeProvider, datepickerConfig, datepickerPopupConfig) {
@@ -60,3 +62,5 @@ stockCheckApp.directive('focusMe', function () {
     };
 
 });
+
+stockCheckApp.value("appConfig",  {pathBase : "../api/", defaultTaxRate : 0.2});

@@ -86,7 +86,7 @@ module internal MapToModel =
     let pMap (p : Period) = 
         let items = p.Items |> Seq.map piMap
         StockCheck.Model.Period
-            (Id = p.Id.ToString(), Name = p.Name, StartOfPeriod = p.StartOfPeriod, EndOfPeriod = p.EndOfPeriod, 
+            (Id = p.Id.ToString(), Name = p.Name, StartOfPeriod = p.StartOfPeriod, EndOfPeriod = p.EndOfPeriod,
              Items = List<StockCheck.Model.PeriodItem> items)
     
     let ilMap (il : InvoiceLine) = 

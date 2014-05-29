@@ -33,9 +33,9 @@ type SalesItem() =
     member val TaxRate = 0. with get, set
     member val UllagePerContainer = 0 with get, set
     member val SalesUnitsPerContainerUnit = 0. with get, set
-    member this.MarkUp = Utils.MarkUp this.SalesPrice this.CostPerUnitOfSale
+    member this.MarkUp = Utils.MarkUp (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
     member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.SalesUnitsPerContainerUnit
-    member this.IdealGP = Utils.GrossProfit this.SalesPrice this.CostPerUnitOfSale
+    member this.IdealGP = Utils.GrossProfit (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
 
 type ItemReceived() =
     member val Id = String.Empty with get, set
@@ -89,9 +89,10 @@ type Period() =
     member val EndOfPeriod = DateTime.MinValue with get, set
     member val StartOfPeriod = DateTime.MinValue with get, set
     member val Items = List<PeriodItem>() with get, set
-    member val ClosingValueCostEx = decimal 0 with get
-    member val ClosingValueSalesInc = 0 with get
-    member val ClosingValueSalesEx = 0 with get
+    member this.SalesEx = this.Items |> Seq.sumBy(fun i -> i.SalesEx)
+    member this.ClosingValueSalesInc = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
+    member this.ClosingValueSalesEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesEx)
+    member this.ClosingValueCostEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueCostEx)
     static member private CloseToStart (item: PeriodItem) =
             item.OpeningStock <- item.ClosingStock
             item.ClosingStock <- 0.

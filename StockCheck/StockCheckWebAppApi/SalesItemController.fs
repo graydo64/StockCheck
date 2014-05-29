@@ -67,4 +67,6 @@ type SalesItemController() =
         i.Name <- salesItem.Name
         i.SalesPrice <- salesItem.SalesPrice
         i.SalesUnitsPerContainerUnit <- salesItem.SalesUnitsPerContainerUnit
+        i.TaxRate <- salesItem.TaxRate
+        i.UllagePerContainer <- salesItem.UllagePerContainer
         persister.Save(i)

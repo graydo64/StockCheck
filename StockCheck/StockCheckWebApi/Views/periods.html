@@ -7,6 +7,8 @@
                 <th>Name</th>
                 <th>Start</th>
                 <th>End</th>
+                <th>Sales Ex</th>
+                <th>Closing Value @ cost Ex</th>
             </tr>
         </thead>
         <tr ng-repeat="period in periods">
@@ -18,6 +20,12 @@
             </td>
             <td>
                 {{ period.endOfPeriod | date }}
+            </td>
+            <td>
+                {{ period.salesEx | currency}}
+            </td>
+            <td>
+                {{ period.closingValueCostEx | currency}}
             </td>
             <td>
                 <a href="#/period/{{ period.id }}">View</a>

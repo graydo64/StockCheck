@@ -31,6 +31,7 @@ type PeriodsViewModel =
       [<DataMember>] Name : string
       [<DataMember>] StartOfPeriod : DateTime
       [<DataMember>] EndOfPeriod : DateTime
+      [<DataMember>] SalesEx : decimal
       [<DataMember>] ClosingValueCostEx : decimal }
 
 [<CLIMutable>]
@@ -45,30 +46,6 @@ type PeriodViewModel =
       [<DataMember>] ClosingValueSalesInc : decimal
       [<DataMember>] ClosingValueSalesEx : decimal }
 
-//[<AbstractClass>]
-//type RavenController() =
-//    inherit ApiController()
-//
-//    let store : EmbeddableDocumentStore = RavenController.lazyStore
-//    let openSession : IAsyncDocumentSession = store.OpenAsyncSession()
-//
-//    static member private lazyStore =
-//        let store = new EmbeddableDocumentStore()
-//        store.DataDirectory <- "Data"
-//        store.UseEmbeddedHttpServer <- true
-//        store.Initialize() |> ignore
-//        store
-//
-//    member val Store = store with get
-//    member val Session = openSession with get, set
-//    override x.ExecuteAsync (controllerContext : System.Web.Http.Controllers.HttpControllerContext, cancellationToken : System.Threading.CancellationToken) : System.Threading.Tasks.Task<HttpResponseMessage> =
-//            async {
-//                x.Session <- openSession
-//                let! result = base.ExecuteAsync()
-//                do! Session.SaveChangesAsync()
-//                return result
-//            }
-
 type PeriodsController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
@@ -79,6 +56,7 @@ type PeriodsController() =
                                       Name = i.Name
                                       StartOfPeriod = i.StartOfPeriod
                                       EndOfPeriod = i.EndOfPeriod
+                                      SalesEx = i.SalesEx
                                       ClosingValueCostEx = i.ClosingValueCostEx })
 
 type PeriodController() = 
