@@ -266,7 +266,10 @@ function InvoiceLineController($scope) {
         }
         else if ($scope.line.quantity > 0) {
             if ($scope.line.invoicedAmountEx === 0) {
-                $scope.line.invoicedAmountEx = $scope.salesItemsHash[$scope.line.salesItemId].costPerContainer * $scope.line.quantity;
+                var cost = $scope.salesItemsHash[$scope.line.salesItemId].costPerContainer;
+                var qty = $scope.line.quantity;
+                var amountEx = cost * qty;
+                $scope.line.invoicedAmountEx = Math.round(amountEx * 100)/100;
             }
         }
     }
