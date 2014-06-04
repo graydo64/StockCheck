@@ -20,6 +20,7 @@ type SalesItemView =
       [<DataMember>] SalesPrice : decimal
       [<DataMember>] TaxRate : float
       [<DataMember>] UllagePerContainer : int
+      [<DataMember>] SalesUnitType : string
       [<DataMember>] SalesUnitsPerContainerUnit : float }
 
 [<CLIMutable>]
@@ -33,6 +34,7 @@ type SalesItemViewResponse =
       [<DataMember>] SalesPrice : decimal
       [<DataMember>] TaxRate : float
       [<DataMember>] UllagePerContainer : int
+      [<DataMember>] SalesUnitType : string
       [<DataMember>] SalesUnitsPerContainerUnit : float
       [<DataMember>] CostPerUnitOfSale : decimal
       [<DataMember>] MarkUp : decimal
@@ -53,6 +55,7 @@ type SalesItemController() =
           SalesPrice = i.SalesPrice
           TaxRate = i.TaxRate
           UllagePerContainer = i.UllagePerContainer
+          SalesUnitType = StockCheck.Model.Converters.ToSalesUnitTypeString i.SalesUnitType
           SalesUnitsPerContainerUnit = i.SalesUnitsPerContainerUnit
           CostPerUnitOfSale = i.CostPerUnitOfSale
           MarkUp = i.MarkUp
@@ -66,7 +69,7 @@ type SalesItemController() =
         i.LedgerCode <- salesItem.LedgerCode
         i.Name <- salesItem.Name
         i.SalesPrice <- salesItem.SalesPrice
-        i.SalesUnitsPerContainerUnit <- salesItem.SalesUnitsPerContainerUnit
+        i.SalesUnitType <- StockCheck.Model.Converters.ToSalesUnitType salesItem.SalesUnitType
         i.TaxRate <- salesItem.TaxRate
         i.UllagePerContainer <- salesItem.UllagePerContainer
         persister.Save(i)

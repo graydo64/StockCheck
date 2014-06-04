@@ -17,7 +17,7 @@ type SalesItem =
       SalesPrice : decimal
       TaxRate : float
       UllagePerContainer : int
-      SalesUnitsPerContainerUnit : float }
+      SalesUnitType : string }
 
 [<CLIMutable>]
 type ItemReceived = 
@@ -31,6 +31,7 @@ type ItemReceived =
 type PeriodItem = 
     { SalesItem : SalesItem
       OpeningStock : float
+      ClosingStockExpr : string
       ClosingStock : float
       ItemsReceived : ItemReceived seq }
 
@@ -75,11 +76,12 @@ module internal MapToModel =
             | _ -> StockCheck.Model.SalesItem
                     (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
                         LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
-                        UllagePerContainer = si.UllagePerContainer, SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit)
+                        UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.Converters.ToSalesUnitType si.SalesUnitType)
     
     let piMap (pi : PeriodItem) = 
         let modelItem = StockCheck.Model.PeriodItem(siMap pi.SalesItem)
         modelItem.OpeningStock <- pi.OpeningStock
+        modelItem.ClosingStockExpr <- pi.ClosingStockExpr
         modelItem.ClosingStock <- pi.ClosingStock
         modelItem
     
@@ -178,6 +180,7 @@ type Query(documentStore : IDocumentStore) =
             | _ -> 
                 { PeriodItem.SalesItem = salesItem
                   OpeningStock = 0.
+                  ClosingStockExpr = String.Empty
                   ClosingStock = 0.
                   ItemsReceived = [] }
         
@@ -218,6 +221,7 @@ module internal MapFromModel =
         let query = new Query(documentStore)
         { SalesItem = query.GetSalesItem pi.SalesItem.Name pi.SalesItem.LedgerCode
           OpeningStock = pi.OpeningStock
+          ClosingStockExpr = pi.ClosingStockExpr
           ClosingStock = pi.ClosingStock
           ItemsReceived = List<ItemReceived>() }
     
@@ -230,7 +234,7 @@ module internal MapFromModel =
           SalesPrice = si.SalesPrice
           TaxRate = si.TaxRate
           UllagePerContainer = si.UllagePerContainer
-          SalesUnitsPerContainerUnit = si.SalesUnitsPerContainerUnit }
+          SalesUnitType = StockCheck.Model.Converters.ToSalesUnitTypeString si.SalesUnitType }
     
     let pMap (documentStore) (p : StockCheck.Model.Period) = 
         { Id = idMap p.Id

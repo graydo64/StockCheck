@@ -14,7 +14,7 @@ module piSetup =
         let salesItem = (NewFixture ()).Create<SalesItem>()
         salesItem.TaxRate <- tax;
         salesItem.ContainerSize <- ctrSize;
-        salesItem.SalesUnitsPerContainerUnit <- saleUnit;
+        salesItem.SalesUnitType <- saleUnit;
         salesItem.SalesPrice <- salePrice;
         salesItem
 
@@ -27,13 +27,13 @@ module piSetup =
         periodItem.ItemsReceived.Add(new ItemReceived(Quantity = 1., InvoicedAmountEx = 109.3M));
         periodItem
 
-    let InitialiseDraughtSalesItem = InitialiseSalesItem 0.2 11. 8. 3.25M
+    let InitialiseDraughtSalesItem = InitialiseSalesItem 0.2 11. Pint 3.25M
 
-    let InitialiseBottledSalesItem = InitialiseSalesItem 0.2 24. 1. 3.60M
+    let InitialiseBottledSalesItem = InitialiseSalesItem 0.2 24. Unit 3.60M
 
-    let InitialiseSnackSalesItem = InitialiseSalesItem 0. 48. 1. 0.60M
+    let InitialiseSnackSalesItem = InitialiseSalesItem 0. 48. Unit 0.60M
 
-    let InitialiseSpiritSalesItem = InitialiseSalesItem 0.2 1. 20. 3.5M
+    let InitialiseSpiritSalesItem = InitialiseSalesItem 0.2 1. Spirit 3.5M
 
 type PeriodItemSetup () =
     member x.Fixture = piSetup.NewFixture ()
@@ -239,7 +239,7 @@ type ``Given that a PeriodItem has spirits received`` () =
     inherit PeriodItemSetup ()
     let periodItem = piSetup.InitialiseSpiritSalesItem |> piSetup.initialisePeriodItem
     let bottlesSold = 23. + (4. * 1.) - 25.
-    let measuresSold = bottlesSold * (0.7 /0.035)
+    let measuresSold = bottlesSold * (1.0 /0.035)
 
     [<Test>] member x.
         ``The ContainersReceived amount is correctly calculated`` () =
@@ -255,11 +255,11 @@ type ``Given that a PeriodItem has spirits received`` () =
 
     [<Test>] member x.
         ``The SalesInc amount is correct`` () =
-            periodItem.SalesInc |> should equal (decimal(measuresSold) * 3.5M)
+            periodItem.SalesInc |> should equal (decimal (measuresSold * 3.5))
 
     [<Test>] member x.
         ``The SalesEx amount is correct`` () =
-            periodItem.SalesEx |> should equal ((decimal(measuresSold) * 3.5M) / decimal 1.2)
+            periodItem.SalesEx |> should equal (periodItem.SalesInc / decimal 1.2)
 
     [<Test>] member x.
         ``The CostOfSales amount is correct`` () =

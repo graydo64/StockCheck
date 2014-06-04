@@ -22,7 +22,7 @@ let GetSI (range : ExcelRange) =
     salesItem.LedgerCode <- (Seq.nth 0 range).Value.ToString()
     salesItem.Name <- (Seq.nth 1 range).Value.ToString()
     salesItem.ContainerSize <- float ((Seq.nth 2 range).Value.ToString())
-    salesItem.SalesUnitsPerContainerUnit <- float ((Seq.nth 3 range).Value.ToString())
+    //salesItem.SalesUnitsPerContainerUnit <- float ((Seq.nth 3 range).Value.ToString())
     salesItem.CostPerContainer <- decimal (costPerContainer)
     salesItem.SalesPrice <- decimal (salesPrice)
     salesItem.TaxRate <- float ((Seq.nth 9 range).Value.ToString())

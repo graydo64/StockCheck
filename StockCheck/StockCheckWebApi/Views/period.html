@@ -71,6 +71,7 @@
                 <th>Container</th>
                 <th>Opening</th>
                 <th>Received</th>
+                <th ng-show="editMode">Count</th>
                 <th>Closing</th>
                 <th>Sales Qty</th>
                 <th></th>
@@ -97,6 +98,9 @@
                 <span class="alert" ng-show="subForm.openingStock.$error.number">Must be numeric!</span>
             </td>
             <td>{{ item.itemsReceived }}</td>
+            <td class="col-sm-1" ng-show="editMode">
+                <input class="form-control" type="text" required name="closingStockExpr" ng-model="item.closingStockExpr" ng-change="checkExpression()" />
+            </td>
             <td class="col-sm-1">
                 <span ng-hide="editMode">{{ item.closingStock }}</span>
                 <input ng-show="editMode" class="form-control" type="number" required name="closingStock" ng-model="item.closingStock" />

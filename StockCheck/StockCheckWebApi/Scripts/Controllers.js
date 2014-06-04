@@ -5,6 +5,33 @@ var globalDateOptions = {
     startingDay: 1
 };
 
+var operators = ["+", "-", "*", "/"];
+var grammar = 'start\n' +
+'  = additive\n' +
+'\n' +
+'additive\n' +
+'  = left:multiplicative "+" right:additive { return left + right; }\n' +
+'  / left:multiplicative "-" right:additive { return left - right; }\n' +
+'  / multiplicative\n' +
+'\n' +
+'multiplicative\n' +
+'  = left:primary "*" right:multiplicative { return left * right; }\n' +
+'  / left:primary "/" right:multiplicative { return left / right; }\n' +
+'  / primary\n' +
+'\n' +
+'primary\n' +
+'  = float\n' +
+'  / integer\n' +
+'  / "(" additive:additive ")" { return additive; }\n' +
+'\n' +
+'integer "integer"\n' +
+'  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }\n' +
+'\n' +
+'float "float"\n' +
+'  = before:[0-9]* "." after:[0-9]+ { return parseFloat(before.join("") + "." + after.join("")); }';
+
+var parser = PEG.buildParser(grammar);
+
 var stockCheckControllers = angular.module('stockCheckControllers', []);
 
 stockCheckControllers.controller('PeriodItemController', ['$scope',
@@ -30,6 +57,17 @@ function PeriodItemController($scope) {
                 $scope.item.container = si.containerSize;
                 break;
             }
+        }
+    }
+
+    $scope.checkExpression = function () {
+        if ($scope.item.closingStockExpr != undefined) {
+            if (operators.indexOf($scope.item.closingStockExpr.slice(-1)) == -1)
+                try {
+                    $scope.item.closingStock = parser.parse($scope.item.closingStockExpr);
+                }
+                catch (err) {
+                }
         }
     }
 }]);
@@ -188,6 +226,14 @@ function SalesItemController($scope, $http, $routeParams, $window, appConfig) {
             $scope.loading = false;
         });
     };
+
+    $http.get(appConfig.pathBase + 'salesunit').success(function (data) {
+        $scope.salesUnits = data;
+    })
+    .error(function () {
+        $scope.error = "An Error has occurred while loading Sales Units."
+        $scope.loading = false;
+    });
 
     var id = $routeParams.id;
     if (id === undefined) {

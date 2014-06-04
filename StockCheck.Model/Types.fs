@@ -18,6 +18,14 @@ module Utils =
     let ValueOfQuantity qty unit ppUnit =
         decimal(qty * unit * float ppUnit)
 
+
+type SalesUnitType =
+    | Pint
+    | Unit
+    | Spirit
+    | Fortified
+    | Wine
+
 type SalesItem() = 
     let costPerUnitOfSale (costPerContainer: decimal) (containerSize : float) (salesUnitsPerContainerUnit: float) : decimal =
         match costPerContainer with
@@ -31,11 +39,18 @@ type SalesItem() =
     member val Name = String.Empty with get, set
     member val SalesPrice = decimal 0 with get, set
     member val TaxRate = 0. with get, set
+    member val SalesUnitType = SalesUnitType.Pint with get, set
     member val UllagePerContainer = 0 with get, set
-    member val SalesUnitsPerContainerUnit = 0. with get, set
     member this.MarkUp = Utils.MarkUp (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
     member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.SalesUnitsPerContainerUnit
     member this.IdealGP = Utils.GrossProfit (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
+    member this.SalesUnitsPerContainerUnit = 
+        match this.SalesUnitType with
+            | Pint -> 8.0
+            | Unit -> 1.0
+            | Spirit -> 1.0/0.035
+            | Fortified -> 1.0/0.05
+            | Wine -> 1.0/0.175
 
 type ItemReceived() =
     member val Id = String.Empty with get, set
@@ -49,6 +64,7 @@ type PeriodItem(salesItem : SalesItem) =
     let lessTax = Utils.LessTax salesItem.TaxRate
 
     member val OpeningStock = 0. with get, set
+    member val ClosingStockExpr = String.Empty with get, set
     member val ClosingStock = 0. with get, set
     member val SalesItem = salesItem
     member this.ItemsReceived = itemsReceived;
@@ -66,7 +82,7 @@ type PeriodItem(salesItem : SalesItem) =
             periodItem
     member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun i -> i.Quantity)
     member this.TotalUnits = this.ContainersReceived * salesItem.ContainerSize
-    member this.Sales = this.OpeningStock + this.TotalUnits - this.ClosingStock
+    member this.Sales = Math.Round((this.OpeningStock + this.TotalUnits - this.ClosingStock) * 100.0)/100.0
     member this.ContainersSold = this.Sales / salesItem.ContainerSize
     member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
     member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
@@ -130,3 +146,20 @@ type Invoice() =
 type Supplier() =
     member val Id = String.Empty with get, set
     member val Name = String.Empty with get, set
+
+module Converters =
+
+    let ToSalesUnitTypeString t = match t with
+                                | Pint -> "Pint"
+                                | Unit -> "Unit"
+                                | Spirit -> "Spirit"
+                                | Fortified -> "Fortified"
+                                | Wine -> "Wine"
+
+    let ToSalesUnitType t = match t with
+                                | "Pint" -> Pint
+                                | "Unit" -> Unit
+                                | "Spirit" -> Spirit
+                                | "Fortified" -> Fortified
+                                | "Wine" -> Wine
+                                | _ -> Pint

@@ -17,9 +17,13 @@
         <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.containerSize" />
     </div>
     <div class="row">
-        <label class="col-sm-2 control-label">Units per Container</label>
-        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.salesUnitsPerContainerUnit }}</strong>
-        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.salesUnitsPerContainerUnit" />
+        <label class="col-sm-2 control-label">Sales Unit</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.salesUnitType }}</strong>
+        <select ng-show="editMode" class="form-control" ng-model="salesitem.salesUnitType" ng-options="salesUnit for salesUnit in salesUnits"></select>
+    </div>
+    <div class="row">
+        <label class="col-sm-2 control-label">Units per Container Unit</label>
+        <strong class="col-md-6">{{ salesitem.salesUnitsPerContainerUnit }}</strong>
     </div>
     <div class="row">
         <label class="col-sm-2 control-label">Cost per Container</label>

@@ -32,3 +32,7 @@ type ValuesController() =
         modelSupplier.Id <- supplier.Id
         modelSupplier.Name <- supplier.Name
         persister.Save modelSupplier
+
+    [<Route("api/salesunit")>]
+    member x.GetSalesUnitTypes() =
+        [|"Pint"; "Unit"; "Spirit"; "Fortified"; "Wine"|]

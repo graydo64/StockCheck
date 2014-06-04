@@ -16,6 +16,7 @@ open Raven.Client
 [<DataContract>]
 type PeriodItemViewModel = 
     { [<DataMember>] OpeningStock : float
+      [<DataMember>] ClosingStockExpr : string
       [<DataMember>] ClosingStock : float
       [<DataMember>] SalesItemId : string
       [<DataMember>] SalesItemLedgerCode : string
@@ -65,11 +66,12 @@ type PeriodController() =
     
     let mapToPI (pi : StockCheck.Model.PeriodItem) = 
         { PeriodItemViewModel.OpeningStock = pi.OpeningStock
-          PeriodItemViewModel.ClosingStock = pi.ClosingStock
-          PeriodItemViewModel.SalesItemId = pi.SalesItem.Id
-          PeriodItemViewModel.SalesItemName = pi.SalesItem.Name
-          PeriodItemViewModel.SalesItemLedgerCode = pi.SalesItem.LedgerCode
-          PeriodItemViewModel.ItemsReceived = pi.ContainersReceived
+          ClosingStockExpr = pi.ClosingStockExpr
+          ClosingStock = pi.ClosingStock
+          SalesItemId = pi.SalesItem.Id
+          SalesItemName = pi.SalesItem.Name
+          SalesItemLedgerCode = pi.SalesItem.LedgerCode
+          ItemsReceived = pi.ContainersReceived
           SalesQty = pi.Sales
           Container = pi.SalesItem.ContainerSize }
     
@@ -92,6 +94,7 @@ type PeriodController() =
                                             |> Seq.head)
         periodItem.ClosingStock <- pi.ClosingStock
         periodItem.OpeningStock <- pi.OpeningStock
+        periodItem.ClosingStockExpr <- pi.ClosingStockExpr
         periodItem
     
     [<Route("api/period/{id}")>]
