@@ -8,6 +8,17 @@
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
     <div class="row">
+        <div class="col-md-2">
+            <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
+        </div>
+        <div class="col-md-2">
+            <a ng-show="editMode" ng-click="save()" href="javascript:;">Save</a>
+        </div>
+        <div class="col-md-2">
+            <a href="api/period/export/{{period.id}}">Export</a>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-4">
             <label class="col-sm-6 control-label">Name</label>
             <strong ng-hide="editMode">{{ period.name }}</strong>
@@ -110,14 +121,6 @@
             <td><span ng-show="editMode"><a ng-click="toggleNewMode()" href="javascript:;">New</a></span></td>
         </tr>
     </table>
-    <div class="row" id="bottom">
-        <div class="col-md-2">
-            <a ng-click="toggleEdit()" href="javascript:;">Edit</a>
-        </div>
-        <div class="col-md-2">
-            <a ng-show="editMode" ng-click="save()" href="javascript:;">Save</a>
-        </div>
-    </div>
     <div class="row">
         <div class="panel panel-footer" id="panelFooter">&nbsp;</div>
     </div>

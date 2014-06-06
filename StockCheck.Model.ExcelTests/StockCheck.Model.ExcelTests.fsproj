@@ -79,6 +79,7 @@
     <None Include="packages.config" />
     <None Include="app.config" />
     <Compile Include="Library1.fs" />
+    <Compile Include="Library3.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StockCheck.Model\StockCheck.Model.fsproj">

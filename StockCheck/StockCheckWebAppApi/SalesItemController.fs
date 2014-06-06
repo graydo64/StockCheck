@@ -72,4 +72,7 @@ type SalesItemController() =
         i.SalesUnitType <- StockCheck.Model.Converters.ToSalesUnitType salesItem.SalesUnitType
         i.TaxRate <- salesItem.TaxRate
         i.UllagePerContainer <- salesItem.UllagePerContainer
-        persister.Save(i)
+        match (StockCheck.Model.Converters.ToSalesUnitType salesItem.SalesUnitType) with
+        | Other -> i.OtherSalesUnit <- salesItem.SalesUnitsPerContainerUnit
+        | _ -> i.OtherSalesUnit <- 0.
+        persister.Save i

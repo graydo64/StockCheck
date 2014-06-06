@@ -35,4 +35,4 @@ type ValuesController() =
 
     [<Route("api/salesunit")>]
     member x.GetSalesUnitTypes() =
-        [|"Pint"; "Unit"; "Spirit"; "Fortified"; "Wine"|]
+        [|"Pint"; "Unit"; "Spirit"; "Fortified"; "Wine"; "Other"|]

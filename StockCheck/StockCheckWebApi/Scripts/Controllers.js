@@ -213,6 +213,7 @@ stockCheckControllers.controller('SalesItemController', ['$scope', '$http', '$ro
 function SalesItemController($scope, $http, $routeParams, $window, appConfig) {
     $scope.loading = true;
     $scope.editMode = true;
+    $scope.otherSalesUnitMode = false;
 
     $scope.updateSalesItem = function (id) {
         $http.get(appConfig.pathBase + 'salesitem/?id=' + id).success(function (data) {
@@ -244,6 +245,10 @@ function SalesItemController($scope, $http, $routeParams, $window, appConfig) {
     else {
         $scope.updateSalesItem(id);
     }
+
+    $scope.checkOtherMode = function () {
+        $scope.otherSalesUnitMode = $scope.salesitem.salesUnitType === "Other";
+    };
 
 
     $scope.toggleEdit = function () {

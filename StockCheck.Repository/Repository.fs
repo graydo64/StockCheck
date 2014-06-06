@@ -17,7 +17,8 @@ type SalesItem =
       SalesPrice : decimal
       TaxRate : float
       UllagePerContainer : int
-      SalesUnitType : string }
+      SalesUnitType : string
+      OtherSalesUnit : float }
 
 [<CLIMutable>]
 type ItemReceived = 
@@ -72,11 +73,12 @@ module internal MapToModel =
              InvoicedAmountInc = decimal ir.InvoicedAmountInc)
     let siMap (si : SalesItem) = 
         match si with
-            | i when String.IsNullOrEmpty(i.Id) -> StockCheck.Model.SalesItem()
-            | _ -> StockCheck.Model.SalesItem
-                    (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
-                        LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
-                        UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.Converters.ToSalesUnitType si.SalesUnitType)
+        | i when String.IsNullOrEmpty(i.Id) -> StockCheck.Model.SalesItem()
+        | _ -> StockCheck.Model.SalesItem
+                (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
+                    LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
+                    UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.Converters.ToSalesUnitType si.SalesUnitType,
+                    OtherSalesUnit = si.OtherSalesUnit)
     
     let piMap (pi : PeriodItem) = 
         let modelItem = StockCheck.Model.PeriodItem(siMap pi.SalesItem)
@@ -116,48 +118,46 @@ type Query(documentStore : IDocumentStore) =
 
     let dbName = "StockCheck"
     
-    let getItemReceived (dt : DateTime) (il : InvoiceLine) = 
+    let getItemReceived dt il = 
         { ItemReceived.SalesItemId = il.SalesItem.Id
           InvoicedAmountEx = il.InvoicedAmountEx
           InvoicedAmountInc = il.InvoicedAmountInc
           Quantity = il.Quantity
           ReceivedDate = dt }
-    
-    let getModelSalesItem (si : SalesItem) = MapToModel.siMap si
-    
-    member internal this.GetSuppliers = 
+        
+    member internal this.GetSuppliers() = 
         use session = documentStore.OpenSession(dbName)
         session.Query<Supplier>().ToList()
     
-    member internal this.GetSalesItem (name : string) (ledgerCode : string) = 
-        use session = documentStore.OpenSession(dbName)
-        session.Query<SalesItem>().Where(fun i -> i.Name = name).FirstOrDefault()
+    member internal this.GetSalesItem name ledgerCode = 
+        use session = documentStore.OpenSession dbName
+        session.Query<SalesItem>().Where(fun i -> i.Name = name && i.LedgerCode = ledgerCode).FirstOrDefault()
     
-    member internal this.GetSalesItemById(id : string) = 
+    member internal this.GetSalesItemById (id : string) = 
         use session = documentStore.OpenSession(dbName)
         session.Load<SalesItem>(id)
     
-    member internal this.GetPeriod(id : string) = 
+    member internal this.GetPeriod (id : string) = 
         use session = documentStore.OpenSession(dbName)
         session.Load<Period>(id)
     
-    member internal this.GetPeriodByName(name : string) = 
-        use session = documentStore.OpenSession(dbName)
+    member internal this.GetPeriodByName name = 
+        use session = documentStore.OpenSession dbName
         session.Query<Period>().Where(fun i -> i.Name = name).FirstOrDefault()
     
-    member internal this.GetPeriods = 
+    member internal this.GetPeriods () = 
         use session = documentStore.OpenSession(dbName)
         session.Query<Period>().ToList()
     
-    member internal this.GetSalesItems = 
+    member internal this.GetSalesItems () = 
         use session = documentStore.OpenSession(dbName)
         session.Query<SalesItem>().Take(1024).ToList()
     
-    member internal this.GetInvoice(id : string) = 
+    member internal this.GetInvoice (id : string) = 
         use session = documentStore.OpenSession(dbName)
         session.Load<Invoice>(id)
     
-    member internal this.GetInvoices = 
+    member internal this.GetInvoices () = 
         use session = documentStore.OpenSession(dbName)
         session.Query<Invoice>().ToList()
     
@@ -204,13 +204,12 @@ type Query(documentStore : IDocumentStore) =
         |> ignore
         modelPeriod
     
-    member this.GetModelPeriods = this.GetPeriods |> Seq.map MapToModel.pMap
-    member this.GetModelSalesItems = 
-                let itmes = this.GetSalesItems 
-                itmes |> Seq.map getModelSalesItem
+    member this.GetModelPeriods = this.GetPeriods() |> Seq.map MapToModel.pMap
+    member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.siMap
     member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
-    member this.GetModelInvoices = this.GetInvoices |> Seq.map MapToModel.iMap
-    member this.GetModelSuppliers = this.GetSuppliers |> Seq.map MapToModel.supMap
+    member this.GetModelInvoices() = this.GetInvoices() |> Seq.map MapToModel.iMap
+    member this.GetModelInvoicesByDateRange start finish = this.GetInvoicesByDateRange start finish |> Seq.map MapToModel.iMap
+    member this.GetModelSuppliers = this.GetSuppliers() |> Seq.map MapToModel.supMap
 
 module internal MapFromModel = 
     let idMap id = match id with
@@ -234,7 +233,8 @@ module internal MapFromModel =
           SalesPrice = si.SalesPrice
           TaxRate = si.TaxRate
           UllagePerContainer = si.UllagePerContainer
-          SalesUnitType = StockCheck.Model.Converters.ToSalesUnitTypeString si.SalesUnitType }
+          SalesUnitType = StockCheck.Model.Converters.ToSalesUnitTypeString si.SalesUnitType
+          OtherSalesUnit = si.OtherSalesUnit }
     
     let pMap (documentStore) (p : StockCheck.Model.Period) = 
         { Id = idMap p.Id

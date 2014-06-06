@@ -3,6 +3,20 @@
 open System
 open System.Collections.Generic
 
+type salesUnitType =
+    | Pint
+    | Unit
+    | Spirit
+    | Fortified
+    | Wine
+    | Other
+
+[<Measure>] type l
+[<Measure>] type shot
+[<Measure>] type double
+[<Measure>] type gal
+[<Measure>] type pt
+
 module Utils =
     let MarkUp sale cost =
         sale - cost
@@ -18,19 +32,18 @@ module Utils =
     let ValueOfQuantity qty unit ppUnit =
         decimal(qty * unit * float ppUnit)
 
+    let ptPerGal : float<pt/gal> = 8.<pt/gal>
 
-type SalesUnitType =
-    | Pint
-    | Unit
-    | Spirit
-    | Fortified
-    | Wine
+    let shotsPerLtr : float<shot/l> = 28.5714<shot/l>
+
+    let convertLitresToShots (x : float<l>) = x * shotsPerLtr
+    let convertGallonsToPints (x : float<gal>) = x * ptPerGal
 
 type SalesItem() = 
     let costPerUnitOfSale (costPerContainer: decimal) (containerSize : float) (salesUnitsPerContainerUnit: float) : decimal =
         match costPerContainer with
-            | 0M -> decimal 0
-            | _ -> decimal (float costPerContainer/(containerSize * salesUnitsPerContainerUnit))
+        | 0M -> decimal 0
+        | _ -> decimal (float costPerContainer/(containerSize * salesUnitsPerContainerUnit))
 
     member val Id = String.Empty with get, set
     member val ContainerSize = 0. with get, set
@@ -39,18 +52,20 @@ type SalesItem() =
     member val Name = String.Empty with get, set
     member val SalesPrice = decimal 0 with get, set
     member val TaxRate = 0. with get, set
-    member val SalesUnitType = SalesUnitType.Pint with get, set
+    member val SalesUnitType = salesUnitType.Unit with get, set
+    member val OtherSalesUnit = 0. with get, set
     member val UllagePerContainer = 0 with get, set
     member this.MarkUp = Utils.MarkUp (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
     member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.SalesUnitsPerContainerUnit
     member this.IdealGP = Utils.GrossProfit (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
     member this.SalesUnitsPerContainerUnit = 
         match this.SalesUnitType with
-            | Pint -> 8.0
-            | Unit -> 1.0
-            | Spirit -> 1.0/0.035
-            | Fortified -> 1.0/0.05
-            | Wine -> 1.0/0.175
+        | Pint -> 8.
+        | Unit -> 1.0
+        | Spirit -> 1./0.035
+        | Fortified -> 1.0/0.05
+        | Wine -> 1.0/0.175
+        | Other -> this.OtherSalesUnit
 
 type ItemReceived() =
     member val Id = String.Empty with get, set
@@ -149,17 +164,21 @@ type Supplier() =
 
 module Converters =
 
-    let ToSalesUnitTypeString t = match t with
-                                | Pint -> "Pint"
-                                | Unit -> "Unit"
-                                | Spirit -> "Spirit"
-                                | Fortified -> "Fortified"
-                                | Wine -> "Wine"
+    let ToSalesUnitTypeString t = 
+        match t with
+        | Pint -> "Pint"
+        | Unit -> "Unit"
+        | Spirit -> "Spirit"
+        | Fortified -> "Fortified"
+        | Wine -> "Wine"
+        | Other -> "Other"
 
-    let ToSalesUnitType t = match t with
-                                | "Pint" -> Pint
-                                | "Unit" -> Unit
-                                | "Spirit" -> Spirit
-                                | "Fortified" -> Fortified
-                                | "Wine" -> Wine
-                                | _ -> Pint
+    let ToSalesUnitType t = 
+        match t with
+        | "Pint" -> Pint
+        | "Unit" -> Unit
+        | "Spirit" -> Spirit
+        | "Fortified" -> Fortified
+        | "Wine" -> Wine
+        | "Other" -> Other
+        | _ -> Unit

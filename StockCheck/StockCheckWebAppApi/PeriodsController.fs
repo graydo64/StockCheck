@@ -1,8 +1,11 @@
 ﻿namespace FsWeb.Controllers
 
 open System.Web
+open System.Web.Http//
 open System.Web.Mvc
+open System.Net
 open System.Net.Http
+open System.Net.Http.Headers//
 open System.Web.Http
 open StockCheck.Repository
 open System
@@ -116,7 +119,7 @@ type PeriodController() =
         period.Items
         |> Seq.map (fun i -> mapPIFromViewModel i)
         |> p.Items.AddRange
-        persister.Save(p)
+        persister.Save p
     
     [<HttpGet>][<Route("api/period/init-from/{id}")>]
     member x.InitFrom(id : string) = 
@@ -127,3 +130,20 @@ type PeriodController() =
         
         let newp = StockCheck.Model.Period.InitialiseFromClone(period)
         mapToViewModel newp
+
+    [<HttpGet>][<Route("api/period/export/{id}")>]
+    member x.Export(id : string) = 
+        let p = 
+            repo.GetModelPeriodById id
+
+        let i = repo.GetModelInvoicesByDateRange p.StartOfPeriod p.EndOfPeriod
+
+        let f = Excel.Export p i
+
+        let response = new HttpResponseMessage(HttpStatusCode.OK)
+        response.Content <- new StreamContent(new System.IO.FileStream(f.FullName, IO.FileMode.Open))
+        response.Content.Headers.Add("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode(String.Concat(p.Name, f.Extension), Text.Encoding.UTF8))
+        response.Content.Headers.Add("Content-Type", "application/vnd.ms-excel")
+        response.Content.Headers.Add("Content-Encoding", "UTF-8")
+        response.Content.Headers.Expires <- new Nullable<DateTimeOffset>(new DateTimeOffset(System.DateTime.Now))
+        response

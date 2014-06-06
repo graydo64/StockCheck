@@ -67,7 +67,7 @@ module InvoiceControllerHelper =
 type InvoicesController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
-    member x.Get() = repo.GetModelInvoices |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
+    member x.Get() = repo.GetModelInvoices() |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
 
 type InvoiceController() = 
     inherit ApiController()

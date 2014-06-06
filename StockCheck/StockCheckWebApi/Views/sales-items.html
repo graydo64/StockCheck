@@ -25,7 +25,7 @@
                 <td>{{ salesitem.name }}</td>
                 <td>{{ salesitem.containerSize }}</td>
                 <td>{{ salesitem.costPerContainer | currency }}</td>
-                <td>{{ salesitem.salesPrice | currency }}</td>
+                <td ng-style="">{{ salesitem.salesPrice | currency }}</td>
                 <td><a href="#/sales-item/{{ salesitem.id }}">View</a></td>
             </tr>
         </table>
