@@ -1,51 +1,18 @@
 ﻿namespace FsWeb.Controllers
 
-open System.Web
-open System.Web.Mvc
-open System.Net.Http
+open System
 open System.Web.Http
 open StockCheck.Repository
-open System
-open System.ComponentModel.DataAnnotations
-open System.Runtime.Serialization
+open StockCheck.Model
+open FsWeb.Model
 
-[<CLIMutable>]
-[<DataContract>]
-type SalesItemView = 
-    { [<DataMember>] Id : string
-      [<DataMember>] LedgerCode : string
-      [<DataMember>] Name : string
-      [<DataMember>] ContainerSize : float
-      [<DataMember>] CostPerContainer : decimal
-      [<DataMember>] SalesPrice : decimal
-      [<DataMember>] TaxRate : float
-      [<DataMember>] UllagePerContainer : int
-      [<DataMember>] SalesUnitType : string
-      [<DataMember>] SalesUnitsPerContainerUnit : float }
-
-[<CLIMutable>]
-[<DataContract>]
-type SalesItemViewResponse = 
-    { [<DataMember>] Id : string
-      [<DataMember>] LedgerCode : string
-      [<DataMember>] Name : string
-      [<DataMember>] ContainerSize : float
-      [<DataMember>] CostPerContainer : decimal
-      [<DataMember>] SalesPrice : decimal
-      [<DataMember>] TaxRate : float
-      [<DataMember>] UllagePerContainer : int
-      [<DataMember>] SalesUnitType : string
-      [<DataMember>] SalesUnitsPerContainerUnit : float
-      [<DataMember>] CostPerUnitOfSale : decimal
-      [<DataMember>] MarkUp : decimal
-      [<DataMember>] IdealGP : float }
-
-type SalesItemController() = 
+type SalesItemController() =
     inherit ApiController()
+    let cache = new FsWeb.CacheWrapper ()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
-    
-    member x.Get((id : string), ()) = 
+
+    member x.Get((id : string), ()) =
         let i = repo.GetModelSalesItemById id
         { Id = i.Id
           LedgerCode = i.LedgerCode
@@ -60,8 +27,9 @@ type SalesItemController() =
           CostPerUnitOfSale = i.CostPerUnitOfSale
           MarkUp = i.MarkUp
           IdealGP = i.IdealGP }
-    
-    member x.Put(salesItem : SalesItemView) = 
+
+    member x.Put(salesItem : SalesItemView) =
+        let sut = Converters.ToSalesUnitType salesItem.SalesUnitType
         let i = StockCheck.Model.SalesItem()
         i.Id <- salesItem.Id
         i.ContainerSize <- salesItem.ContainerSize
@@ -69,10 +37,10 @@ type SalesItemController() =
         i.LedgerCode <- salesItem.LedgerCode
         i.Name <- salesItem.Name
         i.SalesPrice <- salesItem.SalesPrice
-        i.SalesUnitType <- StockCheck.Model.Converters.ToSalesUnitType salesItem.SalesUnitType
+        i.SalesUnitType <- sut
         i.TaxRate <- salesItem.TaxRate
         i.UllagePerContainer <- salesItem.UllagePerContainer
-        match (StockCheck.Model.Converters.ToSalesUnitType salesItem.SalesUnitType) with
-        | Other -> i.OtherSalesUnit <- salesItem.SalesUnitsPerContainerUnit
-        | _ -> i.OtherSalesUnit <- 0.
+        if sut = salesUnitType.Other then i.OtherSalesUnit <- salesItem.SalesUnitsPerContainerUnit
+        else i.OtherSalesUnit <- 0.
         persister.Save i
+        cache.Remove("#salesItems")

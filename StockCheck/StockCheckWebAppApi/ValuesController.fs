@@ -1,16 +1,7 @@
 ﻿namespace FsWeb.Controllers
 
-open System.Web
-open System.Web.Mvc
-open System.Net.Http
 open System.Web.Http
-open System.Runtime.Serialization
-
-[<CLIMutable>]
-[<DataContract>]
-type SupplierView =
-    { [<DataMember>] Id : string
-      [<DataMember>] Name : string }
+open FsWeb.Model
 
 type ValuesController() =
     inherit ApiController()
@@ -34,5 +25,4 @@ type ValuesController() =
         persister.Save modelSupplier
 
     [<Route("api/salesunit")>]
-    member x.GetSalesUnitTypes() =
-        [|"Pint"; "Unit"; "Spirit"; "Fortified"; "Wine"; "Other"|]
+    member x.GetSalesUnitTypes() = [| "Pint"; "Unit"; "Spirit"; "Fortified"; "Wine"; "Other" |]

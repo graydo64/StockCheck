@@ -1,45 +1,10 @@
 ﻿namespace FsWeb.Controllers
 
-open System.Web
-open System.Web.Mvc
-open System.Net.Http
 open System.Web.Http
 open StockCheck.Repository
 open System
 open System.Collections.Generic
-open System.ComponentModel.DataAnnotations
-open System.Runtime.Serialization
-
-[<CLIMutable>]
-[<DataContract>]
-type ItemReceivedViewModel = 
-    { [<DataMember>] Quantity : float
-      [<DataMember>] ReceivedDate : DateTime
-      [<DataMember>] InvoicedAmountEx : decimal
-      [<DataMember>] InvoicedAmountInc : decimal
-      [<DataMember>] Reference : string }
-
-[<CLIMutable>]
-[<DataContract>]
-type InvoiceLineViewModel = 
-    { [<DataMember>] Id : string
-      [<DataMember>] SalesItemId : string
-      [<DataMember>] SalesItemDescription : string
-      [<DataMember>] Quantity : float
-      [<DataMember>] InvoicedAmountEx : decimal
-      [<DataMember>] InvoicedAmountInc : decimal }
-
-[<CLIMutable>]
-[<DataContract>]
-type InvoiceViewModel = 
-    { [<DataMember>] Id : string
-      [<DataMember>] Supplier : string
-      [<DataMember>] InvoiceNumber : string
-      [<DataMember>] InvoiceDate : DateTime
-      [<DataMember>] DeliveryDate : DateTime
-      [<DataMember>] InvoiceLines : List<InvoiceLineViewModel>
-      [<DataMember>] TotalEx : decimal
-      [<DataMember>] TotalInc : decimal }
+open FsWeb.Model
 
 module InvoiceControllerHelper = 
     let mapToInvoiceLineViewModel (invoiceLine : StockCheck.Model.InvoiceLine) = 

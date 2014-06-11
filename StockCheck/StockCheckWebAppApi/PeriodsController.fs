@@ -1,54 +1,14 @@
 ﻿namespace FsWeb.Controllers
 
 open System.Web
-open System.Web.Http//
-open System.Web.Mvc
 open System.Net
 open System.Net.Http
-open System.Net.Http.Headers//
 open System.Web.Http
 open StockCheck.Repository
 open System
 open System.Linq
 open System.Collections.Generic
-open System.ComponentModel.DataAnnotations
-open System.Runtime.Serialization
-open Raven.Client
-
-[<CLIMutable>]
-[<DataContract>]
-type PeriodItemViewModel = 
-    { [<DataMember>] OpeningStock : float
-      [<DataMember>] ClosingStockExpr : string
-      [<DataMember>] ClosingStock : float
-      [<DataMember>] SalesItemId : string
-      [<DataMember>] SalesItemLedgerCode : string
-      [<DataMember>] SalesItemName : string
-      [<DataMember>] Container : float
-      [<DataMember>] ItemsReceived : float
-      [<DataMember>] SalesQty : float }
-
-[<CLIMutable>]
-[<DataContract>]
-type PeriodsViewModel = 
-    { [<DataMember>] Id : string
-      [<DataMember>] Name : string
-      [<DataMember>] StartOfPeriod : DateTime
-      [<DataMember>] EndOfPeriod : DateTime
-      [<DataMember>] SalesEx : decimal
-      [<DataMember>] ClosingValueCostEx : decimal }
-
-[<CLIMutable>]
-[<DataContract>]
-type PeriodViewModel = 
-    { [<DataMember>] Id : string
-      [<DataMember>] Name : string
-      [<DataMember>] StartOfPeriod : DateTime
-      [<DataMember>] EndOfPeriod : DateTime
-      [<DataMember>] Items : seq<PeriodItemViewModel>
-      [<DataMember>] ClosingValueCostEx : decimal
-      [<DataMember>] ClosingValueSalesInc : decimal
-      [<DataMember>] ClosingValueSalesEx : decimal }
+open FsWeb.Model
 
 type PeriodsController() = 
     inherit ApiController()
@@ -66,6 +26,8 @@ type PeriodsController() =
 type PeriodController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
+    let salesItems = repo.GetModelSalesItems
+    let cache = FsWeb.CacheWrapper()
     
     let mapToPI (pi : StockCheck.Model.PeriodItem) = 
         { PeriodItemViewModel.OpeningStock = pi.OpeningStock
@@ -88,9 +50,7 @@ type PeriodController() =
           ClosingValueSalesInc = decimal p.ClosingValueSalesInc
           ClosingValueSalesEx = decimal p.ClosingValueSalesEx }
     
-    let mapPIFromViewModel (pi : PeriodItemViewModel) = 
-        let salesItems = repo.GetModelSalesItems
-        
+    let mapPIFromViewModel (pi : PeriodItemViewModel) =         
         let periodItem = 
             new StockCheck.Model.PeriodItem(salesItems
                                             |> Seq.filter (fun i -> i.Id = pi.SalesItemId)
@@ -101,7 +61,13 @@ type PeriodController() =
         periodItem
     
     [<Route("api/period/{id}")>]
-    member x.Get(id : string, ()) = mapToViewModel (repo.GetModelPeriodById id)
+    member x.Get(id : string, ()) = 
+        match cache.Get id with
+        | Some(p) -> p :?> PeriodViewModel
+        | None -> 
+            let vm = mapToViewModel (repo.GetModelPeriodById id)
+            cache.Add id vm
+            vm
     
     [<Route("api/period")>]
     member x.Put(period : PeriodViewModel) = 
@@ -120,6 +86,7 @@ type PeriodController() =
         |> Seq.map (fun i -> mapPIFromViewModel i)
         |> p.Items.AddRange
         persister.Save p
+        cache.Remove period.Id
     
     [<HttpGet>][<Route("api/period/init-from/{id}")>]
     member x.InitFrom(id : string) = 
