@@ -10,12 +10,25 @@ type salesUnitType =
     | Fortified
     | Wine
     | Other
+    with
+        member this.toString() =
+            match this with
+            | Pint -> "Pint"
+            | Unit -> "Unit"
+            | Spirit -> "Spirit"
+            | Fortified -> "Fortified"
+            | Wine -> "Wine"
+            | Other -> "Other"
+        static member fromString s =
+            match s with
+            | "Pint" -> Pint
+            | "Unit" -> Unit
+            | "Spirit" -> Spirit
+            | "Fortified" -> Fortified
+            | "Wine" -> Wine
+            | "Other" -> Other
+            | _ -> Unit
 
-[<Measure>] type l
-[<Measure>] type shot
-[<Measure>] type double
-[<Measure>] type gal
-[<Measure>] type pt
 
 module Utils =
     let MarkUp sale cost =
@@ -23,49 +36,30 @@ module Utils =
 
     let GrossProfit sale cost =
         match sale with
-        | dsale when dsale = (decimal 0) -> 0.
+        | 0.M -> 0.
         | _ -> float ((MarkUp sale cost)/sale)
 
     let LessTax rate price = 
-        price / (decimal 1 + decimal rate)
+        price / decimal(1. + rate)
 
-    let private ValueOfQuantity qty unit ppUnit =
-        decimal (qty * unit * float ppUnit)
-
-    let private ValueOfQuantity2 qty unit size ppUnit =
+    let private ValueOfQuantity qty unit size ppUnit =
         decimal (qty * unit * size * float ppUnit)
 
-    let ValueOfQuantityT (t : salesUnitType) qty unit size ppUnit =
+    let ValueOfQuantityT t unit size qty ppUnit =
         match t with
-        | Pint -> ValueOfQuantity qty unit ppUnit
-        | Unit -> ValueOfQuantity qty unit ppUnit
-        | Spirit -> ValueOfQuantity2 qty unit size ppUnit
-        | Fortified -> ValueOfQuantity2 qty unit size ppUnit
-        | Wine -> ValueOfQuantity2 qty unit size ppUnit
-        | Other -> ValueOfQuantity qty unit ppUnit
+        | Pint | Unit -> ValueOfQuantity qty unit 1.0 ppUnit
+        | Spirit | Fortified | Wine | Other -> ValueOfQuantity qty unit size ppUnit
 
-    let Round2 x =
-            Math.Round(x * 100.)/100.
-
-    let Round2M (x : decimal) =
-            Math.Round(x * 100.M)/100.M
-
-    let Round4 x =
-            Math.Round(x * 10000.)/10000.
-
-    let ptPerGal : float<pt/gal> = 8.<pt/gal>
-
-    let shotsPerLtr : float<shot/l> = 28.5714<shot/l>
-
-    let convertLitresToShots (x : float<l>) = x * shotsPerLtr
-    let convertGallonsToPints (x : float<gal>) = x * ptPerGal
+    let inline Round2 x =
+            Math.Round(float x, 2)
 
 type SalesItem() = 
-    let costPerUnitOfSale (costPerContainer: decimal) (containerSize : float) (salesUnitsPerContainerUnit: float) : decimal =
+    let costPerUnitOfSale costPerContainer containerSize salesUnitsPerContainerUnit =
         match costPerContainer with
         | 0M -> decimal 0
         | _ -> decimal (float costPerContainer/(containerSize * salesUnitsPerContainerUnit))
 
+    member private this.SalesPriceEx = Utils.LessTax this.TaxRate this.SalesPrice
     member val Id = String.Empty with get, set
     member val ContainerSize = 0. with get, set
     member val CostPerContainer = decimal 0 with get, set
@@ -76,16 +70,16 @@ type SalesItem() =
     member val SalesUnitType = salesUnitType.Unit with get, set
     member val OtherSalesUnit = 0. with get, set
     member val UllagePerContainer = 0 with get, set
-    member this.MarkUp = Utils.MarkUp (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
+    member this.MarkUp = Utils.MarkUp this.SalesPriceEx this.CostPerUnitOfSale
     member this.CostPerUnitOfSale = costPerUnitOfSale this.CostPerContainer this.ContainerSize this.SalesUnitsPerContainerUnit    
-    member this.IdealGP = Utils.GrossProfit (Utils.LessTax this.TaxRate this.SalesPrice) this.CostPerUnitOfSale
+    member this.IdealGP = Utils.GrossProfit this.SalesPriceEx this.CostPerUnitOfSale
     member this.SalesUnitsPerContainerUnit = 
         match this.SalesUnitType with
-        | Pint -> 8.
+        | Pint -> float Conv.ptPerGal
         | Unit -> 1.0
-        | Spirit -> 1.0/0.035
-        | Fortified -> 1.0/0.05
-        | Wine -> 1.0/0.175
+        | Spirit -> float Conv.shotsPerLtr
+        | Fortified -> float Conv.doublesPerLtr
+        | Wine -> float Conv.wineGlassPerLtr
         | Other -> this.OtherSalesUnit
 
 type ItemReceived() =
@@ -99,57 +93,52 @@ type PeriodItem(salesItem : SalesItem) =
     let itemsReceived = List<ItemReceived>()
     let lessTax = Utils.LessTax salesItem.TaxRate
 
+    member private this.ValueOfQuantity = Utils.ValueOfQuantityT salesItem.SalesUnitType salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize 
+    member private this.ContRec = if this.ContainersReceived > 0. then Some(this.ContainersReceived) else None
+    member private this.SalesCost = decimal this.Sales * salesItem.CostPerContainer
+    member val Id = String.Empty with get, set
     member val OpeningStock = 0. with get, set
     member val ClosingStockExpr = String.Empty with get, set
     member val ClosingStock = 0. with get, set
     member val SalesItem = salesItem
     member this.ItemsReceived = itemsReceived;
     member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
-            let item = ItemReceived()
-            item.Quantity <- quantity
-            item.ReceivedDate <- receivedDate
-            item.InvoicedAmountEx <- invoiceAmountEx
-            item.InvoicedAmountInc <- invoiceAmountInc
+            let item = ItemReceived(Quantity = quantity, ReceivedDate = receivedDate, InvoicedAmountEx = invoiceAmountEx, InvoicedAmountInc = invoiceAmountInc)
             this.ItemsReceived.Add(item)
     member this.CopyForNextPeriod () =
-            let periodItem = PeriodItem (salesItem)
-            periodItem.OpeningStock <- this.ClosingStock
-            periodItem.ClosingStock <- 0.
-            periodItem
+            PeriodItem (salesItem, OpeningStock = this.ClosingStock, ClosingStock = 0.)
+
     member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun i -> i.Quantity)
     member this.TotalUnits = 
         match this.SalesItem.SalesUnitType with
-        | Pint -> this.ContainersReceived * salesItem.ContainerSize
-        | Unit -> this.ContainersReceived * salesItem.ContainerSize
-        | Spirit -> this.ContainersReceived
-        | Fortified -> this.ContainersReceived
-        | Wine -> this.ContainersReceived
-        | Other -> this.ContainersReceived * salesItem.ContainerSize
+        | Pint | Unit | Other -> this.ContainersReceived * salesItem.ContainerSize
+        | Spirit | Fortified | Wine -> this.ContainersReceived
     member this.Sales = Utils.Round2 (this.OpeningStock + this.TotalUnits - this.ClosingStock)
     member this.ContainersSold = this.Sales / salesItem.ContainerSize
     member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
     member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
     member this.PurchasesTotal = this.PurchasesEx + lessTax this.PurchasesInc
-    member this.SalesInc = Utils.ValueOfQuantityT salesItem.SalesUnitType this.Sales salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize salesItem.SalesPrice
-    member this.SalesEx = lessTax this.SalesInc
+    member this.SalesInc = this.ValueOfQuantity this.Sales salesItem.SalesPrice
+    member this.SalesEx = this.SalesInc |> lessTax
     member this.CostOfSalesEx = 
-        if this.ContainersReceived > 0. 
-        then
+        match this.ContRec with
+        | Some(c) -> 
             decimal ((float (this.PurchasesTotal) / this.TotalUnits) * this.Sales)
-        else
-            if this.SalesItem.SalesUnitType = salesUnitType.Spirit || this.SalesItem.SalesUnitType = salesUnitType.Fortified then
-                decimal this.Sales * this.SalesItem.CostPerContainer
-            else
-                decimal (this.Sales / this.SalesItem.ContainerSize) * this.SalesItem.CostPerContainer
+        | None -> 
+            match this.SalesItem.SalesUnitType with
+            | salesUnitType.Spirit | salesUnitType.Fortified | salesUnitType.Other ->
+                this.SalesCost
+            | _ ->
+                this.SalesCost / decimal this.SalesItem.ContainerSize
     
     member this.Profit = salesItem.MarkUp * decimal (salesItem.SalesUnitsPerContainerUnit * this.Sales)
     member this.SalesPerDay (startDate: DateTime, endDate: DateTime) = this.Sales / float (endDate.Subtract(startDate).Days + 1)
     member this.DaysOnHand (startDate: DateTime, endDate: DateTime) = this.ClosingStock / this.SalesPerDay(startDate, endDate) |> int
     member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
     member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
-    member this.ClosingValueCostEx = Utils.ValueOfQuantityT salesItem.SalesUnitType this.ClosingStock salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize salesItem.CostPerUnitOfSale
-    member this.ClosingValueSalesInc = Utils.ValueOfQuantityT salesItem.SalesUnitType this.ClosingStock salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize salesItem.SalesPrice
-    member this.ClosingValueSalesEx = lessTax this.ClosingValueSalesInc
+    member this.ClosingValueCostEx = this.ValueOfQuantity this.ClosingStock salesItem.CostPerUnitOfSale
+    member this.ClosingValueSalesInc = this.ValueOfQuantity this.ClosingStock salesItem.SalesPrice
+    member this.ClosingValueSalesEx = this.ClosingValueSalesInc |> lessTax
 
 type Period() =
     member val Id = String.Empty with get, set
@@ -175,8 +164,7 @@ type Period() =
             period
     static member InitialiseWithoutZeroCarriedItems source =
             let period = Period.InitialiseFrom source
-            let items = source.Items |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.)
-            period.Items.AddRange(items)
+            let items = source.Items |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.) |> period.Items.AddRange
             period.Items |> Seq.iter (fun i -> Period.CloseToStart i)
             period
 
@@ -198,24 +186,3 @@ type Invoice() =
 type Supplier() =
     member val Id = String.Empty with get, set
     member val Name = String.Empty with get, set
-
-module Converters =
-
-    let ToSalesUnitTypeString t = 
-        match t with
-        | Pint -> "Pint"
-        | Unit -> "Unit"
-        | Spirit -> "Spirit"
-        | Fortified -> "Fortified"
-        | Wine -> "Wine"
-        | Other -> "Other"
-
-    let ToSalesUnitType t = 
-        match t with
-        | "Pint" -> Pint
-        | "Unit" -> Unit
-        | "Spirit" -> Spirit
-        | "Fortified" -> Fortified
-        | "Wine" -> Wine
-        | "Other" -> Other
-        | _ -> Unit

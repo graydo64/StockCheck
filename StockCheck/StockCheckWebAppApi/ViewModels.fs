@@ -38,7 +38,8 @@ type InvoiceViewModel =
 [<CLIMutable>]
 [<DataContract>]
 type PeriodItemViewModel =
-    { [<DataMember>] OpeningStock : float
+    { [<DataMember>] Id : string
+      [<DataMember>] OpeningStock : float
       [<DataMember>] ClosingStockExpr : string
       [<DataMember>] ClosingStock : float
       [<DataMember>] SalesItemId : string
@@ -78,7 +79,8 @@ type SalesItemsViewModel =
       [<DataMember>] Name : string
       [<DataMember>] ContainerSize : float
       [<DataMember>] CostPerContainer : decimal
-      [<DataMember>] SalesPrice : decimal }
+      [<DataMember>] SalesPrice : decimal
+      [<DataMember>] SalesUnitType : string }
 
 [<CLIMutable>]
 [<DataContract>]

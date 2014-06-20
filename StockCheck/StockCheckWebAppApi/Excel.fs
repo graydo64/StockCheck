@@ -64,6 +64,7 @@ module Excel =
             ws.SetValue(headerRow, 6, "Qty")
             ws.SetValue(headerRow, 7, "Total Ex")
             ws.SetValue(headerRow, 8, "Total Inc")
+            ws.SetValue(headerRow, 9, "Week Ending")
 
         let writeCatHeader (ws : ExcelWorksheet) =
             ws.SetValue(headerRow, 4, "Units/Container Unit")
@@ -116,14 +117,17 @@ module Excel =
 
         let writeGoodsIn i f (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
+            let wer = ws.Cells.[rowNo, 9]
+            let ddr = ws.Cells.[rowNo, 5]
             ws.SetValue(rowNo, lcCol, f.LedgerCode)
             ws.SetValue(rowNo, siCol, f.Name)
             ws.SetValue(rowNo, csCol, f.ContainerSize)
             ws.SetValue(rowNo, 4, f.InvoiceNumber)
-            ws.SetValue(rowNo, 5, f.DeliveryDate)
+            ws.SetValue(rowNo, 5, f.DeliveryDate.ToLocalTime())
             ws.SetValue(rowNo, 6, f.Qty)
             ws.SetValue(rowNo, 7, f.AmountEx)
             ws.SetValue(rowNo, 8, f.AmountInc)
+            wer.Formula <- System.String.Format("{0}+(7-WEEKDAY({0},2))", ddr.Address)
             
 
         let writePeriodItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
@@ -222,6 +226,7 @@ module Excel =
         scf clo curFormat {5..7}
 
         gr.Column(5).Style.Numberformat.Format <- dateFormat
+        gr.Column(9).Style.Numberformat.Format <- dateFormat
         scf gr curFormat {7..8}
         let sumCol (sh : ExcelWorksheet) sumRow col =
             let range = ws.Cells.[headerRow + 1, col, sumRow - 1, col]

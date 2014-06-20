@@ -10,19 +10,6 @@ open System.Linq
 open System.Collections.Generic
 open FsWeb.Model
 
-type PeriodsController() = 
-    inherit ApiController()
-    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
-
-    member x.Get() = 
-        repo.GetModelPeriods |> Seq.map (fun i -> 
-                                    { PeriodsViewModel.Id = i.Id
-                                      Name = i.Name
-                                      StartOfPeriod = i.StartOfPeriod
-                                      EndOfPeriod = i.EndOfPeriod
-                                      SalesEx = i.SalesEx
-                                      ClosingValueCostEx = i.ClosingValueCostEx })
-
 type PeriodController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
@@ -30,7 +17,8 @@ type PeriodController() =
     let cache = FsWeb.CacheWrapper()
     
     let mapToPI (pi : StockCheck.Model.PeriodItem) = 
-        { PeriodItemViewModel.OpeningStock = pi.OpeningStock
+        { PeriodItemViewModel.Id = pi.Id
+          OpeningStock = pi.OpeningStock
           ClosingStockExpr = pi.ClosingStockExpr
           ClosingStock = pi.ClosingStock
           SalesItemId = pi.SalesItem.Id
@@ -59,7 +47,26 @@ type PeriodController() =
         periodItem.OpeningStock <- pi.OpeningStock
         periodItem.ClosingStockExpr <- pi.ClosingStockExpr
         periodItem
-    
+
+    let mapPFromViewModel (p : StockCheck.Model.Period) (vm : PeriodViewModel) =
+        p.EndOfPeriod <- vm.EndOfPeriod
+        p.Name <- vm.Name
+        p.StartOfPeriod <- vm.StartOfPeriod
+        vm.Items
+        |> Seq.map (fun i -> mapPIFromViewModel i)
+        |> p.Items.AddRange
+        p
+
+    [<Route("api/period/")>]
+    member x.Get() = 
+        repo.GetModelPeriods |> Seq.map (fun i -> 
+                                    { PeriodsViewModel.Id = i.Id
+                                      Name = i.Name
+                                      StartOfPeriod = i.StartOfPeriod
+                                      EndOfPeriod = i.EndOfPeriod
+                                      SalesEx = i.SalesEx
+                                      ClosingValueCostEx = i.ClosingValueCostEx })
+
     [<Route("api/period/{id}")>]
     member x.Get(id : string, ()) = 
         match cache.Get id with
@@ -70,23 +77,38 @@ type PeriodController() =
             vm
     
     [<Route("api/period")>]
+    member x.Post(period : PeriodViewModel) =
+        let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
+        let periods = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = period.Id) |> Seq.length
+        
+        match periods with
+        | 0 -> 
+            let p = new StockCheck.Model.Period()
+            mapPFromViewModel p period
+            |> persister.Save
+            x.Request.CreateResponse(HttpStatusCode.OK, period)
+        | _ -> 
+            x.Request.CreateResponse(HttpStatusCode.Conflict, period)
+
+    [<Route("api/period")>]
     member x.Put(period : PeriodViewModel) = 
         let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
         let periods = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = period.Id)
+        let clearItems (p : StockCheck.Model.Period) =
+            p.Items.Clear()
+            p
         
-        let p = 
-            match periods |> Seq.length with
-            | 0 -> new StockCheck.Model.Period()
-            | _ -> periods |> Seq.head
-        p.EndOfPeriod <- period.EndOfPeriod
-        p.Name <- period.Name
-        p.StartOfPeriod <- period.StartOfPeriod
-        p.Items.Clear()
-        period.Items
-        |> Seq.map (fun i -> mapPIFromViewModel i)
-        |> p.Items.AddRange
-        persister.Save p
-        cache.Remove period.Id
+        match periods |> Seq.length with
+        | 0 -> 
+            x.Request.CreateResponse(HttpStatusCode.NotFound, period)
+        | _ -> 
+            periods 
+            |> Seq.head
+            |> clearItems
+            |> (fun p -> mapPFromViewModel p period)
+            |> persister.Save
+            cache.Remove period.Id
+            x.Request.CreateResponse(HttpStatusCode.OK, period)
     
     [<HttpGet>][<Route("api/period/init-from/{id}")>]
     member x.InitFrom(id : string) = 
@@ -107,7 +129,7 @@ type PeriodController() =
 
         let f = Excel.Export p i
 
-        let response = new HttpResponseMessage(HttpStatusCode.OK)
+        let response = x.Request.CreateResponse(HttpStatusCode.OK)
         response.Content <- new StreamContent(new System.IO.FileStream(f.FullName, IO.FileMode.Open))
         response.Content.Headers.Add("Content-Disposition", "attachment; filename=" + HttpUtility.UrlEncode(String.Concat(p.Name, f.Extension), Text.Encoding.UTF8))
         response.Content.Headers.Add("Content-Type", "application/vnd.ms-excel")

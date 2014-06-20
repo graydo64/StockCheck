@@ -32,8 +32,6 @@ type Global() =
 
     member x.Application_Start() =
         GlobalConfiguration.Configure(Action<_> Global.RegisterWebApi)
-//        Global.Store.DataDirectory <- "App_Data\Database"
-//        Global.Store.UseEmbeddedHttpServer <- true
         Global.Store.Conventions.IdentityPartsSeparator <- "-"
         Global.Store.Initialize() |> ignore
 

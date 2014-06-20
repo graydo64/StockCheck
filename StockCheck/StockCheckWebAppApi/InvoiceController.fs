@@ -29,11 +29,6 @@ module InvoiceControllerHelper =
           TotalEx = invoice.InvoiceLines |> Seq.sumBy (fun il -> il.InvoicedAmountEx)
           TotalInc = invoice.InvoiceLines |> Seq.sumBy (fun il -> il.InvoicedAmountInc) }
 
-type InvoicesController() = 
-    inherit ApiController()
-    let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
-    member x.Get() = repo.GetModelInvoices() |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
-
 type InvoiceController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
@@ -46,6 +41,8 @@ type InvoiceController() =
         line.InvoicedAmountEx <- invoiceLine.InvoicedAmountEx
         line.InvoicedAmountInc <- invoiceLine.InvoicedAmountInc
         line
+    
+    member x.Get() = repo.GetModelInvoices() |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
     
     member x.Get(id) = 
         match id with

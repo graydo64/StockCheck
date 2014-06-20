@@ -145,7 +145,6 @@
     <None Include="App.config" />
     <None Include="packages.config" />
     <Compile Include="PeriodsController.fs" />
-    <Compile Include="SalesItemsController.fs" />
     <Compile Include="SalesItemController.fs" />
     <Compile Include="InvoiceController.fs" />
     <None Include="Global.asax" />

@@ -1,6 +1,6 @@
 ﻿'use strict';
 
-var stockCheckApp = angular.module('stockCheck', ['ngRoute', 'stockCheckControllers', 'ui.bootstrap']);
+var stockCheckApp = angular.module('stockCheck', ['ngRoute', 'ngResource', 'stockCheckControllers', 'ui.bootstrap']);
 stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConfig',
         function ($routeProvider, datepickerConfig, datepickerPopupConfig) {
             $routeProvider.
@@ -50,6 +50,8 @@ stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConf
             datepickerConfig.initDate = new Date('2016-15-20');
 
             datepickerPopupConfig.datepickerPopup = "dd/MM/yyyy";
+
+            //$resource.defaults.stripTrailingSlashes = false;
         }]);
 
 stockCheckApp.directive('focusMe', function () {
@@ -61,4 +63,20 @@ stockCheckApp.directive('focusMe', function () {
 
 });
 
-stockCheckApp.value("appConfig",  {pathBase : "api/", defaultTaxRate : 0.2});
+stockCheckApp.value("appConfig", { pathBase: "api/", defaultTaxRate: 0.2 });
+
+stockCheckApp.factory("Period", function ($resource) {
+    return $resource("api/period/:id");
+});
+
+stockCheckApp.factory("SalesItem", function ($resource) {
+    return $resource("api/salesitem/:id");
+});
+
+stockCheckApp.factory("Invoice", function ($resource) {
+    return $resource("api/invoice/:id");
+});
+
+stockCheckApp.factory("Supplier", function ($resource) {
+    return $resource("api/supplier/:id");
+});

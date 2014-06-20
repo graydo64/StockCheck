@@ -12,13 +12,13 @@ type ValuesController() =
         { SupplierView.Id = s.Id
           Name = s.Name }
 
-    [<Route("api/suppliers")>]
+    [<Route("api/supplier")>]
     member x.Get() =
         let suppliers = repo.GetModelSuppliers
         suppliers |> Seq.map supMap
 
     [<Route("api/supplier")>]
-    member x.Put(supplier : SupplierView) =
+    member x.Post(supplier : SupplierView) =
         let modelSupplier = StockCheck.Model.Supplier()
         modelSupplier.Id <- supplier.Id
         modelSupplier.Name <- supplier.Name

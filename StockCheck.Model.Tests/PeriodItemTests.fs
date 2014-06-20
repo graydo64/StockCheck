@@ -6,6 +6,14 @@ open FsUnit
 open StockCheck.Model
 open Ploeh.AutoFixture
 
+module Utils =
+    let Round2M (x : decimal) =
+            Math.Round(x, 2)
+
+    let inline Round4 x =
+            Math.Round(float x, 4)
+
+
 module piSetup =
     let NewFixture () =
         new Fixture()
@@ -36,6 +44,12 @@ module piSetup =
     let InitialiseSpiritSalesItem () = InitialiseSalesItem 0.2 0.7 Spirit 3.5M
 
     let InitialiseWineSalesItem () = InitialiseSalesItem 0.2 0.75 Wine 3.45M
+
+    let InitialisePostMixSalesItem () =
+        let si = InitialiseSalesItem 0.2 10. Other 1.15M
+        si.CostPerContainer <- 29.M
+        si.OtherSalesUnit <- 17.6056338
+        si
 
 type PeriodItemSetup () =
     member x.Fixture = piSetup.NewFixture ()
@@ -97,8 +111,9 @@ type ``Given that a PeriodItem is being copied for the next period`` () as this 
 type ``Given that a PeriodItem has draught items received`` () as this =
     inherit PeriodItemSetup ()
     let periodItem = piSetup.InitialiseDraughtSalesItem () |> piSetup.initialisePeriodItem
-    let gallonsOnHand = 25.
-    let gallonsSold = 23. + (4. * 11.) - gallonsOnHand
+    let gallonsOnHand = LanguagePrimitives.FloatWithMeasure<gal> 25.
+    let pintsOnHand = Conv.convertGallonsToPints gallonsOnHand
+    let gallonsSold = LanguagePrimitives.FloatWithMeasure<gal> (23. + (4. * 11.)) - gallonsOnHand
     let pintsSold = 8. * gallonsSold
 
     [<Test>] member x.
@@ -131,7 +146,7 @@ type ``Given that a PeriodItem has draught items received`` () as this =
 
     [<Test>] member x.
         ``The DaysOnHand amount is correct`` () =
-            periodItem.DaysOnHand(this.d0, this.d1) |> should equal ((25. / (gallonsSold / this.dx)) |> int)
+            periodItem.DaysOnHand(this.d0, this.d1) |> should equal ((gallonsOnHand / (gallonsSold / this.dx)) |> int)
 
     [<Test>] member x.
         ``The Profit is correct`` () =
@@ -139,15 +154,15 @@ type ``Given that a PeriodItem has draught items received`` () as this =
 
     [<Test>] member x.
         ``The Closing Value at Sales Inc should be correct`` () =
-            periodItem.ClosingValueSalesInc |> should equal (decimal (gallonsOnHand * 8.) * periodItem.SalesItem.SalesPrice)
+            periodItem.ClosingValueSalesInc |> should equal (decimal (pintsOnHand) * periodItem.SalesItem.SalesPrice)
 
     [<Test>] member x.
         ``The Closing Value at Sales Ex should be correct`` () =
-            periodItem.ClosingValueSalesEx |> should equal ((decimal (gallonsOnHand * 8.) * periodItem.SalesItem.SalesPrice) / decimal 1.2)
+            periodItem.ClosingValueSalesEx |> should equal ((decimal (pintsOnHand) * periodItem.SalesItem.SalesPrice) / decimal 1.2)
 
     [<Test>] member x.
         ``The Closing Value at Cost Ex should be correct`` () =
-            Utils.Round2M (periodItem.ClosingValueCostEx) |> should equal (Utils.Round2M (decimal (gallonsOnHand * 8.) * periodItem.SalesItem.CostPerUnitOfSale))
+            Utils.Round2M (periodItem.ClosingValueCostEx) |> should equal (Utils.Round2M (decimal (pintsOnHand) * periodItem.SalesItem.CostPerUnitOfSale))
 
 
 [<TestFixture>]
@@ -449,3 +464,92 @@ type ``Given that a PeriodItem has no spirits received`` () as this =
     [<Test>] member x.
         ``The Closing Value at Cost Ex should be correct`` () =
             periodItem.ClosingValueCostEx |> should equal (decimal measuresOnHand * periodItem.SalesItem.CostPerUnitOfSale)
+
+[<TestFixture>]
+type ``Given that a PeriodItem has no PostMix received`` () as this =
+    inherit PeriodItemSetup ()
+    let periodItem = new StockCheck.Model.PeriodItem( piSetup.InitialisePostMixSalesItem ())
+    let boxesSold = 0.6
+    let measuresPerLitre = 17.6056338
+    let measuresSold = boxesSold * 10. * measuresPerLitre
+    let measuresOnHand = 0.3 * 10. * measuresPerLitre
+    do
+        periodItem.OpeningStock <- 0.9
+        periodItem.ClosingStock <- 0.3
+
+
+    [<Test>] member x.
+        ``The SalesInc amount is correct`` () =
+            periodItem.SalesInc |> should equal (decimal measuresSold * periodItem.SalesItem.SalesPrice)
+
+    [<Test>] member x.
+        ``The SalesEx amount is correct`` () =
+            periodItem.SalesEx |> should equal (periodItem.SalesInc / decimal 1.2)
+
+    [<Test>] member x.
+        ``The CostOfSales amount is correct`` () =
+            Utils.Round2M (periodItem.CostOfSalesEx) |> should equal (Utils.Round2M (decimal periodItem.Sales * periodItem.SalesItem.CostPerContainer))
+
+    [<Test>] member x.
+        ``The SalesPerDay amount is correct`` () = 
+            Utils.Round4 (periodItem.SalesPerDay(this.d0, this.d1)) |> should equal (Utils.Round4 (boxesSold / this.dx))
+
+    [<Test>] member x.
+        ``The DaysOnHand amount is correct`` () =
+            periodItem.DaysOnHand(this.d0, this.d1) |> should equal ((0.3 / (boxesSold / this.dx)) |> int)
+
+    [<Test>] member x.
+        ``The Closing Value at Sales Inc should be correct`` () =
+            periodItem.ClosingValueSalesInc |> should equal (decimal measuresOnHand * periodItem.SalesItem.SalesPrice)
+
+    [<Test>] member x.
+        ``The Closing Value at Sales Ex should be correct`` () =
+            periodItem.ClosingValueSalesEx |> should equal ((decimal measuresOnHand * periodItem.SalesItem.SalesPrice) / decimal 1.2)
+
+    [<Test>] member x.
+        ``The Closing Value at Cost Ex should be correct`` () =
+            Utils.Round2M periodItem.ClosingValueCostEx |> should equal (Utils.Round2M (decimal periodItem.ClosingStock * periodItem.SalesItem.CostPerContainer))
+
+[<TestFixture>]
+type ``Given that a PeriodItem has no Draught received`` () as this =
+    inherit PeriodItemSetup ()
+    let periodItem = new StockCheck.Model.PeriodItem( piSetup.InitialiseDraughtSalesItem ())
+    let gallonsOnHand = LanguagePrimitives.FloatWithMeasure<gal> 23.
+    let pintsOnHand = Conv.convertGallonsToPints gallonsOnHand
+    let gallonsSold = 2.
+    let pintsSold = 8. * gallonsSold 
+    do
+        periodItem.OpeningStock <- 25.
+        periodItem.ClosingStock <- float gallonsOnHand
+
+    [<Test>] member x.
+        ``The SalesInc amount is correct`` () =
+            periodItem.SalesInc |> should equal (decimal pintsSold * periodItem.SalesItem.SalesPrice)
+
+    [<Test>] member x.
+        ``The SalesEx amount is correct`` () =
+            periodItem.SalesEx |> should equal (periodItem.SalesInc / decimal 1.2)
+
+    [<Test>] member x.
+        ``The CostOfSales amount is correct`` () =
+            Utils.Round2M (periodItem.CostOfSalesEx) |> should equal (Utils.Round2M (decimal periodItem.Sales * (periodItem.SalesItem.CostPerContainer / decimal periodItem.SalesItem.ContainerSize)))
+
+    [<Test>] member x.
+        ``The SalesPerDay amount is correct`` () = 
+            Utils.Round4 (periodItem.SalesPerDay(this.d0, this.d1)) |> should equal (Utils.Round4 (gallonsSold / this.dx))
+
+    [<Test>] member x.
+        ``The DaysOnHand amount is correct`` () =
+            periodItem.DaysOnHand(this.d0, this.d1) |> should equal ((gallonsOnHand / (gallonsSold / this.dx)) |> int)
+
+    [<Test>] member x.
+        ``The Closing Value at Sales Inc should be correct`` () =
+            periodItem.ClosingValueSalesInc |> should equal (decimal pintsOnHand * periodItem.SalesItem.SalesPrice)
+
+    [<Test>] member x.
+        ``The Closing Value at Sales Ex should be correct`` () =
+            periodItem.ClosingValueSalesEx |> should equal ((decimal pintsOnHand * periodItem.SalesItem.SalesPrice) / decimal 1.2)
+
+    [<Test>] member x.
+        ``The Closing Value at Cost Ex should be correct`` () =
+            Utils.Round2M periodItem.ClosingValueCostEx |> should equal (Utils.Round2M (decimal periodItem.ClosingStock * (periodItem.SalesItem.CostPerContainer / decimal periodItem.SalesItem.ContainerSize)))
