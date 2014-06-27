@@ -1,6 +1,29 @@
 ﻿'use strict';
 
-var stockCheckApp = angular.module('stockCheck', ['ngRoute', 'ngResource', 'stockCheckControllers', 'ui.bootstrap']);
+var rmod = angular.module('my.resource', ['ngResource']);
+rmod.factory('Resource', ['$resource', function ($resource) {
+    return function (url, params, methods) {
+        var defaults = {
+            update: { method: 'put', isArray: false },
+            create: { method: 'post' }
+        };
+
+        methods = angular.extend(defaults, methods);
+        var resource = $resource(url, params, methods);
+        resource.prototype.$save = function (params, success, failure) {
+            if (!this.id) {
+                return this.$create(params, success, failure);
+            }
+            else {
+                return this.$update(params, success, failure);
+            }
+        };
+
+        return resource;
+    };
+}]);
+
+var stockCheckApp = angular.module('stockCheck', ['ngRoute', 'my.resource', 'stockCheckControllers', 'ui.bootstrap']);
 stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConfig',
         function ($routeProvider, datepickerConfig, datepickerPopupConfig) {
             $routeProvider.
@@ -50,8 +73,6 @@ stockCheckApp.config(['$routeProvider', 'datepickerConfig', 'datepickerPopupConf
             datepickerConfig.initDate = new Date('2016-15-20');
 
             datepickerPopupConfig.datepickerPopup = "dd/MM/yyyy";
-
-            //$resource.defaults.stripTrailingSlashes = false;
         }]);
 
 stockCheckApp.directive('focusMe', function () {
@@ -65,18 +86,56 @@ stockCheckApp.directive('focusMe', function () {
 
 stockCheckApp.value("appConfig", { pathBase: "api/", defaultTaxRate: 0.2 });
 
-stockCheckApp.factory("Period", function ($resource) {
-    return $resource("api/period/:id");
-});
+stockCheckApp.factory("Period", [ 'Resource', function ($resource) {
+    return $resource("api/period/:id", null,
+        {
+            'initfrom': { method: 'GET', url: 'api/period/init-from/:id' }
+        });
+}]);
 
-stockCheckApp.factory("SalesItem", function ($resource) {
+stockCheckApp.factory("SalesItem", [ 'Resource', function ($resource) {
     return $resource("api/salesitem/:id");
-});
+}]);
 
-stockCheckApp.factory("Invoice", function ($resource) {
+stockCheckApp.factory("Invoice", [ 'Resource', function ($resource) {
     return $resource("api/invoice/:id");
+}]);
+
+stockCheckApp.factory("Supplier", [ 'Resource', function ($resource) {
+    return $resource("api/supplier/:id");
+}]);
+
+stockCheckApp.service("CtrlUtils", function () {
+    this.writeError = function (action, objectName, statusCode, statusText) {
+        return "An Error has occurred while ".concat(action, " ", objectName, ": ", statusCode, ", ", statusText);
+    };
 });
 
-stockCheckApp.factory("Supplier", function ($resource) {
-    return $resource("api/supplier/:id");
+stockCheckApp.service("Parse", function () {
+    var grammar = 'start\n' +
+    '  = additive\n' +
+    '\n' +
+    'additive\n' +
+    '  = left:multiplicative "+" right:additive { return left + right; }\n' +
+    '  / left:multiplicative "-" right:additive { return left - right; }\n' +
+    '  / multiplicative\n' +
+    '\n' +
+    'multiplicative\n' +
+    '  = left:primary "*" right:multiplicative { return left * right; }\n' +
+    '  / left:primary "/" right:multiplicative { return left / right; }\n' +
+    '  / primary\n' +
+    '\n' +
+    'primary\n' +
+    '  = float\n' +
+    '  / integer\n' +
+    '  / "(" additive:additive ")" { return additive; }\n' +
+    '\n' +
+    'integer "integer"\n' +
+    '  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }\n' +
+    '\n' +
+    'float "float"\n' +
+    '  = before:[0-9]* "." after:[0-9]+ { return parseFloat(before.join("") + "." + after.join("")); }';
+
+    this.operators = ["+", "-", "*", "/"];
+    this.parser = PEG.buildParser(grammar);
 });

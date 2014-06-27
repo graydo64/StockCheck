@@ -5,37 +5,10 @@ var globalDateOptions = {
     startingDay: 1
 };
 
-var operators = ["+", "-", "*", "/"];
-var grammar = 'start\n' +
-'  = additive\n' +
-'\n' +
-'additive\n' +
-'  = left:multiplicative "+" right:additive { return left + right; }\n' +
-'  / left:multiplicative "-" right:additive { return left - right; }\n' +
-'  / multiplicative\n' +
-'\n' +
-'multiplicative\n' +
-'  = left:primary "*" right:multiplicative { return left * right; }\n' +
-'  / left:primary "/" right:multiplicative { return left / right; }\n' +
-'  / primary\n' +
-'\n' +
-'primary\n' +
-'  = float\n' +
-'  / integer\n' +
-'  / "(" additive:additive ")" { return additive; }\n' +
-'\n' +
-'integer "integer"\n' +
-'  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }\n' +
-'\n' +
-'float "float"\n' +
-'  = before:[0-9]* "." after:[0-9]+ { return parseFloat(before.join("") + "." + after.join("")); }';
-
-var parser = PEG.buildParser(grammar);
-
 var stockCheckControllers = angular.module('stockCheckControllers', []);
 
-stockCheckControllers.controller('PeriodItemController', ['$scope',
-function PeriodItemController($scope) {
+stockCheckControllers.controller('PeriodItemController', ['$scope', 'Parse',
+function PeriodItemController($scope, Parse) {
 
     var views = $scope.$parent.getSalesItemsViews();
     for (var i in views) {
@@ -62,9 +35,9 @@ function PeriodItemController($scope) {
 
     $scope.checkExpression = function () {
         if ($scope.item.closingStockExpr != undefined) {
-            if (operators.indexOf($scope.item.closingStockExpr.slice(-1)) == -1)
+            if (Parse.operators.indexOf($scope.item.closingStockExpr.slice(-1)) == -1)
                 try {
-                    $scope.item.closingStock = parser.parse($scope.item.closingStockExpr);
+                    $scope.item.closingStock = Parse.parser.parse($scope.item.closingStockExpr);
                 }
                 catch (err) {
                 }
@@ -72,8 +45,8 @@ function PeriodItemController($scope) {
     }
 }]);
 
-stockCheckControllers.controller('PeriodController', ['$scope', '$http', '$routeParams', 'appConfig', 'Period', 'SalesItem',
-function PeriodController($scope, $http, $routeParams, appConfig, Period, SalesItem) {
+stockCheckControllers.controller('PeriodController', ['$scope', '$routeParams', 'Period', 'SalesItem', 'CtrlUtils',
+function PeriodController($scope, $routeParams, Period, SalesItem, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = false;
 
@@ -90,27 +63,23 @@ function PeriodController($scope, $http, $routeParams, appConfig, Period, SalesI
             })
         }
     }, function (data) {
-        $scope.error = "An Error has occurred while loading SalesItems: " + data.status + " " + data.statusText;
+        $scope.error = CtrlUtils.writeError("loading", "SalesItems", data.status, data.statusText);
         $scope.loading = false;
     });
 
     var id = $routeParams.id;
 
     if ($routeParams.action === 'init-from') {
-        var action = $routeParams.action;
-        if (action === 'init-from') {
-            $http.get(appConfig.pathBase + 'period/init-from/' + id).success(function (data) {
-                $scope.period = data;
-                $scope.loading = false;
-            })
-            .error(function () {
-                $scope.error = "An Error has occurred while loading Period."
-                $scope.loading = false;
-            });
-        }
+        Period.initfrom({id : id}, function (data) {
+            $scope.period = data;
+            $scope.loading = false;
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("loading", "Period", data.status, data.statusText);
+            $scope.loading = false;
+        });
     }
     else if (id === undefined) {
-        $scope.period = { items: []}
+        $scope.period = new Period({ items: [] });
         $scope.loading = false
     }
     else {
@@ -118,7 +87,7 @@ function PeriodController($scope, $http, $routeParams, appConfig, Period, SalesI
             $scope.period = data;
             $scope.loading = false;
         }, function (data) {
-            $scope.error = "An Error has occurred while loading Period."
+            $scope.error = CtrlUtils.writeError("loading", "Period", data.status, data.statusText);
             $scope.loading = false;
         });
     }
@@ -137,19 +106,11 @@ function PeriodController($scope, $http, $routeParams, appConfig, Period, SalesI
     };
 
     $scope.save = function () {
-        var send = function () {
-            if ($scope.period.id === undefined) {
-                return $http.post(appConfig.pathBase + 'period/', $scope.period);
-            }
-            else {
-                return $http.put(appConfig.pathBase + 'period/', $scope.period);
-            }
-        }
-        send().success(function (data) {
+        $scope.period.$save(function (data) {
             alert("Saved Successfully");
             $scope.predicate = basePredicate;
-        }).error(function (data, status) {
-            $scope.error = "An error occurred while saving the Period.  Status: " + status;
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("saving", "Period", data.status, data.statusText);
             $scope.loading = false;
         });
     };
@@ -188,8 +149,8 @@ function PeriodController($scope, $http, $routeParams, appConfig, Period, SalesI
     }
 }]);
 
-stockCheckControllers.controller('PeriodsController', ['$scope', 'Period',
-function PeriodsController($scope, Period) {
+stockCheckControllers.controller('PeriodsController', ['$scope', 'Period', 'CtrlUtils',
+function PeriodsController($scope, Period, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = false;
 
@@ -197,26 +158,25 @@ function PeriodsController($scope, Period) {
         $scope.periods = data;
         $scope.loading = false;
     }, function (data) {
-        $scope.error = "An Error has occurred while loading Periods. " + data.status + ": " + data.statusText
+        $scope.error = CtrlUtils.writeError("loading", "Periods", data.status, data.statusText);
         $scope.loading = false;
     });
 }]);
 
-stockCheckControllers.controller('SalesItemController', ['$scope', '$http', '$routeParams', '$window', 'appConfig',
-function SalesItemController($scope, $http, $routeParams, $window, appConfig) {
+stockCheckControllers.controller('SalesItemController', ['$scope', '$http', '$routeParams', '$window', 'appConfig', 'SalesItem', 'CtrlUtils',
+function SalesItemController($scope, $http, $routeParams, $window, appConfig, SalesItem, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = true;
     $scope.otherSalesUnitMode = false;
 
     $scope.updateSalesItem = function (id) {
-        $http.get(appConfig.pathBase + 'salesitem/?id=' + id).success(function (data) {
+        SalesItem.get({ id: id }, function (data) {
             $scope.salesitem = data;
             $scope.loading = false;
             $scope.idealGPpc = $window.Math.round(10000 * data.idealGP) / 100;
             $scope.taxRatepc = $window.Math.round(100 * data.taxRate);
-        })
-        .error(function () {
-            $scope.error = "An Error has occurred while loading Sales Item."
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("loading", "Sales Item", data.status, data.statusText);
             $scope.loading = false;
         });
     };
@@ -231,7 +191,7 @@ function SalesItemController($scope, $http, $routeParams, $window, appConfig) {
 
     var id = $routeParams.id;
     if (id === undefined) {
-        $scope.salesitem = {taxRate: appConfig.defaultTaxRate};
+        $scope.salesitem = new SalesItem({ taxRate: appConfig.defaultTaxRate });
         $scope.taxRatepc = $window.Math.round(100 * appConfig.defaultTaxRate);
         $scope.loading = false;
     }
@@ -250,20 +210,20 @@ function SalesItemController($scope, $http, $routeParams, $window, appConfig) {
 
     $scope.save = function () {
         $scope.salesitem.taxRate = $scope.taxRatepc / 100;
-        $http.put(appConfig.pathBase + 'salesitem/', $scope.salesitem).success(function (data) {
+        $scope.salesitem.$save(function (data) {
             alert("Saved Successfully");
             if (id !== undefined) {
                 $scope.updateSalesItem($scope.salesitem.id);
             }
-        }).error(function (data) {
-            $scope.error = "An error occurred while saving the Sales Item." + data;
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("saving", "Sales Item", data.status, data.statusText);
             $scope.loading = false;
         });
     };
 }]);
 
-stockCheckControllers.controller('SalesItemsController', ['$scope', 'SalesItem',
-function SalesItemsController($scope, SalesItem) {
+stockCheckControllers.controller('SalesItemsController', ['$scope', 'SalesItem', 'CtrlUtils',
+function SalesItemsController($scope, SalesItem, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = false;
 
@@ -271,7 +231,7 @@ function SalesItemsController($scope, SalesItem) {
         $scope.salesitems = data;
         $scope.loading = false;
     }, function (data) {
-        $scope.error = "An Error has occurred while loading Sales Items. " + data.status + ": " + data.statusText
+        $scope.error = CtrlUtils.writeError("loading", "SalesItems", data.status, data.statusText);
         $scope.loading = false;
     });
 
@@ -318,21 +278,21 @@ function InvoiceLineController($scope) {
     }
 }]);
 
-stockCheckControllers.controller('InvoiceController', ['$scope', '$http', '$routeParams', 'appConfig', 'Invoice', 'SalesItem', 'Supplier',
-function InvoiceController($scope, $http, $routeParams, appConfig, Invoice, SalesItem, Supplier) {
+stockCheckControllers.controller('InvoiceController', ['$scope', '$routeParams', 'Invoice', 'SalesItem', 'Supplier', 'CtrlUtils',
+function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, CtrlUtils) {
 
     $scope.loading = true;
     var id = $routeParams.id;
 
     if (id === "0") {
-        $scope.invoice = { invoiceLines: [{ invoicedAmountEx: 0, invoicedAmountInc: 0 }] };
+        $scope.invoice = new Invoice({ invoiceLines: [{ invoicedAmountEx: 0, invoicedAmountInc: 0 }] });
     }
     else {
         Invoice.get({id : id}, function (data) {
             $scope.invoice = data;
             $scope.loading = false;
-        }, function () {
-            $scope.error = "An Error has occurred while loading the Invoice."
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("loading", "Invoice", data.status, data.statusText);
             $scope.loading = false;
         })
     }
@@ -352,16 +312,16 @@ function InvoiceController($scope, $http, $routeParams, appConfig, Invoice, Sale
             $scope.salesItemsHash[salesItem.id] = salesItem;
         }
         $scope.setSalesItem();
-    }, function () {
-        $scope.error = "An Error has occurred while loading the Sales Item list."
+    }, function (data) {
+        $scope.error = CtrlUtils.writeError("loading", "SalesItems", data.status, data.statusText);
         $scope.loading = false;
     });
 
     Supplier.query(function (data) {
         $scope.suppliers = data;
         $scope.loading = false;
-    }, function () {
-        $scope.error = "An Error has occurred while loading the Suppliers list."
+    }, function (data) {
+        $scope.error = CtrlUtils.writeError("loading", "Suppliers", data.status, data.statusText);
         $scope.loading = false;
     });
 
@@ -388,17 +348,19 @@ function InvoiceController($scope, $http, $routeParams, appConfig, Invoice, Sale
         }
 
         if (newSupplier) {
-            $http.post(appConfig.pathBase + 'supplier/', {name : $scope.invoice.supplier}).success(function (data) {
-            }).error(function (data) {
-                $scope.error = "An error occurred while saving the Supplier." + data;
-                $scope.loading = false;
-            });
+            var supplier = new Supplier({ name: $scope.invoice.supplier });
+            supplier.$save(
+                function (data) { },
+                function (data) {
+                    $scope.error = CtrlUtils.writeError("saving", "Supplier", data.status, data.statusText);
+                    $scope.loading = false;
+                });
         }
 
-        $http.put(appConfig.pathBase + 'invoice/', $scope.invoice).success(function (data) {
+        $scope.invoice.$save(function (data) {
             alert("Saved Successfully");
-        }).error(function (data) {
-            $scope.error = "An error occurred while saving the Invoice." + data;
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("saving", "Invoice", data.status, data.statusText);
             $scope.loading = false;
         });
     };
@@ -408,8 +370,8 @@ function InvoiceController($scope, $http, $routeParams, appConfig, Invoice, Sale
     }
 }]);
 
-stockCheckControllers.controller('InvoicesController', ['$scope', 'Invoice',
-function InvoicesController($scope, Invoice) {
+stockCheckControllers.controller('InvoicesController', ['$scope', 'Invoice', 'CtrlUtils',
+function InvoicesController($scope, Invoice, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = false;
 
@@ -423,7 +385,7 @@ function InvoicesController($scope, Invoice) {
         $scope.invoices = data;
         $scope.loading = false;
     }, function () {
-        $scope.error = "An Error has occurred while loading Invoices."
+        $scope.error = CtrlUtils.writeError("loading", "Invoices", data.status, data.statusText);
         $scope.loading = false;
     });
 
