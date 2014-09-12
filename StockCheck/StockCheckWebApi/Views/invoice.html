@@ -3,6 +3,7 @@
         <span bind-html-unsafe="match.label | typeaheadHighlight:query"></span>
     </a>
 </script>
+<strong class="error">{{ error }}</strong>
 <form name="invoiceForm" ng-submit="submitAll()" novalidate>
     <div>
         <div class="row">
@@ -109,6 +110,9 @@
                 </tr>
             </table>
         </div>
-        <div><button ng-disabled="invoiceForm.$invalid" class="btn btn-primary" type="submit" id="submitButton">Submit</button></div>
+        <div class="row">
+            <span class="col-md-2"><button ng-disabled="invoiceForm.$invalid" class="btn btn-primary" type="submit" id="submitButton">Submit</button></span>
+            <span class="col-md-2"><a ng-hide="newInvoice" href="#/invoice/0">New</a></span>
+        </div>
     </div>
 </form>

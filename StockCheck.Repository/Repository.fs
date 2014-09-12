@@ -166,6 +166,10 @@ type Query(documentStore : IDocumentStore) =
     member internal this.GetInvoicesByDateRange startDate endDate = 
         use session = documentStore.OpenSession(dbName)
         session.Query<Invoice>().Where(fun i -> i.DeliveryDate >= startDate && i.DeliveryDate <= endDate).ToList()
+
+    member internal this.TestForAnyInvoicesMatching number supplier =
+        use session = documentStore.OpenSession(dbName)
+        session.Query<Invoice>().Where(fun i -> i.InvoiceNumber = number && i.Supplier = supplier).Any()
     
     member this.GetModelSalesItemById id = this.GetSalesItemById id |> MapToModel.siMap
     
@@ -212,6 +216,7 @@ type Query(documentStore : IDocumentStore) =
     member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
     member this.GetModelInvoices() = this.GetInvoices() |> Seq.map MapToModel.iMap
     member this.GetModelInvoicesByDateRange start finish = this.GetInvoicesByDateRange start finish |> Seq.map MapToModel.iMap
+    member this.InvoiceExists n s = this.TestForAnyInvoicesMatching n s
     member this.GetModelSuppliers = this.GetSuppliers() |> Seq.map MapToModel.supMap
 
 module internal MapFromModel = 

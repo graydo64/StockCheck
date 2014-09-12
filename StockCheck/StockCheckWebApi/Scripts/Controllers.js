@@ -282,6 +282,8 @@ stockCheckControllers.controller('InvoiceController', ['$scope', '$routeParams',
 function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, CtrlUtils) {
 
     $scope.loading = true;
+    $scope.newInvoice = true;
+
     var id = $routeParams.id;
 
     if (id === "0") {
@@ -291,6 +293,7 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
         Invoice.get({id : id}, function (data) {
             $scope.invoice = data;
             $scope.loading = false;
+            $scope.newInvoice = false;
         }, function (data) {
             $scope.error = CtrlUtils.writeError("loading", "Invoice", data.status, data.statusText);
             $scope.loading = false;
@@ -359,6 +362,8 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
 
         $scope.invoice.$save(function (data) {
             alert("Saved Successfully");
+            $scope.newInvoice = false;
+            $scope.invoice.id = data.id;
         }, function (data) {
             $scope.error = CtrlUtils.writeError("saving", "Invoice", data.status, data.statusText);
             $scope.loading = false;

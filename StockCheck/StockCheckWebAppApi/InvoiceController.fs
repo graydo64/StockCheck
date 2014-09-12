@@ -1,6 +1,8 @@
 ﻿namespace FsWeb.Controllers
 
+open System.Web
 open System.Web.Http
+open System.Net.Http
 open StockCheck.Repository
 open System
 open System.Collections.Generic
@@ -66,7 +68,12 @@ type InvoiceController() =
         | _ -> repo.GetModelInvoice id |> InvoiceControllerHelper.mapToInvoiceViewModel
 
     member x.Post(invoice : InvoiceViewModel) = 
-        saveInvoice invoice
+        match (repo.InvoiceExists invoice.InvoiceNumber invoice.Supplier) with
+        | true -> 
+                x.Request.CreateResponse(System.Net.HttpStatusCode.Conflict)
+        | false ->
+                saveInvoice invoice
+                x.Request.CreateResponse(System.Net.HttpStatusCode.OK)
     
     member x.Put(invoice : InvoiceViewModel) = 
         saveInvoice invoice
