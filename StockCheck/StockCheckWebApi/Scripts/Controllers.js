@@ -368,6 +368,12 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
     $scope.newLine = function () {
         $scope.invoice.invoiceLines.push({invoicedAmountEx : 0, invoicedAmountInc : 0});
     }
+
+    $scope.setDeliveryDate = function () {
+        if ($scope.invoice.deliveryDate == "" || $scope.invoice.deliveryDate == undefined) {
+            $scope.invoice.deliveryDate = $scope.invoice.invoiceDate;
+        }
+    }
 }]);
 
 stockCheckControllers.controller('InvoicesController', ['$scope', 'Invoice', 'CtrlUtils',

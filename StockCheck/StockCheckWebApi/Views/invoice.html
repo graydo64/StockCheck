@@ -37,7 +37,8 @@
                            is-open="openedInvoiceDate"
                            datepicker-options="dateOptions"
                            ng-required="true"
-                           close-text="Close" />
+                           close-text="Close"
+                           ng-change="setDeliveryDate()" />
                     <span class="input-group-btn">
                         <button type="button" class="btn btn-default" ng-click="openInvoiceDate($event)"><i class="glyphicon glyphicon-calendar"></i></button>
                     </span>
