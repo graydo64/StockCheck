@@ -300,6 +300,24 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
         })
     }
 
+    $scope.invoiceTotalEx = function () {
+        var totalEx = 0;
+        for (var lineIndex in $scope.invoice.invoiceLines) {
+            var line = $scope.invoice.invoiceLines[lineIndex];
+            totalEx += line.invoicedAmountEx;
+        }
+        return totalEx;
+    };
+
+    $scope.invoiceTotalInc = function () {
+        var totalInc = 0;
+        for (var lineIndex in $scope.invoice.invoiceLines) {
+            var line = $scope.invoice.invoiceLines[lineIndex];
+            totalInc += line.invoicedAmountInc;
+        }
+        return totalInc;
+    };
+
     SalesItem.query(function (data) {
         $scope.salesItems = data;
         $scope.loading = false;

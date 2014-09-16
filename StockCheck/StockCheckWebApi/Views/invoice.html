@@ -108,6 +108,15 @@
                         <a ng-click="newLine()" href="javascript:;">New</a>
                     </td>
                 </tr>
+                <tr>
+                    <td class="hidden"></td>
+                    <td class="hidden"></td>
+                    <td><strong>Total:</strong></td>
+                    <td class="col-sm-1"></td>
+                    <td class="col-sm-1">{{ invoiceTotalEx() | currency}}</td>
+                    <td class="col-sm-1">{{ invoiceTotalInc() | currency}}</td>
+                    <td></td>
+                </tr>
             </table>
         </div>
         <div class="row">
