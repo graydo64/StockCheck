@@ -390,6 +390,7 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
 
     $scope.newLine = function () {
         $scope.invoice.invoiceLines.push({invoicedAmountEx : 0, invoicedAmountInc : 0});
+        invoiceForm.children[invoiceForm.children.length - 1].scrollIntoView(true);
     }
 
     $scope.setDeliveryDate = function () {
