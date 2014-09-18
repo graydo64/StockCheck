@@ -97,12 +97,7 @@ function PeriodController($scope, $routeParams, Period, SalesItem, CtrlUtils) {
     }
     $scope.toggleEdit = function () {
         $scope.editMode = !$scope.editMode;
-        if (!$scope.editMode) {
-            $scope.predicate = basePredicate;
-        }
-        else {
-            $scope.predicate = [];
-        }
+        $scope.predicate = basePredicate;
     };
 
     $scope.save = function () {
@@ -133,7 +128,8 @@ function PeriodController($scope, $routeParams, Period, SalesItem, CtrlUtils) {
     $scope.predicate = basePredicate;
 
     $scope.toggleNewMode = function () {
-        $scope.period.items.push({ openingStock: 0, closingStock: 0, itemsReceived: 0, salesQty: 0 });
+        $scope.predicate = [];
+        $scope.period.items.push({ salesItemName: $scope.searchText, openingStock: 0, closingStock: 0, itemsReceived: 0, salesQty: 0 });
         $scope.newMode = true;
         if ($scope.newMode) {
             periodForm.children[periodForm.children.length - 1].scrollIntoView(true);
