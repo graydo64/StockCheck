@@ -228,7 +228,7 @@ module internal MapFromModel =
         let query = new Query(documentStore)
         { Id = idMap pi.Id
           PeriodId = id
-          SalesItem = query.GetSalesItem pi.SalesItem.Name pi.SalesItem.LedgerCode
+          SalesItem = query.GetSalesItemById pi.SalesItem.Id
           OpeningStock = pi.OpeningStock
           ClosingStockExpr = pi.ClosingStockExpr
           ClosingStock = pi.ClosingStock }
@@ -286,18 +286,6 @@ type Persister(documentStore : IDocumentStore) =
         use session = documentStore.OpenSession("StockCheck")
         session.Store(d)
         session.SaveChanges()
-
-    let saveDocAndChildren p i =
-        use session = documentStore.OpenSession("StockCheck")
-        session.Store(p)
-        i |> Seq.iter session.Store
-        session.SaveChanges()
-
-    member this.PSave(p : StockCheck.Model.Period) =
-        let pp = MapFromModel.periodMap p
-        let ii = p.Items |> Seq.map(fun i -> MapFromModel.piMap documentStore p.Id i)
-        p.Items <- List<StockCheck.Model.PeriodItem>()
-        saveDocAndChildren pp ii
 
     member this.Save(si : StockCheck.Model.SalesItem) = 
         MapFromModel.siMap si |> saveDocument
