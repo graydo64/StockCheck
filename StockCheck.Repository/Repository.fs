@@ -211,7 +211,7 @@ type Query(documentStore : IDocumentStore) =
         |> ignore
         modelPeriod
     
-    member this.GetModelPeriods = this.GetPeriods() |> Seq.map MapToModel.pMap
+    member this.GetModelPeriods = this.GetPeriods() |> Seq.map (fun p -> this.GetModelPeriodById p.Id)
     member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.siMap
     member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
     member this.GetModelInvoices() = this.GetInvoices() |> Seq.map MapToModel.iMap
