@@ -33,6 +33,8 @@ module InvoiceControllerHelper =
 
 type InvoiceController() = 
     inherit ApiController()
+
+    let cache = FsWeb.CacheWrapper()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     
     let mapToInvoiceLine (lv : InvoiceLineViewModel) = 
@@ -59,6 +61,9 @@ type InvoiceController() =
         let im = new StockCheck.Model.Invoice()
         mapViewToModel im iv
         |> persister.Save
+        repo.GetModelPeriods 
+        |> Seq.where(fun p -> p.StartOfPeriod <= iv.DeliveryDate & p.EndOfPeriod >= iv.DeliveryDate)
+        |> Seq.iter(fun p -> cache.Remove p.Id)
     
     member x.Get() = repo.GetModelInvoices() |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
     
