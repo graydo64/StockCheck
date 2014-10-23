@@ -161,7 +161,7 @@ type Query(documentStore : IDocumentStore) =
     
     member internal this.GetInvoices () = 
         use session = documentStore.OpenSession(dbName)
-        session.Query<Invoice>().ToList()
+        session.Query<Invoice>().Take(1024).ToList()
     
     member internal this.GetInvoicesByDateRange startDate endDate = 
         use session = documentStore.OpenSession(dbName)
