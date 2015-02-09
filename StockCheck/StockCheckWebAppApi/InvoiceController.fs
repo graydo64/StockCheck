@@ -62,7 +62,7 @@ type InvoiceController() =
         mapViewToModel im iv
         |> persister.Save
         repo.GetModelPeriods 
-        |> Seq.where(fun p -> p.StartOfPeriod <= iv.DeliveryDate & p.EndOfPeriod >= iv.DeliveryDate)
+        |> Seq.where(fun p -> p.StartOfPeriod <= iv.DeliveryDate && p.EndOfPeriod >= iv.DeliveryDate)
         |> Seq.iter(fun p -> cache.Remove p.Id)
     
     member x.Get() = repo.GetModelInvoices() |> Seq.map InvoiceControllerHelper.mapToInvoiceViewModel
