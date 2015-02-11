@@ -14,7 +14,7 @@ type SalesItem =
       CostPerContainer : decimal
       LedgerCode : string
       Name : string
-      SalesPrice : decimal
+      mutable SalesPrice : decimal
       TaxRate : float
       UllagePerContainer : int
       SalesUnitType : string

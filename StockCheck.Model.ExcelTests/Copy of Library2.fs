@@ -37,17 +37,13 @@ let updateSalesItem (s : StockCheck.Model.SalesItem) =
 
     persister.Save(s)
 
-let getSalesPrice (s: StockCheck.Model.SalesItem) =
-    match s.CostPerContainer with
+let getSalesPrice c =
+    match c with
     | cpc when cpc < 95.0m -> 3.15m
     | cpc when cpc >= 95.0m && cpc < 105m -> 3.25m
     | cpc when cpc >= 105m && cpc < 120m -> 3.35m
     | cpc when cpc >= 120m -> 3.55m
     | _ -> 0m
-
-let updateSalesItemPrice (s : StockCheck.Model.SalesItem) =
-    s.SalesPrice <- getSalesPrice s
-    saveSalesItem s
 
 let amountPerContainer ex qty =
     if(qty > 0.) then
@@ -70,17 +66,19 @@ let checkCatalogueCPC (i : StockCheck.Model.SalesItem) =
 [<Test>]
 [<Ignore>]
 let ``Update SalesItem price`` () =
-    let p = period
+    use session = store.OpenSession("StockCheck")
+    let p = session.Query<StockCheck.Repository.Period>().Where(fun i -> i.Name = "Dec/Jan 2015").First()
     let items = p.Items |> Seq.filter(fun i -> i.SalesItem.LedgerCode = "1005")
 
     let guestItems = items |> Seq.filter(fun i -> i.SalesItem.Name <> "Everards Tiger 4.2" && i.SalesItem.Name <> "Taylor's Golden Best 3.5" && i.SalesItem.Name <> "Treboom Yorkshire Sparkle 4.0")
 
     guestItems 
-        |> Seq.iter(fun i -> i.SalesItem.SalesPrice <- getSalesPrice i.SalesItem)
+        |> Seq.iter(fun i -> i.SalesItem.SalesPrice <- getSalesPrice i.SalesItem.CostPerContainer)
         //|> Seq.iter(fun i -> System.Console.WriteLine(System.String.Format("{0}: {1}, {2}",i.SalesItem.Name, i.SalesItem.SalesPrice,(getSalesPrice i.SalesItem))))
         |> ignore
 
-    savePeriod p
+    session.Store(p)
+    session.SaveChanges()
 
 [<Test>]
 [<Ignore>]
@@ -89,17 +87,21 @@ let ``Update SalesItem unit type`` () =
     s |> Seq.iter updateSalesItem
 
 [<Test>]
-[<Ignore>]
 let ``Update catalogue price`` () =
-    let s = query.GetModelSalesItems
+    use session = store.OpenSession("StockCheck")
+    let s = session.Query<StockCheck.Repository.SalesItem>().Take(1024).AsEnumerable()
     let guestItems = s
                     |> Seq.filter(fun i -> i.LedgerCode = "1005")
                     |> Seq.filter(fun i -> i.Name <> "Everards Tiger 4.2" && i.Name <> "Taylor's Golden Best 3.5" && i.Name <> "Treboom Yorkshire Sparkle 4.0")
 
-    guestItems 
-        |> Seq.map(fun i -> updateSalesItemPrice i)
+    let updatedPrices = guestItems |> Seq.map(fun i -> 
+                                                    i.SalesPrice <- getSalesPrice i.CostPerContainer
+                                                    i)
         //|> Seq.iter(fun i -> System.Console.WriteLine(System.String.Format("{0}: {1}, {2}",i.Name, i.SalesPrice,(getSalesPrice i))))
+    updatedPrices |> Seq.iter(fun s -> session.Store(s))
         |> ignore
+
+    session.SaveChanges() |> ignore
    
 [<Test>]
 [<Ignore>]
