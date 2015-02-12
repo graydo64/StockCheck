@@ -162,6 +162,14 @@ type Query(documentStore : IDocumentStore) =
     member internal this.GetInvoices () = 
         use session = documentStore.OpenSession(dbName)
         session.Query<Invoice>().Take(1024).ToList()
+
+    member internal this.GetInvoicesPaged s p =
+        use session = documentStore.OpenSession(dbName)
+        session.Query<Invoice>().OrderByDescending(fun i -> i.InvoiceDate).ThenByDescending(fun i -> i.DeliveryDate).Skip((p - 1) * s).Take(s).ToList()
+
+    member this.GetInvoiceCount =
+        use session = documentStore.OpenSession(dbName)
+        session.Query<Invoice>().Count()
     
     member internal this.GetInvoicesByDateRange startDate endDate = 
         use session = documentStore.OpenSession(dbName)
@@ -215,6 +223,7 @@ type Query(documentStore : IDocumentStore) =
     member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.siMap
     member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
     member this.GetModelInvoices() = this.GetInvoices() |> Seq.map MapToModel.iMap
+    member this.GetModelInvoicesPaged (pageSize: int) (pageNumber: int) = this.GetInvoicesPaged pageSize pageNumber |> Seq.map MapToModel.iMap
     member this.GetModelInvoicesByDateRange start finish = this.GetInvoicesByDateRange start finish |> Seq.map MapToModel.iMap
     member this.InvoiceExists n s = this.TestForAnyInvoicesMatching n s
     member this.GetModelSuppliers = this.GetSuppliers() |> Seq.map MapToModel.supMap

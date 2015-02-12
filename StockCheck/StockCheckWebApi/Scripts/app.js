@@ -98,7 +98,16 @@ stockCheckApp.factory("SalesItem", [ 'Resource', function ($resource) {
 }]);
 
 stockCheckApp.factory("Invoice", [ 'Resource', function ($resource) {
-    return $resource("api/invoice/:id");
+    return $resource("api/invoice/:id",
+        { id: "@id" },
+        {
+        'query': {
+            method: 'GET',
+            isArray: false,
+            url: '/api/invoice/:pageSize/:pageNumber',
+            params: { pageSize: '@pageSize', pageNumber: '@pageNumber' }
+        }
+    });
 }]);
 
 stockCheckApp.factory("Supplier", [ 'Resource', function ($resource) {

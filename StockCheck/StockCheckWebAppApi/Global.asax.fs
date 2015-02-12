@@ -8,6 +8,7 @@ open System.Web.Routing
 open Raven.Client
 open Raven.Client.Document
 open System.Runtime.Caching
+open System.Web.Mvc
 
 type HttpRoute = {
     controller : string
@@ -31,6 +32,7 @@ type Global() =
         config.Formatters.JsonFormatter.SerializerSettings.ContractResolver <- Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
 
     member x.Application_Start() =
+        AreaRegistration.RegisterAllAreas()
         GlobalConfiguration.Configure(Action<_> Global.RegisterWebApi)
         Global.Store.Conventions.IdentityPartsSeparator <- "-"
         Global.Store.Initialize() |> ignore

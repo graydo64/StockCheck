@@ -399,14 +399,15 @@ function InvoicesController($scope, Invoice, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = false;
 
-    Invoice.query(function (data) {
-        for (var i in data) {
-            var inv = data[i];
+    Invoice.query({pageSize: 10, pageNumber: 1}, function (data) {
+        for (var i in data.invoices) {
+            var inv = data.invoices[i];
             inv.invoiceDateDate = new Date(inv.invoiceDate);
             inv.deliveryDateDate = new Date(inv.deliveryDate);
         }
-
-        $scope.invoices = data;
+        $scope.totalItems = data.totalCount;
+        $scope.pageCount = data.totalPages;
+        $scope.invoices = data.invoices;
         $scope.loading = false;
     }, function () {
         $scope.error = CtrlUtils.writeError("loading", "Invoices", data.status, data.statusText);
@@ -414,4 +415,18 @@ function InvoicesController($scope, Invoice, CtrlUtils) {
     });
 
     $scope.predicate = ["-invoiceDateDate", "deliveryDateDate"]
+
+    $scope.pageChanged = function () {
+        Invoice.query({ pageSize: 10, pageNumber: $scope.currentPage }, function (data) {
+            for (var i in data.invoices) {
+                var inv = data.invoices[i];
+                inv.invoiceDateDate = new Date(inv.invoiceDate);
+                inv.deliveryDateDate = new Date(inv.deliveryDate);
+            }
+            $scope.totalItems = data.totalCount;
+            $scope.pageCount = data.totalPages;
+            $scope.invoices = data.invoices;
+            $scope.loading = false;
+        });
+    }
 }]);

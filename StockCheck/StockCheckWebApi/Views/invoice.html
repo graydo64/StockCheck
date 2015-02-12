@@ -87,7 +87,7 @@
                         <input type="text"
                                ng-model="line.salesItemDescription"
                                placeholder="Sales Item"
-                               typeahead="salesItem.Value for salesItem in getSalesItem($viewValue)"
+                               typeahead="salesItem.Value as salesItem.Value for salesItem in getSalesItem($viewValue) | orderBy:salesItem.Value"
                                typeahead-loading="loadingSalesItems"
                                typeahead-template-url="customSalesItemTemplate.html"
                                typeahead-on-select="onSelect($item, $model, $label)"
