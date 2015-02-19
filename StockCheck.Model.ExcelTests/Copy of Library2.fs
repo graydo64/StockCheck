@@ -87,6 +87,7 @@ let ``Update SalesItem unit type`` () =
     s |> Seq.iter updateSalesItem
 
 [<Test>]
+[<Ignore>]
 let ``Update catalogue price`` () =
     use session = store.OpenSession("StockCheck")
     let s = session.Query<StockCheck.Repository.SalesItem>().Take(1024).AsEnumerable()

@@ -95,7 +95,6 @@ type PeriodItem(salesItem : SalesItem) =
 
     member private this.ValueOfQuantity = Utils.ValueOfQuantityT salesItem.SalesUnitType salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize 
     member private this.ContRec = if this.ContainersReceived > 0. then Some(this.ContainersReceived) else None
-    member private this.SalesCost = decimal this.Sales * salesItem.CostPerContainer
     member val Id = String.Empty with get, set
     member val OpeningStock = 0. with get, set
     member val ClosingStockExpr = String.Empty with get, set
@@ -120,18 +119,21 @@ type PeriodItem(salesItem : SalesItem) =
     member this.PurchasesTotal = this.PurchasesEx + lessTax this.PurchasesInc
     member this.SalesInc = this.ValueOfQuantity this.Sales salesItem.SalesPrice
     member this.SalesEx = this.SalesInc |> lessTax
+    member private this.SalesCost = 
+        let c = decimal this.Sales * salesItem.CostPerContainer
+        match this.SalesItem.SalesUnitType with
+        | salesUnitType.Spirit | salesUnitType.Fortified | salesUnitType.Other ->
+            c
+        | _ ->
+            c / decimal this.SalesItem.ContainerSize
     member this.CostOfSalesEx = 
         match this.ContRec with
         | Some(c) -> 
             decimal ((float (this.PurchasesTotal) / this.TotalUnits) * this.Sales)
         | None -> 
-            match this.SalesItem.SalesUnitType with
-            | salesUnitType.Spirit | salesUnitType.Fortified | salesUnitType.Other ->
-                this.SalesCost
-            | _ ->
-                this.SalesCost / decimal this.SalesItem.ContainerSize
+            this.SalesCost
     
-    member this.Profit = salesItem.MarkUp * decimal (salesItem.SalesUnitsPerContainerUnit * this.Sales)
+    member this.Profit = this.SalesEx - this.CostOfSalesEx
     member this.SalesPerDay (startDate: DateTime, endDate: DateTime) = this.Sales / float (endDate.Subtract(startDate).Days + 1)
     member this.DaysOnHand (startDate: DateTime, endDate: DateTime) = this.ClosingStock / this.SalesPerDay(startDate, endDate) |> int
     member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)

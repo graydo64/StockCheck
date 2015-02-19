@@ -150,7 +150,7 @@ type ``Given that a PeriodItem has draught items received`` () as this =
 
     [<Test>] member x.
         ``The Profit is correct`` () =
-            periodItem.Profit |> should equal (decimal pintsSold * periodItem.SalesItem.MarkUp)
+            periodItem.Profit |> should equal (periodItem.SalesEx - periodItem.CostOfSalesEx)
 
     [<Test>] member x.
         ``The Closing Value at Sales Inc should be correct`` () =
