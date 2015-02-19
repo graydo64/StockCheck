@@ -143,10 +143,17 @@ type PeriodItem(salesItem : SalesItem) =
     member this.ClosingValueSalesEx = this.ClosingValueSalesInc |> lessTax
 
 type Period() =
+    let mutable periodStart = DateTime.MinValue
+    let mutable periodEnd = periodStart.AddDays(1.).Subtract(new TimeSpan(0, 0, 1))
+
     member val Id = String.Empty with get, set
     member val Name = String.Empty with get, set 
-    member val EndOfPeriod = DateTime.MinValue with get, set
-    member val StartOfPeriod = DateTime.MinValue with get, set
+    member this.EndOfPeriod 
+        with get () = periodEnd
+        and set(value : DateTime) = periodEnd <- new DateTime(value.Year, value.Month, value.Day, 23, 59, 59)
+    member this.StartOfPeriod 
+        with get () = periodStart
+        and set(value : DateTime) = periodStart <- new DateTime(value.Year, value.Month, value.Day) 
     member val Items = List<PeriodItem>() with get, set
     member this.SalesEx = this.Items |> Seq.sumBy(fun i -> i.SalesEx)
     member this.ClosingValueSalesInc = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
