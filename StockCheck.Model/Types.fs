@@ -159,9 +159,6 @@ type Period() =
     member this.ClosingValueSalesInc = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
     member this.ClosingValueSalesEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesEx)
     member this.ClosingValueCostEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueCostEx)
-    static member private CloseToStart (item: PeriodItem) =
-            item.OpeningStock <- item.ClosingStock
-            item.ClosingStock <- 0.
     static member private InitialiseFrom (source: Period) =
             let period = Period()
             period.StartOfPeriod <- source.EndOfPeriod.AddDays(1.)
@@ -169,12 +166,14 @@ type Period() =
             period
     static member InitialiseFromClone source =
             let period = Period.InitialiseFrom source
-            period.Items.AddRange(source.Items |> Seq.map(fun i -> i.CopyForNextPeriod()))
+            period.Items.AddRange(source.Items 
+                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
             period
     static member InitialiseWithoutZeroCarriedItems source =
             let period = Period.InitialiseFrom source
-            let items = source.Items |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.) |> period.Items.AddRange
-            period.Items |> Seq.iter (fun i -> Period.CloseToStart i)
+            period.Items.AddRange(source.Items 
+                                    |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.) 
+                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
             period
 
 type InvoiceLine(salesItem : SalesItem) =
