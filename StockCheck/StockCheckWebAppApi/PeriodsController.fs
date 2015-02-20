@@ -38,23 +38,26 @@ type PeriodController() =
           ClosingValueSalesInc = decimal p.ClosingValueSalesInc
           ClosingValueSalesEx = decimal p.ClosingValueSalesEx }
     
-    let mapPIFromViewModel (pi : PeriodItemViewModel) =         
-        let periodItem = 
-            new StockCheck.Model.PeriodItem(salesItems
-                                            |> Seq.filter (fun i -> i.Id = pi.SalesItemId)
-                                            |> Seq.head)
+    let mapPIFromViewModel (p : StockCheck.Model.Period) (pi : PeriodItemViewModel) =  
+        let periodItem = match p.Items.Where(fun a -> a.Id = pi.Id).Any() with
+                            | true -> p.Items.Where(fun a -> a.Id = pi.Id).First()
+                            | false -> let ni = new StockCheck.Model.PeriodItem(
+                                                                        salesItems
+                                                                        |> Seq.filter(fun i -> i.Id = pi.SalesItemId)
+                                                                        |> Seq.head) 
+                                       p.Items.Add(ni)
+                                       ni
+                                            
         periodItem.ClosingStock <- pi.ClosingStock
         periodItem.OpeningStock <- pi.OpeningStock
         periodItem.ClosingStockExpr <- pi.ClosingStockExpr
-        periodItem
 
     let mapPFromViewModel (p : StockCheck.Model.Period) (vm : PeriodViewModel) =
         p.EndOfPeriod <- vm.EndOfPeriod
         p.Name <- vm.Name
         p.StartOfPeriod <- vm.StartOfPeriod
         vm.Items
-        |> Seq.map (fun i -> mapPIFromViewModel i)
-        |> p.Items.AddRange
+        |> Seq.iter (fun i -> mapPIFromViewModel p i)
         p
 
     [<Route("api/period/")>]
@@ -94,9 +97,6 @@ type PeriodController() =
     member x.Put(period : PeriodViewModel) = 
         let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
         let periods = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = period.Id)
-        let clearItems (p : StockCheck.Model.Period) =
-            p.Items.Clear()
-            p
         
         match periods |> Seq.length with
         | 0 -> 
@@ -104,7 +104,6 @@ type PeriodController() =
         | _ -> 
             periods 
             |> Seq.head
-            |> clearItems
             |> (fun p -> mapPFromViewModel p period)
             |> persister.Save
             cache.Remove period.Id
