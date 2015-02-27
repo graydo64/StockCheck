@@ -9,7 +9,6 @@ var stockCheckControllers = angular.module('stockCheckControllers', []);
 
 stockCheckControllers.controller('PeriodItemController', ['$scope', 'Parse',
 function PeriodItemController($scope, Parse) {
-
     var views = $scope.$parent.getSalesItemsViews();
     for (var i in views) {
         var salesItem = views[i];
@@ -70,7 +69,7 @@ function PeriodController($scope, $routeParams, Period, SalesItem, CtrlUtils) {
     var id = $routeParams.id;
 
     if ($routeParams.action === 'init-from') {
-        Period.initfrom({id : id}, function (data) {
+        Period.initfrom({ id: id }, function (data) {
             $scope.period = data;
             $scope.loading = false;
         }, function (data) {
@@ -199,7 +198,6 @@ function SalesItemController($scope, $http, $routeParams, $window, appConfig, Sa
         $scope.otherSalesUnitMode = $scope.salesitem.salesUnitType === "Other";
     };
 
-
     $scope.toggleEdit = function () {
         $scope.editMode = !$scope.editMode;
     };
@@ -236,7 +234,6 @@ function SalesItemsController($scope, SalesItem, CtrlUtils) {
 
 stockCheckControllers.controller('InvoiceLineController', ['$scope',
 function InvoiceLineController($scope) {
-
     $scope.setSalesItem = function () {
         if ($scope.line.salesItemId != "") {
             for (var i in $scope.salesItemsViews) {
@@ -250,6 +247,7 @@ function InvoiceLineController($scope) {
 
     $scope.onSelect = function ($item, $model, $label) {
         $scope.line.salesItemId = $item.Key;
+        $scope.selectedSalesItem = $scope.salesItemsHash[$item.Key];
     }
 
     $scope.getSalesItem = function (val) {
@@ -259,24 +257,24 @@ function InvoiceLineController($scope) {
         return values;
     };
 
-    $scope.checkQuantity = function(){
-        if($scope.line.quantity === 0){
+    $scope.checkQuantity = function () {
+        if ($scope.line.quantity === 0) {
             $scope.line.invoicedAmountEx = 0;
         }
         else if ($scope.line.quantity > 0) {
-            var cost = $scope.salesItemsHash[$scope.line.salesItemId].costPerContainer;
+            var cost = $scope.selectedSalesItem.costPerContainer;
             var qty = $scope.line.quantity;
             var amountEx = cost * qty;
-            $scope.line.invoicedAmountEx = Math.round(amountEx * 100)/100;
+            $scope.line.invoicedAmountEx = Math.round(amountEx * 100) / 100;
         }
-    }
+    };
 }]);
 
-stockCheckControllers.controller('InvoiceController', ['$scope', '$routeParams', 'Invoice', 'SalesItem', 'Supplier', 'CtrlUtils',
-function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, CtrlUtils) {
-
+stockCheckControllers.controller('InvoiceController', ['$scope', '$modal', '$log', '$routeParams', 'Invoice', 'SalesItem', 'Supplier', 'CtrlUtils',
+function InvoiceController($scope, $modal, $log, $routeParams, Invoice, SalesItem, Supplier, CtrlUtils) {
     $scope.loading = true;
     $scope.newInvoice = true;
+    $scope.priceVariantItems = [];
 
     var id = $routeParams.id;
 
@@ -284,7 +282,7 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
         $scope.invoice = new Invoice({ invoiceLines: [{ invoicedAmountEx: 0, invoicedAmountInc: 0 }] });
     }
     else {
-        Invoice.get({id : id}, function (data) {
+        Invoice.get({ id: id }, function (data) {
             $scope.invoice = data;
             $scope.loading = false;
             $scope.newInvoice = false;
@@ -356,6 +354,34 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
 
     $scope.submitAll = function () {
         var newSupplier = true;
+        $scope.priceVariantItems = [];
+        for (var i in $scope.suppliers) {
+            if ($scope.invoice.supplier === $scope.suppliers[i].name) {
+                newSupplier = false;
+            }
+        }
+
+        var a = $scope.invoice;
+        for (var i in $scope.invoice.invoiceLines) {
+            var line = $scope.invoice.invoiceLines[i];
+            var item = $scope.salesItemsHash[line.salesItemId];
+            var cpc = line.invoicedAmountEx / line.quantity;
+            if (cpc != item.costPerContainer) {
+                var dto = { salesItemId: item.id, description: line.salesItemDescription, cpc: cpc, ocpc: item.costPerContainer, update: false };
+                $scope.priceVariantItems[$scope.priceVariantItems.length] = dto;
+            };
+        };
+
+        if ($scope.priceVariantItems.length > 0) {
+            $scope.open();
+        }
+        else {
+            $scope.saveInvoice();
+        };
+    };
+
+    $scope.saveInvoice = function () {
+        var newSupplier = true;
         for (var i in $scope.suppliers) {
             if ($scope.invoice.supplier === $scope.suppliers[i].name) {
                 newSupplier = false;
@@ -383,15 +409,48 @@ function InvoiceController($scope, $routeParams, Invoice, SalesItem, Supplier, C
     };
 
     $scope.newLine = function () {
-        $scope.invoice.invoiceLines.push({invoicedAmountEx : 0, invoicedAmountInc : 0});
+        $scope.invoice.invoiceLines.push({ invoicedAmountEx: 0, invoicedAmountInc: 0 });
         invoiceForm.children[invoiceForm.children.length - 1].scrollIntoView(true);
-    }
+    };
 
     $scope.setDeliveryDate = function () {
         if ($scope.invoice.deliveryDate == "" || $scope.invoice.deliveryDate == undefined) {
             $scope.invoice.deliveryDate = $scope.invoice.invoiceDate;
         }
-    }
+    };
+
+    $scope.open = function (size) {
+        var modalInstance = $modal.open({
+            templateUrl: 'myModalContent.html',
+            controller: 'ModalInstanceCtrl',
+            size: size,
+            resolve: {
+                salesItems: function () {
+                    return $scope.priceVariantItems;
+                }
+            }
+        });
+
+        modalInstance.result.then(function (priceVariantItems) {
+            $scope.priceVariantItems = priceVariantItems;
+            for (var i = 0; i < priceVariantItems.length; i++) {
+                $scope.pvItem = priceVariantItems[i];
+                if ($scope.pvItem.update) {
+                    SalesItem.get({ id: $scope.pvItem.salesItemId }, function (data) {
+                        $scope.salesitem = data;
+                        $scope.salesitem.costPerContainer = $scope.pvItem.cpc;
+                        alert($scope.salesitem.costPerContainer);
+                    }, function (data) {
+                        $scope.error = CtrlUtils.writeError("loading", "Sales Item", data.status, data.statusText);
+                        $scope.loading = false;
+                    });
+                };
+            };
+            //$scope.saveInvoice();
+        }, function () {
+            $log.info('Modal dismissed at: ' + new Date());
+        });
+    };
 }]);
 
 stockCheckControllers.controller('InvoicesController', ['$scope', 'Invoice', 'CtrlUtils',
@@ -399,7 +458,7 @@ function InvoicesController($scope, Invoice, CtrlUtils) {
     $scope.loading = true;
     $scope.editMode = false;
 
-    Invoice.query({pageSize: 10, pageNumber: 1}, function (data) {
+    Invoice.query({ pageSize: 10, pageNumber: 1 }, function (data) {
         for (var i in data.invoices) {
             var inv = data.invoices[i];
             inv.invoiceDateDate = new Date(inv.invoiceDate);
@@ -428,5 +487,17 @@ function InvoicesController($scope, Invoice, CtrlUtils) {
             $scope.invoices = data.invoices;
             $scope.loading = false;
         });
-    }
+    };
 }]);
+
+stockCheckControllers.controller('ModalInstanceCtrl', function ($scope, $modalInstance, salesItems) {
+    $scope.salesItems = salesItems;
+
+    $scope.ok = function () {
+        $modalInstance.close($scope.salesItems);
+    };
+
+    $scope.cancel = function () {
+        $modalInstance.dismiss('cancel');
+    };
+});
