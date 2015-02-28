@@ -119,25 +119,6 @@ stockCheckApp.service("CtrlUtils", function () {
     };
 });
 
-stockCheckApp.service("SalesItemCarrierService", function () {
-    var salesItems;
-
-    return {
-        getSalesItems: function () {
-            return salesItems;
-        },
-        setSalesItems: function (value) {
-            salesItems = value;
-        },
-        addSalesItem: function (value) {
-            if (salesItems == undefined) {
-                salesItems = [];
-            }
-            salesItems[salesItems.length] = value;
-        }
-    };
-});
-
 stockCheckApp.service("Parse", function () {
     var grammar = 'start\n' +
     '  = additive\n' +
