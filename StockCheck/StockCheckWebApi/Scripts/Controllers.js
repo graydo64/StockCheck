@@ -419,6 +419,16 @@ function InvoiceController($scope, $modal, $log, $routeParams, Invoice, SalesIte
         }
     };
 
+    $scope.findPriceVariantItem = function (id) {
+        for (var i = 0; i < $scope.priceVariantItems.length; i++) {
+            var pvItem = $scope.priceVariantItems[i];
+            if (pvItem.salesItemId === id) {
+                return pvItem;
+            };
+        };
+        return;
+    };
+
     $scope.open = function (size) {
         var modalInstance = $modal.open({
             templateUrl: 'myModalContent.html',
@@ -434,19 +444,20 @@ function InvoiceController($scope, $modal, $log, $routeParams, Invoice, SalesIte
         modalInstance.result.then(function (priceVariantItems) {
             $scope.priceVariantItems = priceVariantItems;
             for (var i = 0; i < priceVariantItems.length; i++) {
-                $scope.pvItem = priceVariantItems[i];
-                if ($scope.pvItem.update) {
-                    SalesItem.get({ id: $scope.pvItem.salesItemId }, function (data) {
+                var pvItem = priceVariantItems[i];
+                if (pvItem.update) {
+                    SalesItem.get({ id: pvItem.salesItemId }, function (data) {
                         $scope.salesitem = data;
-                        $scope.salesitem.costPerContainer = $scope.pvItem.cpc;
-                        alert($scope.salesitem.costPerContainer);
+                        var pvItem = $scope.findPriceVariantItem($scope.salesitem.id);
+                        $scope.salesitem.costPerContainer = pvItem.cpc;
+                        $scope.salesitem.$save(function (data) { }, function (data) { });
                     }, function (data) {
                         $scope.error = CtrlUtils.writeError("loading", "Sales Item", data.status, data.statusText);
                         $scope.loading = false;
                     });
                 };
             };
-            //$scope.saveInvoice();
+            $scope.saveInvoice();
         }, function () {
             $log.info('Modal dismissed at: ' + new Date());
         });
