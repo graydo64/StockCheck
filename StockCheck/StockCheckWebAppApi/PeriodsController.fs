@@ -119,6 +119,16 @@ type PeriodController() =
         let newp = StockCheck.Model.Period.InitialiseFromClone(period)
         mapToViewModel newp
 
+    [<HttpGet>][<Route("api/period/init-clean/{id}")>]
+    member x.InitFromClean(id : string) = 
+        let period = 
+            repo.GetModelPeriods
+            |> Seq.filter (fun i -> i.Id = id)
+            |> Seq.head
+        
+        let newp = StockCheck.Model.Period.InitialiseWithoutZeroCarriedItems(period)
+        mapToViewModel newp
+
     [<HttpGet>][<Route("api/period/export/{id}")>]
     member x.Export(id : string) = 
         let p = 

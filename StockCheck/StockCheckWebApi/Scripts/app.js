@@ -88,7 +88,8 @@ stockCheckApp.value("appConfig", { pathBase: "api/", defaultTaxRate: 0.2 });
 stockCheckApp.factory("Period", ['Resource', function ($resource) {
     return $resource("api/period/:id", null,
         {
-            'initfrom': { method: 'GET', url: 'api/period/init-from/:id' }
+            'initfrom': { method: 'GET', url: 'api/period/init-from/:id' },
+            'initclean': { method: 'GET', url: 'api/period/init-clean/:id' }
         });
 }]);
 

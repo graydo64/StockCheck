@@ -77,6 +77,15 @@ function PeriodController($scope, $routeParams, Period, SalesItem, CtrlUtils) {
             $scope.loading = false;
         });
     }
+    else if ($routeParams.action === 'init-clean') {
+        Period.initclean({ id: id }, function (data) {
+            $scope.period = data;
+            $scope.loading = false;
+        }, function (data) {
+            $scope.error = CtrlUtils.writeError("loading", "Period", data.status, data.statusText);
+            $scope.loading = false;
+        });
+    }
     else if (id === undefined) {
         $scope.period = new Period({ items: [] });
         $scope.loading = false

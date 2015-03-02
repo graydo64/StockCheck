@@ -169,12 +169,14 @@ type Period() =
             period
     static member InitialiseFromClone source =
             let period = Period.InitialiseFrom source
-            period.Items.AddRange(source.Items |> Seq.map(fun i -> i.CopyForNextPeriod()))
+            period.Items.AddRange(source.Items 
+                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
             period
     static member InitialiseWithoutZeroCarriedItems source =
             let period = Period.InitialiseFrom source
-            let items = source.Items |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.) |> period.Items.AddRange
-            period.Items |> Seq.iter (fun i -> Period.CloseToStart i)
+            period.Items.AddRange(source.Items
+                                    |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || i.ContainersReceived > 0.) 
+                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
             period
 
 type InvoiceLine(salesItem : SalesItem) =
