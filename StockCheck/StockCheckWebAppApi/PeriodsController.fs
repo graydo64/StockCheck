@@ -39,8 +39,8 @@ type PeriodController() =
           ClosingValueSalesEx = decimal p.ClosingValueSalesEx }
     
     let mapPIFromViewModel (p : StockCheck.Model.Period) (pi : PeriodItemViewModel) =  
-        let periodItem = match p.Items.Where(fun a -> a.Id = pi.Id).Any() with
-                            | true -> p.Items.Where(fun a -> a.Id = pi.Id).First()
+        let periodItem = match p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
+                            | true -> p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
                             | false -> let ni = new StockCheck.Model.PeriodItem(
                                                                         salesItems
                                                                         |> Seq.filter(fun i -> i.Id = pi.SalesItemId)
