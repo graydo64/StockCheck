@@ -128,3 +128,35 @@
         <div class="panel panel-footer" id="panelFooter">&nbsp;</div>
     </div>
 </form>
+<div ng-controller="ModalDemoCtrl">
+    <script type="text/ng-template" id="myModalContent.html">
+        <div class="modal-header">
+            <h3 class="modal-title">Variant Cost Prices!</h3>
+            <p>Update the Catalogue?</p>
+        </div>
+        <div class="modal-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="hidden">Sales Item Id</th>
+                        <th>Sales Item</th>
+                        <th>Old Cost</th>
+                        <th>New Cost</th>
+                        <th>Update?</th>
+                    </tr>
+                </thead>
+                <tr ng-repeat="salesItem in salesItems">
+                    <td class="hidden">{{salesItem.salesItemId}}</td>
+                    <td>{{salesItem.description}}</td>
+                    <td>{{salesItem.ocpc | currency}}</td>
+                    <td>{{salesItem.cpc | currency}}</td>
+                    <td><input type="checkbox" ng-model="salesItem.update" /></td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="ok()">OK</button>
+            <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+        </div>
+    </script>
+</div>

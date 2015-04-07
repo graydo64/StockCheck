@@ -171,8 +171,8 @@ type Period() =
             period
     static member InitialiseWithoutZeroCarriedItems source =
             let period = Period.InitialiseFrom source
-            period.Items.AddRange(source.Items 
-                                    |> Seq.filter (fun i -> i.OpeningStock > 0. && i.ClosingStock > 0.) 
+            period.Items.AddRange(source.Items
+                                    |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || i.ContainersReceived > 0.) 
                                     |> Seq.map(fun i -> i.CopyForNextPeriod()))
             period
 

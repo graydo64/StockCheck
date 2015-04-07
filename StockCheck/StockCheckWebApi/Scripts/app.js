@@ -81,36 +81,36 @@ stockCheckApp.directive('focusMe', function () {
             element[0].focus();
         }
     };
-
 });
 
 stockCheckApp.value("appConfig", { pathBase: "api/", defaultTaxRate: 0.2 });
 
-stockCheckApp.factory("Period", [ 'Resource', function ($resource) {
+stockCheckApp.factory("Period", ['Resource', function ($resource) {
     return $resource("api/period/:id", null,
         {
-            'initfrom': { method: 'GET', url: 'api/period/init-from/:id' }
+            'initfrom': { method: 'GET', url: 'api/period/init-from/:id' },
+            'initclean': { method: 'GET', url: 'api/period/init-clean/:id' }
         });
 }]);
 
-stockCheckApp.factory("SalesItem", [ 'Resource', function ($resource) {
+stockCheckApp.factory("SalesItem", ['Resource', function ($resource) {
     return $resource("api/salesitem/:id");
 }]);
 
-stockCheckApp.factory("Invoice", [ 'Resource', function ($resource) {
+stockCheckApp.factory("Invoice", ['Resource', function ($resource) {
     return $resource("api/invoice/:id",
         { id: "@id" },
         {
-        'query': {
-            method: 'GET',
-            isArray: false,
-            url: '/api/invoice/:pageSize/:pageNumber',
-            params: { pageSize: '@pageSize', pageNumber: '@pageNumber' }
-        }
-    });
+            'query': {
+                method: 'GET',
+                isArray: false,
+                url: '/api/invoice/:pageSize/:pageNumber',
+                params: { pageSize: '@pageSize', pageNumber: '@pageNumber' }
+            }
+        });
 }]);
 
-stockCheckApp.factory("Supplier", [ 'Resource', function ($resource) {
+stockCheckApp.factory("Supplier", ['Resource', function ($resource) {
     return $resource("api/supplier/:id");
 }]);
 
