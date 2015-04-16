@@ -6,6 +6,8 @@
 [<Measure>] type gal
 [<Measure>] type pt
 [<Measure>] type ``175``
+[<Measure>] type money
+[<Measure>] type percentage
 
 module Conv =
 
@@ -16,6 +18,12 @@ module Conv =
 
     let convertLitresToShots (x : float<l>) = x * shotsPerLtr
     let convertGallonsToPints (x : float<gal>) = x * ptPerGal
+
+    let money (d : decimal) = d * 1M<money>
+    let percentage (f: float) = 
+        if f < 0. || f > 1.
+            then 0.<percentage>
+            else f * 1.<percentage>
 
 
 

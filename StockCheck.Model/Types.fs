@@ -29,18 +29,49 @@ type salesUnitType =
             | "Other" -> Other
             | _ -> Unit
 
+type ItemName = { LedgerCode: string; Name: string; ContainerSize: float}
+
+type mySalesItem = { 
+    Id: string; 
+    ItemName: ItemName;
+    CostPerContainer: decimal<money>;
+    SalesPrice: decimal<money>;
+    TaxRate: float<percentage>;
+    SalesUnitType: salesUnitType;
+    OtherSalesUnit: float;
+    UllagePerContainer: int<pt>
+}
+
+type SalesItemInfo = {
+    MarkUp : decimal<money>;
+    CostPerUnitOfSale: decimal<money>;
+    IdealGP: float<percentage>;
+    SalesUnitsPerContainerUnit: float;
+    SalesPriceEx: decimal<money>
+}
 
 module Utils =
     let MarkUp sale cost =
         sale - cost
+
+    let markUp sale cost = sale - cost
 
     let GrossProfit sale cost =
         match sale with
         | 0.M -> 0.
         | _ -> float ((MarkUp sale cost)/sale)
 
+    let grossProfit sale cost =
+        match sale with
+        | 0.<money> -> 0.<percentage>
+        | _ -> Conv.percentage ((markUp sale cost) / sale)
+
     let LessTax rate price = 
         price / decimal(1. + rate)
+
+    let lessTax (rate : float<percentage>) (price : decimal<money>) =
+        let denom = decimal ((1.<percentage> + rate) / 1.<percentage>)
+        Conv.money (price / Conv.money denom)
 
     let private ValueOfQuantity qty unit size ppUnit =
         decimal (qty * unit * size * float ppUnit)
@@ -52,6 +83,30 @@ module Utils =
 
     let inline Round2 x =
             Math.Round(float x, 2)
+
+    let costPerUnitOfSale (costPerContainer : decimal<money>) (containerSize : float) (salesUnitsPerContainerUnit : float) =
+        let salesUnits = containerSize * salesUnitsPerContainerUnit
+        let costAsDecimal = costPerContainer / 1.0M<money>
+        match costAsDecimal with
+        | 0.M -> Conv.money 0.M
+        | _ -> Conv.money ((float costAsDecimal)/salesUnits)
+
+    let salesUnitsPerContainerUnit (s : mySalesItem) =
+        match s.SalesUnitType with
+        | Pint -> float Conv.ptPerGal
+        | Unit -> 1.0
+        | Spirit -> float Conv.shotsPerLtr
+        | Fortified -> float Conv.doublesPerLtr
+        | Wine -> float Conv.wineGlassPerLtr
+        | Other -> s.OtherSalesUnit
+
+    let getSalesItemInfo (s : mySalesItem) = 
+        let sucu = (salesUnitsPerContainerUnit s)
+        let spx = lessTax (s.TaxRate * 1.) s.SalesPrice
+        let cpus = costPerUnitOfSale s.CostPerContainer s.ItemName.ContainerSize sucu
+        let mu = markUp spx cpus
+        let igp = GrossProfit spx cpus
+        { MarkUp = mu; CostPerUnitOfSale = cpus; IdealGP = igp; SalesUnitsPerContainerUnit = sucu; SalesPriceEx = spx }
 
 type SalesItem() = 
     let costPerUnitOfSale costPerContainer containerSize salesUnitsPerContainerUnit =

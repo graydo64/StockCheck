@@ -7,9 +7,8 @@ open System.ComponentModel.DataAnnotations
 open Raven.Client
 open Raven.Client.Document
 
-[<CLIMutable>]
 type SalesItem = 
-    { Id : string
+    { mutable Id : string
       ContainerSize : float
       CostPerContainer : decimal
       LedgerCode : string
@@ -20,7 +19,6 @@ type SalesItem =
       SalesUnitType : string
       OtherSalesUnit : float }
 
-[<CLIMutable>]
 type ItemReceived = 
     { SalesItemId : string
       Quantity : float
@@ -28,43 +26,38 @@ type ItemReceived =
       InvoicedAmountEx : decimal
       InvoicedAmountInc : decimal }
 
-[<CLIMutable>]
 type PeriodItem = 
-    { Id : string
+    { mutable Id : string
       PeriodId : string
       SalesItem : SalesItem
       OpeningStock : float
       ClosingStockExpr : string
       ClosingStock : float }
 
-[<CLIMutable>]
 type Period = 
-    { Id : string
+    { mutable Id : string
       Name : string
       StartOfPeriod : DateTime
       EndOfPeriod : DateTime
       mutable Items : PeriodItem seq }
 
-[<CLIMutable>]
 type InvoiceLine = 
-    { Id : string
+    { mutable Id : string
       SalesItem : SalesItem
       Quantity : float
       InvoicedAmountEx : decimal
       InvoicedAmountInc : decimal }
 
-[<CLIMutable>]
 type Invoice = 
-    { Id : string
+    { mutable Id : string
       Supplier : string
       InvoiceNumber : string
       InvoiceDate : DateTime
       DeliveryDate : DateTime
       InvoiceLines : InvoiceLine seq }
 
-[<CLIMutable>]
 type Supplier = 
-    { Id : string
+    { mutable Id : string
       Name : string }
 
 module internal MapToModel = 
