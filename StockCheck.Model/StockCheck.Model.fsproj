@@ -44,6 +44,8 @@
   <ItemGroup>
     <Compile Include="Conversion.fs" />
     <Compile Include="Types.fs" />
+    <Compile Include="Types2.fs" />
+    <Compile Include="Business.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

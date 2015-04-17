@@ -8,7 +8,7 @@ type ValuesController() =
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
 
-    let supMap (s : StockCheck.Model.Supplier) =
+    let supMap (s : StockCheck.Model.mySupplier) =
         { SupplierView.Id = s.Id
           Name = s.Name }
 
@@ -19,9 +19,10 @@ type ValuesController() =
 
     [<Route("api/supplier")>]
     member x.Post(supplier : SupplierView) =
-        let modelSupplier = StockCheck.Model.Supplier()
-        modelSupplier.Id <- supplier.Id
-        modelSupplier.Name <- supplier.Name
+        let (modelSupplier : StockCheck.Model.mySupplier) = { 
+            Id = supplier.Id; 
+            Name = supplier.Name 
+        }
         persister.Save modelSupplier
 
     [<Route("api/salesunit")>]

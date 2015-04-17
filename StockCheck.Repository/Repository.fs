@@ -104,10 +104,7 @@ module internal MapToModel =
              DeliveryDate = i.DeliveryDate.ToLocalTime(), InvoiceLines = List<StockCheck.Model.InvoiceLine>(lines))
     
     let supMap (s : Supplier) = 
-        let supplier = StockCheck.Model.Supplier()
-        supplier.Id <- s.Id.ToString()
-        supplier.Name <- s.Name
-        supplier
+        { StockCheck.Model.mySupplier.Id = s.Id.ToString(); StockCheck.Model.mySupplier.Name = s.Name }
 
 type Query(documentStore : IDocumentStore) = 
 
@@ -298,7 +295,7 @@ type Persister(documentStore : IDocumentStore) =
     member this.Save(i : StockCheck.Model.Invoice) = 
         MapFromModel.iMap i |> saveDocument
     
-    member this.Save(s : StockCheck.Model.Supplier) = 
+    member this.Save(s : StockCheck.Model.mySupplier) = 
         let supplier = 
             { Supplier.Id = MapFromModel.idMap s.Id
               Name = s.Name }
