@@ -111,14 +111,14 @@ module Factory =
          }
 
     let getPeriodInfo (p : myPeriod) = 
-        let s = p.Items |> Seq.sumBy(fun i -> (snd i).SalesEx)
-        let cvsi = p.Items |> Seq.sumBy(fun i -> (snd i).ClosingValueSalesInc)
-        let cvse = p.Items |> Seq.sumBy(fun i -> (snd i).ClosingValueSalesEx)
-        let cvce = p.Items |> Seq.sumBy(fun i -> (snd i).ClosingValueCostEx)
+        let s = p.Items |> Seq.sumBy(fun i -> i.SalesEx)
+        let cvsi = p.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
+        let cvse = p.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesEx)
+        let cvce = p.Items |> Seq.sumBy(fun i -> i.ClosingValueCostEx)
         {
-            SalesEx = s;
-            ClosingValueSalesInc = cvsi;
-            ClosingValueSalesEx = cvse;
-            ClosingValueCostEx = cvce;
+            SalesEx = money s;
+            ClosingValueSalesInc = money cvsi;
+            ClosingValueSalesEx = money cvse;
+            ClosingValueCostEx = money cvce;
         }
 

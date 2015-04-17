@@ -27,7 +27,7 @@ module Excel =
         else
             f
 
-    let Export (period : StockCheck.Model.Period) (invoices : StockCheck.Model.Invoice seq) =
+    let Export (period : StockCheck.Model.Period) (invoices : StockCheck.Model.myInvoice seq) =
         let f = NewFile()
         use package = new ExcelPackage(f)
         let cat = package.Workbook.Worksheets.Add("Catalogue")
@@ -184,16 +184,16 @@ module Excel =
             |> List.mapi(fun i si -> writeClosingItem i period si clo)
             |> List.iteri(fun i pi -> writeSalesItem i pi.SalesItem cat)
 
-        let getGoodsIn n d (il : StockCheck.Model.InvoiceLine) = 
+        let getGoodsIn n d (il : StockCheck.Model.myInvoiceLine) = 
             {
-                ilFacade.LedgerCode = il.SalesItem.LedgerCode
-                Name = il.SalesItem.Name
-                ContainerSize = il.SalesItem.ContainerSize
+                ilFacade.LedgerCode = il.SalesItem.ItemName.LedgerCode
+                Name = il.SalesItem.ItemName.Name
+                ContainerSize = il.SalesItem.ItemName.ContainerSize
                 InvoiceNumber = n
                 DeliveryDate = d
                 Qty = il.Quantity
-                AmountEx = il.InvoicedAmountEx
-                AmountInc = il.InvoicedAmountInc
+                AmountEx = il.InvoicedAmountEx / 1.0M<StockCheck.Model.money>
+                AmountInc = il.InvoicedAmountInc / 1.0M<StockCheck.Model.money>
             }
 
         let lines n d il = il |> Seq.map(fun i -> getGoodsIn n d i)

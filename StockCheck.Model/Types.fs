@@ -141,51 +141,37 @@ type PeriodItem(salesItem : SalesItem) =
     member this.ClosingValueSalesInc = this.ValueOfQuantity this.ClosingStock salesItem.SalesPrice
     member this.ClosingValueSalesEx = this.ClosingValueSalesInc |> lessTax
 
-type Period() =
-    let mutable periodStart = DateTime.MinValue
-    let mutable periodEnd = periodStart.AddDays(1.).Subtract(new TimeSpan(0, 0, 1))
+//type Period() =
+//    let mutable periodStart = DateTime.MinValue
+//    let mutable periodEnd = periodStart.AddDays(1.).Subtract(new TimeSpan(0, 0, 1))
+//
+//    member val Id = String.Empty with get, set
+//    member val Name = String.Empty with get, set 
+//    member this.EndOfPeriod 
+//        with get () = periodEnd
+//        and set(value : DateTime) = periodEnd <- new DateTime(value.Year, value.Month, value.Day, 23, 59, 59)
+//    member this.StartOfPeriod 
+//        with get () = periodStart
+//        and set(value : DateTime) = periodStart <- new DateTime(value.Year, value.Month, value.Day) 
+//    member val Items = List<PeriodItem>() with get, set
+//    member this.SalesEx = this.Items |> Seq.sumBy(fun i -> i.SalesEx)
+//    member this.ClosingValueSalesInc = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
+//    member this.ClosingValueSalesEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesEx)
+//    member this.ClosingValueCostEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueCostEx)
+//    static member private InitialiseFrom (source: Period) =
+//            let period = Period()
+//            period.StartOfPeriod <- source.EndOfPeriod.AddDays(1.)
+//            period.EndOfPeriod <- period.StartOfPeriod
+//            period
+//    static member InitialiseFromClone source =
+//            let period = Period.InitialiseFrom source
+//            period.Items.AddRange(source.Items 
+//                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
+//            period
+//    static member InitialiseWithoutZeroCarriedItems source =
+//            let period = Period.InitialiseFrom source
+//            period.Items.AddRange(source.Items
+//                                    |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || i.ContainersReceived > 0.) 
+//                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
+//            period
 
-    member val Id = String.Empty with get, set
-    member val Name = String.Empty with get, set 
-    member this.EndOfPeriod 
-        with get () = periodEnd
-        and set(value : DateTime) = periodEnd <- new DateTime(value.Year, value.Month, value.Day, 23, 59, 59)
-    member this.StartOfPeriod 
-        with get () = periodStart
-        and set(value : DateTime) = periodStart <- new DateTime(value.Year, value.Month, value.Day) 
-    member val Items = List<PeriodItem>() with get, set
-    member this.SalesEx = this.Items |> Seq.sumBy(fun i -> i.SalesEx)
-    member this.ClosingValueSalesInc = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
-    member this.ClosingValueSalesEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesEx)
-    member this.ClosingValueCostEx = this.Items |> Seq.sumBy(fun i -> i.ClosingValueCostEx)
-    static member private InitialiseFrom (source: Period) =
-            let period = Period()
-            period.StartOfPeriod <- source.EndOfPeriod.AddDays(1.)
-            period.EndOfPeriod <- period.StartOfPeriod
-            period
-    static member InitialiseFromClone source =
-            let period = Period.InitialiseFrom source
-            period.Items.AddRange(source.Items 
-                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
-            period
-    static member InitialiseWithoutZeroCarriedItems source =
-            let period = Period.InitialiseFrom source
-            period.Items.AddRange(source.Items
-                                    |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || i.ContainersReceived > 0.) 
-                                    |> Seq.map(fun i -> i.CopyForNextPeriod()))
-            period
-
-type InvoiceLine(salesItem : SalesItem) =
-    member val Id = String.Empty with get, set
-    member val SalesItem = salesItem with get, set
-    member val Quantity = 0. with get, set
-    member val InvoicedAmountEx = decimal 0. with get, set
-    member val InvoicedAmountInc = decimal 0. with get, set
-
-type Invoice() =
-    member val Id = String.Empty with get, set
-    member val Supplier = String.Empty with get, set
-    member val InvoiceNumber = String.Empty with get, set
-    member val InvoiceDate = DateTime.MinValue with get, set
-    member val DeliveryDate = DateTime.MinValue with get, set
-    member val InvoiceLines = List<InvoiceLine>() with get, set

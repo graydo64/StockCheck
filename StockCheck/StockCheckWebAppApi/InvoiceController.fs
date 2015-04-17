@@ -10,18 +10,20 @@ open System.Collections.Generic
 open FsWeb.Model
 
 module InvoiceControllerHelper =
-    let mapToInvoiceLineViewModel (invoiceLine : StockCheck.Model.InvoiceLine) =
-        { InvoiceLineViewModel.Id = invoiceLine.Id
-          SalesItemId = invoiceLine.SalesItem.Id
-          SalesItemDescription =
-              String.concat " " [ invoiceLine.SalesItem.LedgerCode
-                                  invoiceLine.SalesItem.Name
-                                  "(" + invoiceLine.SalesItem.ContainerSize.ToString() + ")" ]
-          Quantity = invoiceLine.Quantity
-          InvoicedAmountEx = invoiceLine.InvoicedAmountEx
-          InvoicedAmountInc = invoiceLine.InvoicedAmountInc }
+    let mapToInvoiceLineViewModel (invoiceLine : StockCheck.Model.myInvoiceLine) =
+        { 
+            InvoiceLineViewModel.Id = invoiceLine.Id
+            SalesItemId = invoiceLine.SalesItem.Id
+            SalesItemDescription =
+                String.concat " " [ invoiceLine.SalesItem.ItemName.LedgerCode
+                                    invoiceLine.SalesItem.ItemName.Name
+                                    "(" + invoiceLine.SalesItem.ItemName.ContainerSize.ToString() + ")" ]
+            Quantity = invoiceLine.Quantity
+            InvoicedAmountEx = invoiceLine.InvoicedAmountEx / 1.0M<StockCheck.Model.money>
+            InvoicedAmountInc = invoiceLine.InvoicedAmountInc / 1.0M<StockCheck.Model.money>
+          }
 
-    let mapToInvoiceViewModel (invoice : StockCheck.Model.Invoice) =
+    let mapToInvoiceViewModel (invoice : StockCheck.Model.myInvoice) =
         { InvoiceViewModel.Id = invoice.Id
           Supplier = invoice.Supplier
           InvoiceNumber = invoice.InvoiceNumber
@@ -29,8 +31,8 @@ module InvoiceControllerHelper =
           DeliveryDate = invoice.DeliveryDate
           InvoiceLines =
               List<InvoiceLineViewModel>(invoice.InvoiceLines |> Seq.map (fun il -> mapToInvoiceLineViewModel il))
-          TotalEx = invoice.InvoiceLines |> Seq.sumBy (fun il -> il.InvoicedAmountEx)
-          TotalInc = invoice.InvoiceLines |> Seq.sumBy (fun il -> il.InvoicedAmountInc) }
+          TotalEx = invoice.InvoiceLines |> Seq.sumBy (fun il -> il.InvoicedAmountEx / 1.0M<StockCheck.Model.money>)
+          TotalInc = invoice.InvoiceLines |> Seq.sumBy (fun il -> il.InvoicedAmountInc / 1.0M<StockCheck.Model.money>) }
 
 type InvoicesPaged =
     { TotalCount : int
@@ -43,28 +45,31 @@ type InvoiceController() =
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
 
     let mapToInvoiceLine (lv : InvoiceLineViewModel) =
-        let salesItem = repo.GetModelSalesItemById(lv.SalesItemId)
-        let lm = StockCheck.Model.InvoiceLine(salesItem)
-        lm.Id <- lv.Id
-        lm.Quantity <- lv.Quantity
-        lm.InvoicedAmountEx <- lv.InvoicedAmountEx
-        lm.InvoicedAmountInc <- lv.InvoicedAmountInc
-        lm
 
-    let mapViewToModel (m : StockCheck.Model.Invoice) (i : InvoiceViewModel) =
+        let salesItem = repo.GetmyModelSalesItemById(lv.SalesItemId)
+
+        {
+            StockCheck.Model.myInvoiceLine.Id = lv.Id;
+            StockCheck.Model.myInvoiceLine.Quantity = lv.Quantity;
+            StockCheck.Model.myInvoiceLine.SalesItem = salesItem;
+            StockCheck.Model.myInvoiceLine.InvoicedAmountEx = StockCheck.Model.Conv.money lv.InvoicedAmountEx;
+            StockCheck.Model.myInvoiceLine.InvoicedAmountInc = StockCheck.Model.Conv.money lv.InvoicedAmountInc;
+        }
+
+    let mapViewToModel (i : InvoiceViewModel) =
         let modelLines = i.InvoiceLines |> Seq.map (fun il -> mapToInvoiceLine il)
-        m.Id <- i.Id
-        m.Supplier <- i.Supplier
-        m.InvoiceNumber <- i.InvoiceNumber
-        m.InvoiceDate <- i.InvoiceDate
-        m.DeliveryDate <- i.DeliveryDate
-        m.InvoiceLines <- List<StockCheck.Model.InvoiceLine>(modelLines)
-        m
+        {
+            StockCheck.Model.myInvoice.Id = i.Id;
+            StockCheck.Model.myInvoice.Supplier = i.Supplier;
+            StockCheck.Model.myInvoice.InvoiceNumber = i.InvoiceNumber;
+            StockCheck.Model.myInvoice.InvoiceDate = i.InvoiceDate;
+            StockCheck.Model.myInvoice.DeliveryDate = i.DeliveryDate;
+            StockCheck.Model.myInvoice.InvoiceLines = modelLines;
+        }
 
     let saveInvoice iv =
         let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
-        let im = new StockCheck.Model.Invoice()
-        mapViewToModel im iv |> persister.Save
+        mapViewToModel iv |> persister.Save
         repo.GetModelPeriods
         |> Seq.where (fun p -> p.StartOfPeriod <= iv.DeliveryDate && p.EndOfPeriod >= iv.DeliveryDate)
         |> Seq.iter (fun p -> cache.Remove p.Id)
@@ -82,7 +87,17 @@ type InvoiceController() =
 
     member x.Get(id) =
         match id with
-        | "0" -> StockCheck.Model.Invoice() |> InvoiceControllerHelper.mapToInvoiceViewModel
+        | "0" -> 
+                {
+                    Id = String.Empty;
+                    Supplier = String.Empty;
+                    InvoiceNumber = String.Empty;
+                    InvoiceDate = DateTime.MinValue;
+                    DeliveryDate = DateTime.MinValue;
+                    InvoiceLines = new List<InvoiceLineViewModel>();
+                    TotalEx = 0M;
+                    TotalInc = 0M;
+                }
         | _ -> repo.GetModelInvoice id |> InvoiceControllerHelper.mapToInvoiceViewModel
 
     member x.Post(invoice : InvoiceViewModel) =

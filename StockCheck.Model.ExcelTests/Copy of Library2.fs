@@ -19,7 +19,7 @@ let persister = new Persister(store)
 let query = new Query(store)
 
 //
-let savePeriod (p : StockCheck.Model.Period) =
+let savePeriod (p : StockCheck.Model.myPeriod) =
     persister.Save(p)
 
 let saveSalesItem (s : StockCheck.Model.SalesItem) =
@@ -56,7 +56,7 @@ let maxBySI =
     let endDate = System.DateTime.Now
     let invoices = query.GetModelInvoicesByDateRange start endDate
     let invoiceLines = invoices |> Seq.collect(fun a -> a.InvoiceLines)
-    let linesBySI = invoiceLines |> Seq.map(fun b -> (b.SalesItem.Id, amountPerContainer b.InvoicedAmountEx b.Quantity))
+    let linesBySI = invoiceLines |> Seq.map(fun b -> (b.SalesItem.Id, amountPerContainer (b.InvoicedAmountEx / 1.0M<StockCheck.Model.money>) b.Quantity))
     linesBySI |> Seq.groupBy(fun c -> fst c) |> Seq.map(fun (k, v) -> Seq.max v)
 
 let checkCatalogueCPC (i : StockCheck.Model.SalesItem) =

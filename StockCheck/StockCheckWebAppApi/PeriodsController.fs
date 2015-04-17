@@ -28,31 +28,34 @@ type PeriodController() =
           SalesQty = pi.Sales
           Container = pi.SalesItem.ContainerSize }
     
-    let mapToViewModel (p : StockCheck.Model.Period) = 
-        { PeriodViewModel.Id = p.Id
-          Name = p.Name
-          StartOfPeriod = p.StartOfPeriod
-          EndOfPeriod = p.EndOfPeriod
-          Items = p.Items |> Seq.map mapToPI
-          ClosingValueCostEx = p.ClosingValueCostEx
-          ClosingValueSalesInc = decimal p.ClosingValueSalesInc
-          ClosingValueSalesEx = decimal p.ClosingValueSalesEx }
+    let mapToViewModel (p : StockCheck.Model.myPeriod) = 
+        let periodInfo = StockCheck.Model.Factory.getPeriodInfo p
+        { 
+            PeriodViewModel.Id = p.Id
+            Name = p.Name
+            StartOfPeriod = p.StartOfPeriod
+            EndOfPeriod = p.EndOfPeriod
+            Items = p.Items |> Seq.map mapToPI
+            ClosingValueCostEx = periodInfo.ClosingValueCostEx / 1M<StockCheck.Model.money>
+            ClosingValueSalesInc = periodInfo.ClosingValueSalesInc / 1M<StockCheck.Model.money>
+            ClosingValueSalesEx = periodInfo.ClosingValueSalesEx  / 1M<StockCheck.Model.money>
+        }
     
-    let mapPIFromViewModel (p : StockCheck.Model.Period) (pi : PeriodItemViewModel) =  
+    let mapPIFromViewModel (p : StockCheck.Model.myPeriod) (pi : PeriodItemViewModel) =  
         let periodItem = match p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
                             | true -> p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
                             | false -> let ni = new StockCheck.Model.PeriodItem(
                                                                         salesItems
                                                                         |> Seq.filter(fun i -> i.Id = pi.SalesItemId)
                                                                         |> Seq.head) 
-                                       p.Items.Add(ni)
+                                       let newSeq = Seq.append p.Items [ni]
                                        ni
                                             
         periodItem.ClosingStock <- pi.ClosingStock
         periodItem.OpeningStock <- pi.OpeningStock
         periodItem.ClosingStockExpr <- pi.ClosingStockExpr
 
-    let mapPFromViewModel (p : StockCheck.Model.Period) (vm : PeriodViewModel) =
+    let mapPFromViewModel (p : StockCheck.Model.myPeriod) (vm : PeriodViewModel) =
         p.EndOfPeriod <- vm.EndOfPeriod
         p.Name <- vm.Name
         p.StartOfPeriod <- vm.StartOfPeriod

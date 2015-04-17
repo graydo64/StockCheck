@@ -63,7 +63,8 @@ type myPeriod = {
     Name : string;
     EndOfPeriod : DateTime;
     StartOfPeriod : DateTime;
-    Items : List<myPeriodItem * PeriodItemInfo>;
+    //Items : List<myPeriodItem * PeriodItemInfo>;
+    Items : seq<PeriodItem>;
 }
 
 type PeriodInfo = {
@@ -87,7 +88,7 @@ type myInvoice = {
     InvoiceNumber : string;
     InvoiceDate : DateTime;
     DeliveryDate : DateTime;
-    InvoiceLines : List<InvoiceLine>
+    InvoiceLines : seq<myInvoiceLine>
 }
 
 type mySupplier = {

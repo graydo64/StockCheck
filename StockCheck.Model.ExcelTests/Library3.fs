@@ -94,7 +94,7 @@ let writeSalesItem i (si : StockCheck.Model.SalesItem) (ws : ExcelWorksheet) =
     ws.SetValue(rowNo, 9, si.TaxRate)
     ws.SetValue(rowNo, 10, si.IdealGP)
 
-let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
+let writeClosingItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
     let rowNo = startingRow i
     ws.SetValue(rowNo, catColumn, pi.SalesItem.LedgerCode)
     ws.SetValue(rowNo, itemColumn, pi.SalesItem.Name)
@@ -105,7 +105,7 @@ let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.Peri
     ws.SetValue(rowNo, 7, pi.ClosingValueSalesEx)
     pi
 
-let writePeriodItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
+let writePeriodItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
     let rowNo = startingRow i
     ws.SetValue(rowNo, catColumn, pi.SalesItem.LedgerCode)
     ws.SetValue(rowNo, itemColumn, pi.SalesItem.Name)

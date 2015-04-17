@@ -19,7 +19,7 @@ let persister = new Persister(store)
 let query = new Query(store)
 
 //
-let savePeriod (p : StockCheck.Model.Period) =
+let savePeriod (p : StockCheck.Model.myPeriod) =
     persister.Save(p)
 
 let period = query.GetModelPeriods |> Seq.filter(fun p -> p.Name = "April/May 2014") |> Seq.head
