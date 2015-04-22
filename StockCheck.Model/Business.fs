@@ -62,7 +62,7 @@ module Factory =
         let igp = grossProfit spx cpus
         { MarkUp = mu; CostPerUnitOfSale = cpus; IdealGP = igp; SalesUnitsPerContainerUnit = sucu; SalesPriceEx = spx }
 
-    let getPeriodItemInfo ((p : myPeriodItem),(i : List<myItemReceived>),(sii : SalesItemInfo)) = 
+    let getPeriodItemInfo ((p : myPeriodItem),(i : seq<myItemReceived>),(sii : SalesItemInfo)) = 
         let si = p.SalesItem
         let lessTax = Business.lessTax si.TaxRate
         let valueOfQuantity = valueOfQuantityT si.SalesUnitType sii.SalesUnitsPerContainerUnit si.ItemName.ContainerSize 
@@ -111,16 +111,18 @@ module Factory =
             ClosingValueSalesEx = cvsex
          }
 
+    let piInfo i = getPeriodItemInfo ((i), i.ItemsReceived, (getSalesItemInfo i.SalesItem))
+
     let getPeriodInfo (p : myPeriod) = 
-        let s = p.Items |> Seq.sumBy(fun i -> i.SalesEx)
-        let cvsi = p.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesInc)
-        let cvse = p.Items |> Seq.sumBy(fun i -> i.ClosingValueSalesEx)
-        let cvce = p.Items |> Seq.sumBy(fun i -> i.ClosingValueCostEx)
+        let s = p.Items |> Seq.sumBy(fun i -> (piInfo i).SalesEx)
+        let cvsi = p.Items |> Seq.sumBy(fun i -> (piInfo i).ClosingValueSalesInc)
+        let cvse = p.Items |> Seq.sumBy(fun i -> (piInfo i).ClosingValueSalesEx)
+        let cvce = p.Items |> Seq.sumBy(fun i -> (piInfo i).ClosingValueCostEx)
         {
-            SalesEx = money s;
-            ClosingValueSalesInc = money cvsi;
-            ClosingValueSalesEx = money cvse;
-            ClosingValueCostEx = money cvce;
+            SalesEx = s;
+            ClosingValueSalesInc = cvsi;
+            ClosingValueSalesEx = cvse;
+            ClosingValueCostEx = cvce;
         }
 
     let defaultMySalesItem = 
@@ -135,7 +137,21 @@ module Factory =
             StockCheck.Model.mySalesItem.OtherSalesUnit = 0.;
         }
 
-    let copyForNextPeriod (i: PeriodItem) = PeriodItem (i.SalesItem, OpeningStock = i.ClosingStock, ClosingStock = 0.)
+    let defaultPeriodItem =
+        {
+            StockCheck.Model.myPeriodItem.Id = String.Empty;
+            StockCheck.Model.myPeriodItem.SalesItem = defaultMySalesItem;
+            StockCheck.Model.myPeriodItem.OpeningStock = 0.;
+            StockCheck.Model.myPeriodItem.ClosingStock = 0.;
+            StockCheck.Model.myPeriodItem.ClosingStockExpr = String.Empty;
+            StockCheck.Model.myPeriodItem.ItemsReceived = [];
+        }
+
+    let getPeriodItem si =
+        { defaultPeriodItem with SalesItem = si }
+
+    let copyForNextPeriod (i: myPeriodItem) =
+        { defaultPeriodItem with SalesItem = i.SalesItem; OpeningStock = i.ClosingStock }
 
     let cleanDate h m s (d : DateTime) = new DateTime(d.Year, d.Month, d.Day, h, m, s)
     let cleanStartDate = cleanDate 0 0 0
@@ -169,6 +185,6 @@ module Factory =
     let initialiseWithoutZeroCarriedItems (p : myPeriod) = 
         let ip = initialisePeriodFromClone p
         let pi = p.Items
-                 |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || i.ContainersReceived > 0.) 
+                 |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || (piInfo i).ContainersReceived > 0.) 
                  |> Seq.map(fun i -> copyForNextPeriod i)
         {ip with Items = pi}

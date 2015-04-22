@@ -88,58 +88,58 @@ type ItemReceived() =
     member val InvoicedAmountEx = decimal 0 with get, set
     member val InvoicedAmountInc = decimal 0 with get, set
 
-type PeriodItem(salesItem : SalesItem) = 
-    let itemsReceived = List<ItemReceived>()
-    let lessTax = Utils.LessTax salesItem.TaxRate
-
-    member private this.ValueOfQuantity = Utils.ValueOfQuantityT salesItem.SalesUnitType salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize 
-    member private this.ContRec = if this.ContainersReceived > 0. then Some(this.ContainersReceived) else None
-    member val Id = String.Empty with get, set
-    member val OpeningStock = 0. with get, set
-    member val ClosingStockExpr = String.Empty with get, set
-    member val ClosingStock = 0. with get, set
-    member val SalesItem = salesItem
-    member this.ItemsReceived = itemsReceived;
-    member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
-            let item = ItemReceived(Quantity = quantity, ReceivedDate = receivedDate, InvoicedAmountEx = invoiceAmountEx, InvoicedAmountInc = invoiceAmountInc)
-            this.ItemsReceived.Add(item)
-    member this.CopyForNextPeriod () =
-            PeriodItem (salesItem, OpeningStock = this.ClosingStock, ClosingStock = 0.)
-
-    member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun i -> i.Quantity)
-    member this.TotalUnits = 
-        match this.SalesItem.SalesUnitType with
-        | Pint | Unit | Other -> this.ContainersReceived * salesItem.ContainerSize
-        | Spirit | Fortified | Wine -> this.ContainersReceived
-    member this.Sales = Utils.Round2 (this.OpeningStock + this.TotalUnits - this.ClosingStock)
-    member this.ContainersSold = this.Sales / salesItem.ContainerSize
-    member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
-    member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
-    member this.PurchasesTotal = this.PurchasesEx + lessTax this.PurchasesInc
-    member this.SalesInc = this.ValueOfQuantity this.Sales salesItem.SalesPrice
-    member this.SalesEx = this.SalesInc |> lessTax
-    member private this.SalesCost = 
-        let c = decimal this.Sales * salesItem.CostPerContainer
-        match this.SalesItem.SalesUnitType with
-        | salesUnitType.Spirit | salesUnitType.Fortified | salesUnitType.Other ->
-            c
-        | _ ->
-            c / decimal this.SalesItem.ContainerSize
-    member this.CostOfSalesEx = 
-        match this.ContRec with
-        | Some(c) -> 
-            decimal ((float (this.PurchasesTotal) / this.TotalUnits) * this.Sales)
-        | None -> 
-            this.SalesCost
-    
-    member this.Profit = this.SalesEx - this.CostOfSalesEx
-    member this.SalesPerDay (startDate: DateTime, endDate: DateTime) = this.Sales / float (endDate.Subtract(startDate).Days + 1)
-    member this.DaysOnHand (startDate: DateTime, endDate: DateTime) = this.ClosingStock / this.SalesPerDay(startDate, endDate) |> int
-    member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
-    member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
-    member this.ClosingValueCostEx = this.ValueOfQuantity this.ClosingStock salesItem.CostPerUnitOfSale
-    member this.ClosingValueSalesInc = this.ValueOfQuantity this.ClosingStock salesItem.SalesPrice
-    member this.ClosingValueSalesEx = this.ClosingValueSalesInc |> lessTax
+//type PeriodItem(salesItem : SalesItem) = 
+//    let itemsReceived = List<ItemReceived>()
+//    let lessTax = Utils.LessTax salesItem.TaxRate
+//
+//    member private this.ValueOfQuantity = Utils.ValueOfQuantityT salesItem.SalesUnitType salesItem.SalesUnitsPerContainerUnit salesItem.ContainerSize 
+//    member private this.ContRec = if this.ContainersReceived > 0. then Some(this.ContainersReceived) else None
+//    member val Id = String.Empty with get, set
+//    member val OpeningStock = 0. with get, set
+//    member val ClosingStockExpr = String.Empty with get, set
+//    member val ClosingStock = 0. with get, set
+//    member val SalesItem = salesItem
+//    member this.ItemsReceived = itemsReceived;
+//    member this.ReceiveItems receivedDate quantity invoiceAmountEx invoiceAmountInc =
+//            let item = ItemReceived(Quantity = quantity, ReceivedDate = receivedDate, InvoicedAmountEx = invoiceAmountEx, InvoicedAmountInc = invoiceAmountInc)
+//            this.ItemsReceived.Add(item)
+//    member this.CopyForNextPeriod () =
+//            PeriodItem (salesItem, OpeningStock = this.ClosingStock, ClosingStock = 0.)
+//
+//    member this.ContainersReceived = itemsReceived |> Seq.sumBy (fun i -> i.Quantity)
+//    member this.TotalUnits = 
+//        match this.SalesItem.SalesUnitType with
+//        | Pint | Unit | Other -> this.ContainersReceived * salesItem.ContainerSize
+//        | Spirit | Fortified | Wine -> this.ContainersReceived
+//    member this.Sales = Utils.Round2 (this.OpeningStock + this.TotalUnits - this.ClosingStock)
+//    member this.ContainersSold = this.Sales / salesItem.ContainerSize
+//    member this.PurchasesEx = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
+//    member this.PurchasesInc = itemsReceived |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
+//    member this.PurchasesTotal = this.PurchasesEx + lessTax this.PurchasesInc
+//    member this.SalesInc = this.ValueOfQuantity this.Sales salesItem.SalesPrice
+//    member this.SalesEx = this.SalesInc |> lessTax
+//    member private this.SalesCost = 
+//        let c = decimal this.Sales * salesItem.CostPerContainer
+//        match this.SalesItem.SalesUnitType with
+//        | salesUnitType.Spirit | salesUnitType.Fortified | salesUnitType.Other ->
+//            c
+//        | _ ->
+//            c / decimal this.SalesItem.ContainerSize
+//    member this.CostOfSalesEx = 
+//        match this.ContRec with
+//        | Some(c) -> 
+//            decimal ((float (this.PurchasesTotal) / this.TotalUnits) * this.Sales)
+//        | None -> 
+//            this.SalesCost
+//    
+//    member this.Profit = this.SalesEx - this.CostOfSalesEx
+//    member this.SalesPerDay (startDate: DateTime, endDate: DateTime) = this.Sales / float (endDate.Subtract(startDate).Days + 1)
+//    member this.DaysOnHand (startDate: DateTime, endDate: DateTime) = this.ClosingStock / this.SalesPerDay(startDate, endDate) |> int
+//    member this.Ullage = this.ContainersSold * (float salesItem.UllagePerContainer)
+//    member this.UllageAtSale = (decimal this.Ullage) * salesItem.SalesPrice
+//    member this.ClosingValueCostEx = this.ValueOfQuantity this.ClosingStock salesItem.CostPerUnitOfSale
+//    member this.ClosingValueSalesInc = this.ValueOfQuantity this.ClosingStock salesItem.SalesPrice
+//    member this.ClosingValueSalesEx = this.ClosingValueSalesInc |> lessTax
 
 //type Period() =
 //    let mutable periodStart = DateTime.MinValue

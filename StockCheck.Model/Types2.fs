@@ -38,7 +38,7 @@ type myPeriodItem = {
     ClosingStockExpr : string;
     ClosingStock : float;
     SalesItem : mySalesItem;
-    ItemsReceived : List<myItemReceived>;
+    ItemsReceived : seq<myItemReceived>;
 }
 
 type PeriodItemInfo = {
@@ -63,8 +63,7 @@ type myPeriod = {
     Name : string;
     EndOfPeriod : DateTime;
     StartOfPeriod : DateTime;
-    //Items : List<myPeriodItem * PeriodItemInfo>;
-    Items : seq<PeriodItem>;
+    Items : seq<myPeriodItem>;
 }
 
 type PeriodInfo = {

@@ -91,12 +91,14 @@ module internal MapToModel =
             }
     
     let piMap (pi : PeriodItem) = 
-        let modelItem = StockCheck.Model.PeriodItem(siMap pi.SalesItem)
-        modelItem.Id <- pi.Id
-        modelItem.OpeningStock <- pi.OpeningStock
-        modelItem.ClosingStockExpr <- pi.ClosingStockExpr
-        modelItem.ClosingStock <- pi.ClosingStock
-        modelItem
+        {
+            StockCheck.Model.myPeriodItem.Id = pi.Id;
+            StockCheck.Model.myPeriodItem.OpeningStock = pi.OpeningStock;
+            StockCheck.Model.myPeriodItem.ClosingStockExpr = pi.ClosingStockExpr;
+            StockCheck.Model.myPeriodItem.ClosingStock = pi.ClosingStock;
+            StockCheck.Model.myPeriodItem.SalesItem = mysiMap pi.SalesItem;
+            StockCheck.Model.myPeriodItem.ItemsReceived = [];
+        }
     
     let pMap (p : Period) = 
         let items = p.Items |> Seq.map piMap
@@ -234,22 +236,25 @@ type Query(documentStore : IDocumentStore) =
                 |> Seq.map getPeriodItem
 
         let periodItems = Seq.concat [invoicePeriodItems; p.Items] |> Seq.distinct
+        let basePeriod = StockCheck.Model.Factory.getPeriod p.Id p.Name p.StartOfPeriod p.EndOfPeriod
+        let modelPeriod = { basePeriod with Items = periodItems |> Seq.map MapToModel.piMap }
 
-        let modelPeriod = {
-            StockCheck.Model.myPeriod.Id = p.Id;
-            StockCheck.Model.myPeriod.Name = p.Name;
-            StockCheck.Model.myPeriod.StartOfPeriod = p.StartOfPeriod;
-            StockCheck.Model.myPeriod.EndOfPeriod = p.EndOfPeriod;
-            StockCheck.Model.myPeriod.Items = periodItems |> Seq.map MapToModel.piMap;
-        }
-        modelPeriod.Items
-        |> Seq.iter (fun mpi -> 
-               itemsReceived.Where(fun r -> r.SalesItemId = mpi.SalesItem.Id)
-               |> Seq.iter 
-                      (fun ir -> mpi.ReceiveItems ir.ReceivedDate ir.Quantity ir.InvoicedAmountEx ir.InvoicedAmountInc)
-               |> ignore)
-        |> ignore
-        modelPeriod
+        let mapItemsReceived sid =             
+            itemsReceived.Where(fun r -> r.SalesItemId = sid)
+            |> Seq.map (fun ir ->  {
+                                        StockCheck.Model.myItemReceived.Id = String.Empty;
+                                        StockCheck.Model.myItemReceived.InvoicedAmountEx = money ir.InvoicedAmountEx;
+                                        StockCheck.Model.myItemReceived.InvoicedAmountInc = money ir.InvoicedAmountInc;
+                                        StockCheck.Model.myItemReceived.Quantity = ir.Quantity;
+                                        StockCheck.Model.myItemReceived.ReceivedDate = ir.ReceivedDate;
+                                    })
+
+        let newItemSeq = modelPeriod.Items
+                            |> Seq.map ( fun mpi -> 
+                                                let ir = mapItemsReceived mpi.SalesItem.Id
+                                                { mpi with ItemsReceived = ir })
+
+        { modelPeriod with Items = newItemSeq }
     
     member this.GetModelPeriods = this.GetPeriods() |> Seq.map (fun p -> this.GetModelPeriodById p.Id)
     member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.siMap
@@ -265,7 +270,7 @@ module internal MapFromModel =
                     | x when String.IsNullOrEmpty(x) -> Guid.NewGuid().ToString()
                     | _ -> id
         
-    let piMap documentStore id (pi : StockCheck.Model.PeriodItem) = 
+    let piMap documentStore id (pi : StockCheck.Model.myPeriodItem) = 
         let query = new Query(documentStore)
         { Id = idMap pi.Id
           PeriodId = id
