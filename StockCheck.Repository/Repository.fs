@@ -77,16 +77,7 @@ module internal MapToModel =
     let mysiMap (si : SalesItem) = 
         match si with
         | i when String.IsNullOrEmpty(i.Id) ->
-            {
-                StockCheck.Model.mySalesItem.Id = String.Empty;
-                StockCheck.Model.mySalesItem.ItemName = { LedgerCode = String.Empty; Name = String.Empty; ContainerSize = 0. }
-                StockCheck.Model.mySalesItem.CostPerContainer = 0M<StockCheck.Model.money>;
-                StockCheck.Model.mySalesItem.SalesPrice = 0M<StockCheck.Model.money>;
-                StockCheck.Model.mySalesItem.TaxRate = 0.<StockCheck.Model.percentage>;
-                StockCheck.Model.mySalesItem.UllagePerContainer = 0<StockCheck.Model.pt>;
-                StockCheck.Model.mySalesItem.SalesUnitType = StockCheck.Model.salesUnitType.Other;
-                StockCheck.Model.mySalesItem.OtherSalesUnit = 0.;
-            }
+            StockCheck.Model.Factory.defaultMySalesItem
         | _ -> 
             {
                 StockCheck.Model.mySalesItem.Id = si.Id.ToString();

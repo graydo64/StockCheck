@@ -1,5 +1,6 @@
 ﻿namespace StockCheck.Model
 
+open System
 open StockCheck.Model.Conv
 
 module Business =
@@ -122,3 +123,28 @@ module Factory =
             ClosingValueCostEx = money cvce;
         }
 
+    let defaultMySalesItem = 
+        {
+            StockCheck.Model.mySalesItem.Id = String.Empty;
+            StockCheck.Model.mySalesItem.ItemName = { LedgerCode = String.Empty; Name = String.Empty; ContainerSize = 0. }
+            StockCheck.Model.mySalesItem.CostPerContainer = 0M<StockCheck.Model.money>;
+            StockCheck.Model.mySalesItem.SalesPrice = 0M<StockCheck.Model.money>;
+            StockCheck.Model.mySalesItem.TaxRate = 0.<StockCheck.Model.percentage>;
+            StockCheck.Model.mySalesItem.UllagePerContainer = 0<StockCheck.Model.pt>;
+            StockCheck.Model.mySalesItem.SalesUnitType = StockCheck.Model.salesUnitType.Other;
+            StockCheck.Model.mySalesItem.OtherSalesUnit = 0.;
+        }
+
+    let copyForNextPeriod (i: PeriodItem) = PeriodItem (i.SalesItem, OpeningStock = i.ClosingStock, ClosingStock = 0.)
+
+    let initialisePeriodFromClone (p : myPeriod) = 
+        let pi = p.Items 
+                 |> Seq.map(fun i -> copyForNextPeriod i)
+        {p with Items = pi; StartOfPeriod = p.EndOfPeriod.AddDays(1.); EndOfPeriod = p.StartOfPeriod }
+
+    let initialiseWithoutZeroCarriedItems (p : myPeriod) = 
+        let ip = initialisePeriodFromClone p
+        let pi = p.Items
+                 |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || i.ContainersReceived > 0.) 
+                 |> Seq.map(fun i -> copyForNextPeriod i)
+        {ip with Items = pi}

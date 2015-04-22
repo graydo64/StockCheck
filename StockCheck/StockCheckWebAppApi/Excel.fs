@@ -27,7 +27,7 @@ module Excel =
         else
             f
 
-    let Export (period : StockCheck.Model.Period) (invoices : StockCheck.Model.myInvoice seq) =
+    let Export (period : StockCheck.Model.myPeriod) (invoices : StockCheck.Model.myInvoice seq) =
         let f = NewFile()
         use package = new ExcelPackage(f)
         let cat = package.Workbook.Worksheets.Add("Catalogue")
@@ -104,7 +104,7 @@ module Excel =
             ws.SetValue(rowNo, 9, si.TaxRate)
             ws.SetValue(rowNo, 10, si.IdealGP)
 
-        let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
+        let writeClosingItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
             ws.SetValue(rowNo, lcCol, pi.SalesItem.LedgerCode)
             ws.SetValue(rowNo, siCol, pi.SalesItem.Name)
@@ -130,7 +130,7 @@ module Excel =
             wer.Formula <- System.String.Format("{0}+(7-WEEKDAY({0},2))", ddr.Address)
             
 
-        let writePeriodItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
+        let writePeriodItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
             ws.SetValue(rowNo, lcCol, pi.SalesItem.LedgerCode)
             ws.SetValue(rowNo, siCol, pi.SalesItem.Name)
@@ -232,7 +232,7 @@ module Excel =
             let range = ws.Cells.[headerRow + 1, col, sumRow - 1, col]
             sh.Cells.[sumRow, col].Formula <- System.String.Format("SUM({0})", range.Address)
         
-        let sumRow = period.Items.Count + headerRow + 1
+        let sumRow = (Seq.length period.Items) + headerRow + 1
 
         sumCol ws sumRow 12
         sumCol ws sumRow 13

@@ -190,7 +190,7 @@ let ``Create Export Workbook`` () =
         let range = ws.Cells.[headerRow + 1, col, sumRow - 1, col]
         sh.Cells.[sumRow, col].Formula <- System.String.Format("SUM({0})", range.Address)
         
-    let sumRow = period.Items.Count + headerRow + 1
+    let sumRow = period.Items.Count() + headerRow + 1
 
     sumCol ws sumRow 12
     sumCol ws sumRow 13

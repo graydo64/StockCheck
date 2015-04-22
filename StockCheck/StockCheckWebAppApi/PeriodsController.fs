@@ -41,37 +41,55 @@ type PeriodController() =
             ClosingValueSalesEx = periodInfo.ClosingValueSalesEx  / 1M<StockCheck.Model.money>
         }
     
-    let mapPIFromViewModel (p : StockCheck.Model.myPeriod) (pi : PeriodItemViewModel) =  
-        let periodItem = match p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
-                            | true -> p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
+    // todo: fix this because Seq.append doesn't assign to anything.
+    let mapPIFromViewModel (pitems : seq<StockCheck.Model.PeriodItem>) (pi : PeriodItemViewModel) =  
+        let periodItem = match pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
+                            | true -> pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
                             | false -> let ni = new StockCheck.Model.PeriodItem(
                                                                         salesItems
                                                                         |> Seq.filter(fun i -> i.Id = pi.SalesItemId)
-                                                                        |> Seq.head) 
-                                       let newSeq = Seq.append p.Items [ni]
+                                                                        |> Seq.head)
+                                       Seq.append pitems [ni] |> ignore
                                        ni
                                             
         periodItem.ClosingStock <- pi.ClosingStock
         periodItem.OpeningStock <- pi.OpeningStock
         periodItem.ClosingStockExpr <- pi.ClosingStockExpr
+        periodItem
 
     let mapPFromViewModel (p : StockCheck.Model.myPeriod) (vm : PeriodViewModel) =
-        p.EndOfPeriod <- vm.EndOfPeriod
-        p.Name <- vm.Name
-        p.StartOfPeriod <- vm.StartOfPeriod
-        vm.Items
-        |> Seq.iter (fun i -> mapPIFromViewModel p i)
-        p
+        let piSeq = vm.Items
+                    |> Seq.map (fun i -> mapPIFromViewModel p.Items i)
+        {
+            StockCheck.Model.myPeriod.EndOfPeriod = vm.EndOfPeriod;
+            StockCheck.Model.myPeriod.Name = vm.Name;
+            StockCheck.Model.myPeriod.StartOfPeriod = vm.StartOfPeriod;
+            StockCheck.Model.myPeriod.Items = piSeq;
+            StockCheck.Model.myPeriod.Id = vm.Id;
+        }
+
+    let newPFromViewModel (vm : PeriodViewModel) =
+        let piSeq = vm.Items
+                    |> Seq.map (fun i -> mapPIFromViewModel [] i)
+        {
+            StockCheck.Model.myPeriod.EndOfPeriod = vm.EndOfPeriod;
+            StockCheck.Model.myPeriod.Name = vm.Name;
+            StockCheck.Model.myPeriod.StartOfPeriod = vm.StartOfPeriod;
+            StockCheck.Model.myPeriod.Items = piSeq;
+            StockCheck.Model.myPeriod.Id = vm.Id;
+        }
 
     [<Route("api/period/")>]
     member x.Get() = 
         repo.GetModelPeriods |> Seq.map (fun i -> 
+                                    let info = StockCheck.Model.Factory.getPeriodInfo i
                                     { PeriodsViewModel.Id = i.Id
                                       Name = i.Name
                                       StartOfPeriod = i.StartOfPeriod
                                       EndOfPeriod = i.EndOfPeriod
-                                      SalesEx = i.SalesEx
-                                      ClosingValueCostEx = i.ClosingValueCostEx })
+                                      SalesEx = info.SalesEx / 1M<StockCheck.Model.money>
+                                      ClosingValueCostEx = info.ClosingValueCostEx / 1M<StockCheck.Model.money>
+                                    })
 
     [<Route("api/period/{id}")>]
     member x.Get(id : string, ()) = 
@@ -89,8 +107,7 @@ type PeriodController() =
         
         match periods with
         | 0 -> 
-            let p = new StockCheck.Model.Period()
-            mapPFromViewModel p period
+            newPFromViewModel period
             |> persister.Save
             x.Request.CreateResponse(HttpStatusCode.OK, period)
         | _ -> 
@@ -119,7 +136,7 @@ type PeriodController() =
             |> Seq.filter (fun i -> i.Id = id)
             |> Seq.head
         
-        let newp = StockCheck.Model.Period.InitialiseFromClone(period)
+        let newp = StockCheck.Model.Factory.initialisePeriodFromClone period
         mapToViewModel newp
 
     [<HttpGet>][<Route("api/period/init-clean/{id}")>]
@@ -129,7 +146,7 @@ type PeriodController() =
             |> Seq.filter (fun i -> i.Id = id)
             |> Seq.head
         
-        let newp = StockCheck.Model.Period.InitialiseWithoutZeroCarriedItems(period)
+        let newp = StockCheck.Model.Factory.initialiseWithoutZeroCarriedItems period
         mapToViewModel newp
 
     [<HttpGet>][<Route("api/period/export/{id}")>]
