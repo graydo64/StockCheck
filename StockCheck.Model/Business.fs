@@ -137,10 +137,34 @@ module Factory =
 
     let copyForNextPeriod (i: PeriodItem) = PeriodItem (i.SalesItem, OpeningStock = i.ClosingStock, ClosingStock = 0.)
 
+    let cleanDate h m s (d : DateTime) = new DateTime(d.Year, d.Month, d.Day, h, m, s)
+    let cleanStartDate = cleanDate 0 0 0
+    let cleanEndDate = cleanDate 23 59 59
+
+    let defaultPeriod = {
+        StockCheck.Model.myPeriod.Id = String.Empty;
+        StockCheck.Model.myPeriod.StartOfPeriod = cleanStartDate DateTime.MinValue;
+        StockCheck.Model.myPeriod.EndOfPeriod = cleanEndDate DateTime.MinValue;
+        StockCheck.Model.myPeriod.Name = String.Empty;
+        StockCheck.Model.myPeriod.Items = []
+    }
+
+    let getPeriod id name (startOfPeriod : DateTime) (endOfPeriod : DateTime) =
+        let sop = cleanStartDate startOfPeriod
+        let eop = cleanEndDate endOfPeriod
+        {
+            StockCheck.Model.myPeriod.EndOfPeriod = eop;
+            StockCheck.Model.myPeriod.Name = name;
+            StockCheck.Model.myPeriod.StartOfPeriod = sop;
+            StockCheck.Model.myPeriod.Items = [];
+            StockCheck.Model.myPeriod.Id = id;
+        }
+
+
     let initialisePeriodFromClone (p : myPeriod) = 
         let pi = p.Items 
                  |> Seq.map(fun i -> copyForNextPeriod i)
-        {p with Items = pi; StartOfPeriod = p.EndOfPeriod.AddDays(1.); EndOfPeriod = p.StartOfPeriod }
+        {p with Items = pi; StartOfPeriod = cleanStartDate (p.EndOfPeriod.Date.AddDays(1.)); EndOfPeriod = cleanEndDate p.StartOfPeriod }
 
     let initialiseWithoutZeroCarriedItems (p : myPeriod) = 
         let ip = initialisePeriodFromClone p

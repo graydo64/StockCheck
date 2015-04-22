@@ -71,13 +71,8 @@ type PeriodController() =
     let newPFromViewModel (vm : PeriodViewModel) =
         let piSeq = vm.Items
                     |> Seq.map (fun i -> mapPIFromViewModel [] i)
-        {
-            StockCheck.Model.myPeriod.EndOfPeriod = vm.EndOfPeriod;
-            StockCheck.Model.myPeriod.Name = vm.Name;
-            StockCheck.Model.myPeriod.StartOfPeriod = vm.StartOfPeriod;
-            StockCheck.Model.myPeriod.Items = piSeq;
-            StockCheck.Model.myPeriod.Id = vm.Id;
-        }
+        let newp = StockCheck.Model.Factory.getPeriod vm.Id vm.Name vm.StartOfPeriod vm.EndOfPeriod
+        { newp with Items = piSeq }
 
     [<Route("api/period/")>]
     member x.Get() = 
