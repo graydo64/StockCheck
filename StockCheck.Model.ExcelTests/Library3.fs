@@ -83,7 +83,7 @@ let writeWsHeader (ws : ExcelWorksheet) =
     ws.SetValue(headerRow, 16, "Sales/Day")
     ws.SetValue(headerRow, 17, "Days on Hand")
 
-let writeSalesItem i (si : StockCheck.Model.mySalesItem) (ws : ExcelWorksheet) =
+let writeSalesItem i (si : StockCheck.Model.SalesItem) (ws : ExcelWorksheet) =
     let rowNo = startingRow i
     let sii = getSalesItemInfo si
     ws.SetValue(rowNo, catColumn, si.ItemName.LedgerCode)
@@ -97,9 +97,9 @@ let writeSalesItem i (si : StockCheck.Model.mySalesItem) (ws : ExcelWorksheet) =
     ws.SetValue(rowNo, 9, si.TaxRate)
     ws.SetValue(rowNo, 10, sii.IdealGP)
 
-let writeClosingItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.myPeriodItem) (ws : ExcelWorksheet) =
+let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
     let rowNo = startingRow i
-    let piInfo = getPeriodItemInfo (pi, pi.ItemsReceived, getSalesItemInfo pi.SalesItem)
+    let piInfo = getPeriodItemInfo pi
     ws.SetValue(rowNo, catColumn, pi.SalesItem.ItemName.LedgerCode)
     ws.SetValue(rowNo, itemColumn, pi.SalesItem.ItemName.Name)
     ws.SetValue(rowNo, contColumn, pi.SalesItem.ItemName.ContainerSize)
@@ -109,9 +109,9 @@ let writeClosingItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.my
     ws.SetValue(rowNo, 7, piInfo.ClosingValueSalesEx)
     pi
 
-let writePeriodItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.myPeriodItem) (ws : ExcelWorksheet) =
+let writePeriodItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
     let rowNo = startingRow i
-    let piInfo = getPeriodItemInfo (pi, pi.ItemsReceived, getSalesItemInfo pi.SalesItem)
+    let piInfo = getPeriodItemInfo pi
     ws.SetValue(rowNo, catColumn, pi.SalesItem.ItemName.LedgerCode)
     ws.SetValue(rowNo, itemColumn, pi.SalesItem.ItemName.Name)
     ws.SetValue(rowNo, contColumn, pi.SalesItem.ItemName.ContainerSize)
@@ -131,12 +131,12 @@ let writePeriodItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.myP
     ws.SetValue(rowNo, 17, Business.daysOnHand p.StartOfPeriod p.EndOfPeriod pi piInfo)
     pi
 
-let compareSalesItems (si1 : StockCheck.Model.mySalesItem) (si2 : StockCheck.Model.mySalesItem) =
+let compareSalesItems (si1 : StockCheck.Model.SalesItem) (si2 : StockCheck.Model.SalesItem) =
     if si1 < si2 then -1 else
     if si1 > si2 then 1 else
     0
 
-let comparePeriodItems (pi1 : StockCheck.Model.myPeriodItem) (pi2 : StockCheck.Model.myPeriodItem) =
+let comparePeriodItems (pi1 : StockCheck.Model.PeriodItem) (pi2 : StockCheck.Model.PeriodItem) =
     compareSalesItems pi1.SalesItem pi2.SalesItem
 
 let periodBase = query.GetModelPeriods |> Seq.filter(fun p -> p.Name = "April/May 2014") |> Seq.head

@@ -10,7 +10,7 @@ open System.Collections.Generic
 open FsWeb.Model
 
 module InvoiceControllerHelper =
-    let mapToInvoiceLineViewModel (invoiceLine : StockCheck.Model.myInvoiceLine) =
+    let mapToInvoiceLineViewModel (invoiceLine : StockCheck.Model.InvoiceLine) =
         { 
             InvoiceLineViewModel.Id = invoiceLine.Id
             SalesItemId = invoiceLine.SalesItem.Id
@@ -23,7 +23,7 @@ module InvoiceControllerHelper =
             InvoicedAmountInc = invoiceLine.InvoicedAmountInc / 1.0M<StockCheck.Model.money>
           }
 
-    let mapToInvoiceViewModel (invoice : StockCheck.Model.myInvoice) =
+    let mapToInvoiceViewModel (invoice : StockCheck.Model.Invoice) =
         { InvoiceViewModel.Id = invoice.Id
           Supplier = invoice.Supplier
           InvoiceNumber = invoice.InvoiceNumber
@@ -46,25 +46,25 @@ type InvoiceController() =
 
     let mapToInvoiceLine (lv : InvoiceLineViewModel) =
 
-        let salesItem = repo.GetmyModelSalesItemById(lv.SalesItemId)
+        let salesItem = repo.GetModelSalesItemById(lv.SalesItemId)
 
         {
-            StockCheck.Model.myInvoiceLine.Id = lv.Id;
-            StockCheck.Model.myInvoiceLine.Quantity = lv.Quantity;
-            StockCheck.Model.myInvoiceLine.SalesItem = salesItem;
-            StockCheck.Model.myInvoiceLine.InvoicedAmountEx = StockCheck.Model.Conv.money lv.InvoicedAmountEx;
-            StockCheck.Model.myInvoiceLine.InvoicedAmountInc = StockCheck.Model.Conv.money lv.InvoicedAmountInc;
+            StockCheck.Model.InvoiceLine.Id = lv.Id;
+            StockCheck.Model.InvoiceLine.Quantity = lv.Quantity;
+            StockCheck.Model.InvoiceLine.SalesItem = salesItem;
+            StockCheck.Model.InvoiceLine.InvoicedAmountEx = StockCheck.Model.Conv.money lv.InvoicedAmountEx;
+            StockCheck.Model.InvoiceLine.InvoicedAmountInc = StockCheck.Model.Conv.money lv.InvoicedAmountInc;
         }
 
     let mapViewToModel (i : InvoiceViewModel) =
         let modelLines = i.InvoiceLines |> Seq.map (fun il -> mapToInvoiceLine il)
         {
-            StockCheck.Model.myInvoice.Id = i.Id;
-            StockCheck.Model.myInvoice.Supplier = i.Supplier;
-            StockCheck.Model.myInvoice.InvoiceNumber = i.InvoiceNumber;
-            StockCheck.Model.myInvoice.InvoiceDate = i.InvoiceDate;
-            StockCheck.Model.myInvoice.DeliveryDate = i.DeliveryDate;
-            StockCheck.Model.myInvoice.InvoiceLines = modelLines;
+            StockCheck.Model.Invoice.Id = i.Id;
+            StockCheck.Model.Invoice.Supplier = i.Supplier;
+            StockCheck.Model.Invoice.InvoiceNumber = i.InvoiceNumber;
+            StockCheck.Model.Invoice.InvoiceDate = i.InvoiceDate;
+            StockCheck.Model.Invoice.DeliveryDate = i.DeliveryDate;
+            StockCheck.Model.Invoice.InvoiceLines = modelLines;
         }
 
     let saveInvoice iv =

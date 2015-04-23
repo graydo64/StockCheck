@@ -27,7 +27,7 @@ module Business =
         | 0.M -> money 0.M
         | _ -> money costAsDecimal/salesUnitsAsDecimal
 
-    let salesUnitsPerContainerUnit (s : mySalesItem) =
+    let salesUnitsPerContainerUnit (s : SalesItem) =
         match s.SalesUnitType with
         | Pint -> float ptPerGal
         | Unit -> 1.0
@@ -36,7 +36,7 @@ module Business =
         | Wine -> float wineGlassPerLtr
         | Other -> s.OtherSalesUnit
 
-    let totalUnits (si : mySalesItem) (cr : float) (cs : float) =
+    let totalUnits (si : SalesItem) (cr : float) (cs : float) =
         match si.SalesUnitType with
         | Pint | Unit | Other -> cr * cs
         | Spirit | Fortified | Wine -> cr
@@ -51,7 +51,7 @@ module Business =
 
     let salesPerDay (startDate: DateTime) (endDate: DateTime) (pii: PeriodItemInfo) = pii.Sales / float (endDate.Subtract(startDate).Days + 1)
 
-    let daysOnHand (startDate: DateTime)  (endDate: DateTime) (pi: myPeriodItem) (pii : PeriodItemInfo) = pi.ClosingStock / salesPerDay startDate endDate pii |> int
+    let daysOnHand (startDate: DateTime)  (endDate: DateTime) (pi: PeriodItem) (pii : PeriodItemInfo) = pi.ClosingStock / salesPerDay startDate endDate pii |> int
 
     let inline round2 x =
             Math.Round(float x, 2)
@@ -61,7 +61,7 @@ module Business =
 module Factory =
     open Business
 
-    let getSalesItemInfo (s : mySalesItem) = 
+    let getSalesItemInfo (s : SalesItem) = 
         let sucu = (salesUnitsPerContainerUnit s)
         let spx = lessTax (s.TaxRate * 1.) s.SalesPrice
         let cpus = costPerUnitOfSale s.CostPerContainer s.ItemName.ContainerSize sucu
@@ -69,7 +69,9 @@ module Factory =
         let igp = grossProfit spx cpus
         { MarkUp = mu; CostPerUnitOfSale = cpus; IdealGP = igp; SalesUnitsPerContainerUnit = sucu; SalesPriceEx = spx }
 
-    let getPeriodItemInfo ((p : myPeriodItem),(i : seq<myItemReceived>),(sii : SalesItemInfo)) = 
+    let getPeriodItemInfo (p : PeriodItem) = 
+        let i = p.ItemsReceived
+        let sii = getSalesItemInfo p.SalesItem
         let si = p.SalesItem
         let lessTax = Business.lessTax si.TaxRate
         let valueOfQuantity = valueOfQuantityT si.SalesUnitType sii.SalesUnitsPerContainerUnit si.ItemName.ContainerSize 
@@ -118,9 +120,9 @@ module Factory =
             ClosingValueSalesEx = cvsex
          }
 
-    let piInfo i = getPeriodItemInfo ((i), i.ItemsReceived, (getSalesItemInfo i.SalesItem))
+    let piInfo i = getPeriodItemInfo i
 
-    let getPeriodInfo (p : myPeriod) = 
+    let getPeriodInfo (p : Period) = 
         let s = p.Items |> Seq.sumBy(fun i -> (piInfo i).SalesEx)
         let cvsi = p.Items |> Seq.sumBy(fun i -> (piInfo i).ClosingValueSalesInc)
         let cvse = p.Items |> Seq.sumBy(fun i -> (piInfo i).ClosingValueSalesEx)
@@ -132,32 +134,32 @@ module Factory =
             ClosingValueCostEx = cvce;
         }
 
-    let defaultMySalesItem = 
+    let (defaultSalesItem : StockCheck.Model.SalesItem) = 
         {
-            StockCheck.Model.mySalesItem.Id = String.Empty;
-            StockCheck.Model.mySalesItem.ItemName = { LedgerCode = String.Empty; Name = String.Empty; ContainerSize = 0. }
-            StockCheck.Model.mySalesItem.CostPerContainer = 0M<StockCheck.Model.money>;
-            StockCheck.Model.mySalesItem.SalesPrice = 0M<StockCheck.Model.money>;
-            StockCheck.Model.mySalesItem.TaxRate = 0.<StockCheck.Model.percentage>;
-            StockCheck.Model.mySalesItem.UllagePerContainer = 0<StockCheck.Model.pt>;
-            StockCheck.Model.mySalesItem.SalesUnitType = StockCheck.Model.salesUnitType.Other;
-            StockCheck.Model.mySalesItem.OtherSalesUnit = 0.;
+            Id = String.Empty;
+            ItemName = { LedgerCode = String.Empty; Name = String.Empty; ContainerSize = 0. };
+            CostPerContainer = 0M<StockCheck.Model.money>;
+            SalesPrice = 0M<StockCheck.Model.money>;
+            TaxRate = 0.<StockCheck.Model.percentage>;
+            UllagePerContainer = 0<StockCheck.Model.pt>;
+            SalesUnitType = StockCheck.Model.salesUnitType.Other;
+            OtherSalesUnit = 0.;
         }
 
     let defaultPeriodItem =
         {
-            StockCheck.Model.myPeriodItem.Id = String.Empty;
-            StockCheck.Model.myPeriodItem.SalesItem = defaultMySalesItem;
-            StockCheck.Model.myPeriodItem.OpeningStock = 0.;
-            StockCheck.Model.myPeriodItem.ClosingStock = 0.;
-            StockCheck.Model.myPeriodItem.ClosingStockExpr = String.Empty;
-            StockCheck.Model.myPeriodItem.ItemsReceived = [];
+            StockCheck.Model.PeriodItem.Id = String.Empty;
+            StockCheck.Model.PeriodItem.SalesItem = defaultSalesItem;
+            StockCheck.Model.PeriodItem.OpeningStock = 0.;
+            StockCheck.Model.PeriodItem.ClosingStock = 0.;
+            StockCheck.Model.PeriodItem.ClosingStockExpr = String.Empty;
+            StockCheck.Model.PeriodItem.ItemsReceived = [];
         }
 
     let getPeriodItem si =
         { defaultPeriodItem with SalesItem = si }
 
-    let copyForNextPeriod (i: myPeriodItem) =
+    let copyForNextPeriod (i: PeriodItem) =
         { defaultPeriodItem with SalesItem = i.SalesItem; OpeningStock = i.ClosingStock }
 
     let cleanDate h m s (d : DateTime) = new DateTime(d.Year, d.Month, d.Day, h, m, s)
@@ -165,31 +167,31 @@ module Factory =
     let cleanEndDate = cleanDate 23 59 59
 
     let defaultPeriod = {
-        StockCheck.Model.myPeriod.Id = String.Empty;
-        StockCheck.Model.myPeriod.StartOfPeriod = cleanStartDate DateTime.MinValue;
-        StockCheck.Model.myPeriod.EndOfPeriod = cleanEndDate DateTime.MinValue;
-        StockCheck.Model.myPeriod.Name = String.Empty;
-        StockCheck.Model.myPeriod.Items = []
+        StockCheck.Model.Period.Id = String.Empty;
+        StockCheck.Model.Period.StartOfPeriod = cleanStartDate DateTime.MinValue;
+        StockCheck.Model.Period.EndOfPeriod = cleanEndDate DateTime.MinValue;
+        StockCheck.Model.Period.Name = String.Empty;
+        StockCheck.Model.Period.Items = []
     }
 
     let getPeriod id name (startOfPeriod : DateTime) (endOfPeriod : DateTime) =
         let sop = cleanStartDate startOfPeriod
         let eop = cleanEndDate endOfPeriod
         {
-            StockCheck.Model.myPeriod.EndOfPeriod = eop;
-            StockCheck.Model.myPeriod.Name = name;
-            StockCheck.Model.myPeriod.StartOfPeriod = sop;
-            StockCheck.Model.myPeriod.Items = [];
-            StockCheck.Model.myPeriod.Id = id;
+            StockCheck.Model.Period.EndOfPeriod = eop;
+            StockCheck.Model.Period.Name = name;
+            StockCheck.Model.Period.StartOfPeriod = sop;
+            StockCheck.Model.Period.Items = [];
+            StockCheck.Model.Period.Id = id;
         }
 
 
-    let initialisePeriodFromClone (p : myPeriod) = 
+    let initialisePeriodFromClone (p : Period) = 
         let pi = p.Items 
                  |> Seq.map(fun i -> copyForNextPeriod i)
         {p with Items = pi; StartOfPeriod = cleanStartDate (p.EndOfPeriod.Date.AddDays(1.)); EndOfPeriod = cleanEndDate p.StartOfPeriod }
 
-    let initialiseWithoutZeroCarriedItems (p : myPeriod) = 
+    let initialiseWithoutZeroCarriedItems (p : Period) = 
         let ip = initialisePeriodFromClone p
         let pi = p.Items
                  |> Seq.filter (fun i -> i.OpeningStock > 0. || i.ClosingStock > 0. || (piInfo i).ContainersReceived > 0.) 

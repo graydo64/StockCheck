@@ -20,12 +20,12 @@ let persister = new Persister(store)
 let query = new Query(store)
 
 //
-let savePeriod (p : StockCheck.Model.myPeriod) =
+let savePeriod (p : StockCheck.Model.Period) =
     persister.Save(p)
 
 let period = query.GetModelPeriods |> Seq.filter(fun p -> p.Name = "April/May 2014") |> Seq.head
 
-let updateSalesItem (s : StockCheck.Model.mySalesItem) =
+let updateSalesItem (s : StockCheck.Model.SalesItem) =
     let n = match s.ItemName.LedgerCode with
             | "1000" -> { s with SalesUnitType = Pint }
             | "1005" -> { s with SalesUnitType = Pint }

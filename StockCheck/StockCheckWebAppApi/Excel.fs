@@ -29,7 +29,7 @@ module Excel =
         else
             f
 
-    let Export (period : StockCheck.Model.myPeriod) (invoices : StockCheck.Model.myInvoice seq) =
+    let Export (period : StockCheck.Model.Period) (invoices : StockCheck.Model.Invoice seq) =
         let f = NewFile()
         use package = new ExcelPackage(f)
         let cat = package.Workbook.Worksheets.Add("Catalogue")
@@ -93,7 +93,7 @@ module Excel =
             ws.SetValue(headerRow, 16, "Sales/Day")
             ws.SetValue(headerRow, 17, "Days on Hand")
 
-        let writeSalesItem i (si : StockCheck.Model.mySalesItem) (ws : ExcelWorksheet) =
+        let writeSalesItem i (si : StockCheck.Model.SalesItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
             let sii = getSalesItemInfo si
             ws.SetValue(rowNo, lcCol, si.ItemName.LedgerCode)
@@ -107,9 +107,9 @@ module Excel =
             ws.SetValue(rowNo, 9, si.TaxRate)
             ws.SetValue(rowNo, 10, sii.IdealGP)
 
-        let writeClosingItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.myPeriodItem) (ws : ExcelWorksheet) =
+        let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
-            let pii = getPeriodItemInfo (pi, pi.ItemsReceived, getSalesItemInfo pi.SalesItem)
+            let pii = getPeriodItemInfo pi
             ws.SetValue(rowNo, lcCol, pi.SalesItem.ItemName.LedgerCode)
             ws.SetValue(rowNo, siCol, pi.SalesItem.ItemName.Name)
             ws.SetValue(rowNo, csCol, pi.SalesItem.ItemName.ContainerSize)
@@ -134,9 +134,9 @@ module Excel =
             wer.Formula <- System.String.Format("{0}+(7-WEEKDAY({0},2))", ddr.Address)
             
 
-        let writePeriodItem i (p : StockCheck.Model.myPeriod) (pi : StockCheck.Model.myPeriodItem) (ws : ExcelWorksheet) =
+        let writePeriodItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
-            let pii = getPeriodItemInfo (pi, pi.ItemsReceived, getSalesItemInfo pi.SalesItem)
+            let pii = getPeriodItemInfo pi
             ws.SetValue(rowNo, lcCol, pi.SalesItem.ItemName.LedgerCode)
             ws.SetValue(rowNo, siCol, pi.SalesItem.ItemName.Name)
             ws.SetValue(rowNo, csCol, pi.SalesItem.ItemName.ContainerSize)
@@ -156,12 +156,12 @@ module Excel =
             ws.SetValue(rowNo, 17, daysOnHand p.StartOfPeriod p.EndOfPeriod pi pii)
             pi
 
-        let compareSalesItems (si1 : StockCheck.Model.mySalesItem) (si2 : StockCheck.Model.mySalesItem) =
+        let compareSalesItems (si1 : StockCheck.Model.SalesItem) (si2 : StockCheck.Model.SalesItem) =
             if si1 < si2 then -1 else
             if si1 > si2 then 1 else
             0
 
-        let comparePeriodItems (pi1 : StockCheck.Model.myPeriodItem) (pi2 : StockCheck.Model.myPeriodItem) =
+        let comparePeriodItems (pi1 : StockCheck.Model.PeriodItem) (pi2 : StockCheck.Model.PeriodItem) =
             compareSalesItems pi1.SalesItem pi2.SalesItem
 
         let init (sh : ExcelWorksheet) =
@@ -185,7 +185,7 @@ module Excel =
             |> List.mapi(fun i si -> writeClosingItem i period si clo)
             |> List.iteri(fun i pi -> writeSalesItem i pi.SalesItem cat)
 
-        let getGoodsIn n d (il : StockCheck.Model.myInvoiceLine) = 
+        let getGoodsIn n d (il : StockCheck.Model.InvoiceLine) = 
             {
                 ilFacade.LedgerCode = il.SalesItem.ItemName.LedgerCode
                 Name = il.SalesItem.ItemName.Name

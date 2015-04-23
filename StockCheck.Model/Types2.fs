@@ -5,7 +5,7 @@ open System.Collections.Generic
 
 type ItemName = { LedgerCode: string; Name: string; ContainerSize: float}
 
-type mySalesItem = { 
+type SalesItem = { 
     Id: string; 
     ItemName: ItemName;
     CostPerContainer: decimal<money>;
@@ -24,7 +24,7 @@ type SalesItemInfo = {
     SalesPriceEx: decimal<money>
 }
 
-type myItemReceived = {
+type ItemReceived = {
     Id : string;
     Quantity : float;
     ReceivedDate : DateTime;
@@ -32,13 +32,13 @@ type myItemReceived = {
     InvoicedAmountInc : decimal<money>
 }
 
-type myPeriodItem = {
+type PeriodItem = {
     Id : string;
     OpeningStock : float;
     ClosingStockExpr : string;
     ClosingStock : float;
-    SalesItem : mySalesItem;
-    ItemsReceived : seq<myItemReceived>;
+    SalesItem : SalesItem;
+    ItemsReceived : seq<ItemReceived>;
 }
 
 type PeriodItemInfo = {
@@ -58,12 +58,12 @@ type PeriodItemInfo = {
     ClosingValueSalesEx : decimal<money>
 }
 
-type myPeriod = {
+type Period = {
     Id : string;
     Name : string;
     EndOfPeriod : DateTime;
     StartOfPeriod : DateTime;
-    Items : seq<myPeriodItem>;
+    Items : seq<PeriodItem>;
 }
 
 type PeriodInfo = {
@@ -73,26 +73,26 @@ type PeriodInfo = {
     ClosingValueCostEx : decimal<money>;
 }
 
-type myInvoiceLine = {
+type InvoiceLine = {
     Id : string;
-    SalesItem : mySalesItem;
+    SalesItem : SalesItem;
     Quantity : float;
     InvoicedAmountEx : decimal<money>;
     InvoicedAmountInc : decimal<money>;
 }
 
-type myInvoice = {
+type Invoice = {
     Id : string;
     Supplier: string;
     InvoiceNumber : string;
     InvoiceDate : DateTime;
     DeliveryDate : DateTime;
-    InvoiceLines : seq<myInvoiceLine>
+    InvoiceLines : seq<InvoiceLine>
 }
 
-type mySupplier = {
+type Supplier = {
     Id : string;
-    Name : string;
+    SupplierName : string;
 }
 
 

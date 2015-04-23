@@ -19,15 +19,15 @@ let persister = new Persister(store)
 let query = new Query(store)
 
 //
-let savePeriod (p : StockCheck.Model.myPeriod) =
+let savePeriod (p : StockCheck.Model.Period) =
     persister.Save(p)
 
-let saveSalesItem (s : StockCheck.Model.mySalesItem) =
+let saveSalesItem (s : StockCheck.Model.SalesItem) =
     persister.Save(s)
 
 let period = query.GetModelPeriods |> Seq.filter(fun p -> p.Name = "Dec/Jan 2015") |> Seq.head
 
-let updateSalesItem (s : StockCheck.Model.mySalesItem) =
+let updateSalesItem (s : StockCheck.Model.SalesItem) =
     let n = match s.ItemName.LedgerCode with
             | "1000" -> { s with SalesUnitType = Pint }
             | "1005" -> { s with SalesUnitType = Pint }
@@ -59,7 +59,7 @@ let maxBySI =
     let linesBySI = invoiceLines |> Seq.map(fun b -> (b.SalesItem.Id, amountPerContainer (b.InvoicedAmountEx / 1.0M<StockCheck.Model.money>) b.Quantity))
     linesBySI |> Seq.groupBy(fun c -> fst c) |> Seq.map(fun (k, v) -> Seq.max v)
 
-let checkCatalogueCPC (i : StockCheck.Model.mySalesItem) =
+let checkCatalogueCPC (i : StockCheck.Model.SalesItem) =
     maxBySI |> Seq.filter(fun (d, e) -> d = i.Id) |> Seq.head |> snd
 
 

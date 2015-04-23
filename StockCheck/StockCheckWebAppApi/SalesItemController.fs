@@ -19,14 +19,14 @@ type SalesItemController() =
     let mapViewToM (v : SalesItemView) =
         let baseSI =
             {
-                StockCheck.Model.mySalesItem.Id = v.Id;
-                StockCheck.Model.mySalesItem.ItemName = { LedgerCode = v.LedgerCode; Name = v.Name; ContainerSize = v.ContainerSize };
-                StockCheck.Model.mySalesItem.CostPerContainer = money v.CostPerContainer;
-                StockCheck.Model.mySalesItem.SalesPrice = money v.SalesPrice;
-                StockCheck.Model.mySalesItem.TaxRate = percentage v.TaxRate;
-                StockCheck.Model.mySalesItem.SalesUnitType = salesUnitType.fromString v.SalesUnitType;
-                StockCheck.Model.mySalesItem.UllagePerContainer = v.UllagePerContainer * 1<pt>;
-                StockCheck.Model.mySalesItem.OtherSalesUnit = 0.
+                Id = v.Id;
+                ItemName = { LedgerCode = v.LedgerCode; Name = v.Name; ContainerSize = v.ContainerSize };
+                CostPerContainer = money v.CostPerContainer;
+                SalesPrice = money v.SalesPrice;
+                TaxRate = percentage v.TaxRate;
+                SalesUnitType = salesUnitType.fromString v.SalesUnitType;
+                UllagePerContainer = v.UllagePerContainer * 1<pt>;
+                OtherSalesUnit = 0.
             }
         match baseSI.SalesUnitType with
         | Other -> { baseSI with OtherSalesUnit = v.SalesUnitsPerContainerUnit }
@@ -51,7 +51,7 @@ type SalesItemController() =
             x.Request.CreateResponse(HttpStatusCode.OK, i)
 
     member x.Get((id : string), ()) =
-        let i = repo.GetmyModelSalesItemById id
+        let i = repo.GetModelSalesItemById id
         let sii = StockCheck.Model.Factory.getSalesItemInfo i
         { Id = i.Id
           LedgerCode = i.ItemName.LedgerCode

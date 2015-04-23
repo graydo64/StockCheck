@@ -8,7 +8,7 @@ open System
 open StockCheck.Model.Factory
 
 module TestUtils =
-    let Zeroise (period : myPeriod) =
+    let Zeroise (period : Period) =
         let head = period.Items |> Seq.head
         let tail = period.Items |> Seq.skip 1
         let newHead = { head with OpeningStock = 0.; ClosingStock = 0.; ItemsReceived = [] }
@@ -35,7 +35,7 @@ type ``Given that a Period has been constructed`` () =
 [<TestFixture>]
 type ``Given that a Period has been initialised from an existing Period`` () =
     let fixture = new Fixture()
-    let source = fixture.Create<myPeriod>()
+    let source = fixture.Create<Period>()
     let target = initialisePeriodFromClone source
 
     [<Test>] member x.
@@ -44,7 +44,7 @@ type ``Given that a Period has been initialised from an existing Period`` () =
 
     [<Test>] member x.
         ``The items have the same salesItem as the source items`` () =
-            Seq.exists2 (fun (a : myPeriodItem) (b : myPeriodItem) -> a.SalesItem = b.SalesItem) source.Items target.Items |> should be True
+            Seq.exists2 (fun (a : PeriodItem) (b : PeriodItem) -> a.SalesItem = b.SalesItem) source.Items target.Items |> should be True
 
     [<Test>] member x.
         ``The period start date should be one day after the source period end date`` () =
@@ -61,7 +61,7 @@ type ``Given that a Period has been initialised from an existing Period`` () =
 [<TestFixture>]
 type ``Given that a period has been initialised without zero item carried stock`` () =
     let fixture = new Fixture()
-    let source = fixture.Create<myPeriod>()
+    let source = fixture.Create<Period>()
     let target = initialiseWithoutZeroCarriedItems (TestUtils.Zeroise source)
 
     [<Test>] member x.

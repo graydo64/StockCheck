@@ -27,11 +27,11 @@ module piSetup =
 
     let fixture = new Fixture()
 
-    let fixtureCreateSalesItem = fixture.Create<mySalesItem>()
+    let fixtureCreateSalesItem = fixture.Create<StockCheck.Model.SalesItem>()
 
-    let (fixtureCreateItemReceived : myItemReceived) = fixture.Create<myItemReceived>()
+    let (fixtureCreateItemReceived : ItemReceived) = fixture.Create<ItemReceived>()
 
-    let (fixtureCreatePeriodItem : myPeriodItem ) = fixture.Create<myPeriodItem>()
+    let (fixtureCreatePeriodItem : PeriodItem ) = fixture.Create<PeriodItem>()
 
     let InitialiseSalesItem tax ctrSize saleUnit salePrice =
         let salesItem = fixtureCreateSalesItem
@@ -41,9 +41,9 @@ module piSetup =
         let basePI = { { fixtureCreatePeriodItem with SalesItem = salesItem } with OpeningStock = 23.; ClosingStock = 25. }
         let itemsReceived = 
             [ 
-                { myItemReceived.Quantity = 2.; InvoicedAmountEx = 2M * salesItem.CostPerContainer; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 0M }
-                { myItemReceived.Quantity = 1.; InvoicedAmountEx = 1M * salesItem.CostPerContainer; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 0M }
-                { myItemReceived.Quantity = 1.; InvoicedAmountEx = 1M * salesItem.CostPerContainer; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 0M }
+                { ItemReceived.Quantity = 2.; InvoicedAmountEx = 2M * salesItem.CostPerContainer; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 0M }
+                { ItemReceived.Quantity = 1.; InvoicedAmountEx = 1M * salesItem.CostPerContainer; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 0M }
+                { ItemReceived.Quantity = 1.; InvoicedAmountEx = 1M * salesItem.CostPerContainer; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 0M }
             ]
         { basePI with ItemsReceived = itemsReceived }
 
@@ -76,7 +76,7 @@ type ``Given that a PeriodItem has been constructed`` () =
 
     [<Test>] member x.
         ``The items received collection is initialised`` () =
-        x.PeriodItem.ItemsReceived |> should be instanceOfType<seq<myItemReceived>>
+        x.PeriodItem.ItemsReceived |> should be instanceOfType<seq<ItemReceived>>
 
     [<Test>] member x.
         ``The items received collection is empty`` () =
@@ -120,7 +120,7 @@ type ``Given that a PeriodItem is being copied for the next period`` () =
 type ``Given that a PeriodItem has draught items received`` () as this =
     inherit PeriodItemSetup ()
     let periodItem = piSetup.InitialiseDraughtSalesItem () |> piSetup.initialisePeriodItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, (getSalesItemInfo periodItem.SalesItem))
+    let periodItemInfo = getPeriodItemInfo periodItem
     let gallonsOnHand = LanguagePrimitives.FloatWithMeasure<gal> 25.
     let pintsOnHand = Conv.convertGallonsToPints gallonsOnHand
     let gallonsSold = LanguagePrimitives.FloatWithMeasure<gal> (23. + (4. * 11.)) - gallonsOnHand
@@ -176,17 +176,17 @@ type ``Given that a PeriodItem has draught items received`` () as this =
 
 
 [<TestFixture>]
-type ``Given that a PeriodItem has Tax inclusive draught items received`` () as this =
+type ``Given that a PeriodItem has Tax inclusive draught items received`` () =
     inherit PeriodItemSetup ()
     let basePI = piSetup.fixtureCreateSalesItem |> piSetup.initialisePeriodItem
     let itemsReceived = 
         [ 
-            { myItemReceived.Quantity = 2.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 212.34M }
-            { myItemReceived.Quantity = 1.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 109.3M }
-            { myItemReceived.Quantity = 1.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 109.3M }
+            { ItemReceived.Quantity = 2.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 212.34M }
+            { ItemReceived.Quantity = 1.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 109.3M }
+            { ItemReceived.Quantity = 1.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = money 109.3M }
         ]
     let periodItem = { basePI with ItemsReceived = itemsReceived }
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, (getSalesItemInfo periodItem.SalesItem))
+    let periodItemInfo = getPeriodItemInfo periodItem
 
     [<Test>] member x.
         ``The PurchasesInc amount is correctly calculated`` () =
@@ -199,12 +199,12 @@ type ``Given that a PeriodItem has mixed Tax Exclusive and inclusive draught ite
     let basePI = getPeriodItem salesItem
     let itemsReceived = 
         [ 
-            { myItemReceived.Quantity = 2.; InvoicedAmountEx = 212.34M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = 0M<money> }
-            { myItemReceived.Quantity = 1.; InvoicedAmountEx = 109.3M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = 0M<money> }
-            { myItemReceived.Quantity = 1.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = 120M<money> }
+            { ItemReceived.Quantity = 2.; InvoicedAmountEx = 212.34M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = 0M<money> }
+            { ItemReceived.Quantity = 1.; InvoicedAmountEx = 109.3M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = 0M<money> }
+            { ItemReceived.Quantity = 1.; InvoicedAmountEx = 0M<money>; Id = String.Empty; ReceivedDate = DateTime.Now.Date; InvoicedAmountInc = 120M<money> }
         ]
     let periodItem = { basePI with ItemsReceived = itemsReceived }
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, (getSalesItemInfo periodItem.SalesItem))
+    let periodItemInfo = getPeriodItemInfo periodItem
 
     [<Test>] member x.
         ``The PurchasesTotal amount is correctly calculated`` () =
@@ -215,7 +215,7 @@ type ``Given that a PeriodItem has mixed Tax Exclusive and inclusive draught ite
 type ``Given that a PeriodItem has bottles received`` () as this =
     inherit PeriodItemSetup ()
     let periodItem = piSetup.InitialiseBottledSalesItem () |> piSetup.initialisePeriodItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, (getSalesItemInfo periodItem.SalesItem))
+    let periodItemInfo = getPeriodItemInfo periodItem
     let bottlesOnHand = 25.
     let bottlesSold = 23. + (4. * 24.) - bottlesOnHand
 
@@ -268,7 +268,7 @@ type ``Given that a PeriodItem has snacks received`` () as this =
     inherit PeriodItemSetup ()
     let periodItem = piSetup.InitialiseSnackSalesItem () |> piSetup.initialisePeriodItem
     let salesItemInfo = getSalesItemInfo periodItem.SalesItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, salesItemInfo)
+    let periodItemInfo = getPeriodItemInfo periodItem
     let packetsOnHand = 25.
     let packetsSold = 23. + (4. * 48.) - packetsOnHand
 
@@ -322,7 +322,7 @@ type ``Given that a PeriodItem has spirits received`` () as this =
     let baseItem = piSetup.InitialiseSpiritSalesItem () |> piSetup.initialisePeriodItem
     let periodItem = { baseItem with OpeningStock = 0.4; ClosingStock = 0.6 }
     let salesItemInfo = getSalesItemInfo periodItem.SalesItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, salesItemInfo)
+    let periodItemInfo = getPeriodItemInfo periodItem
     let bottlesSold = 0.4 + (4. * 1.) - 0.6
     let measuresPerBottle = 0.7 / 0.035
     let measuresSold = bottlesSold * measuresPerBottle
@@ -378,7 +378,7 @@ type ``Given that a PeriodItem has wine received`` () as this =
     let baseItem = piSetup.InitialiseWineSalesItem () |> piSetup.initialisePeriodItem
     let periodItem = { baseItem with OpeningStock = 23.4; ClosingStock = 13.6 }
     let salesItemInfo = getSalesItemInfo periodItem.SalesItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, salesItemInfo)
+    let periodItemInfo = getPeriodItemInfo periodItem
     let bottlesSold = 23.4 + (4. * 1.) - 13.6
     let measuresPerBottle = 0.75 / 0.175
     let measuresSold = bottlesSold * measuresPerBottle
@@ -435,7 +435,7 @@ type ``Given that a PeriodItem has no spirits received`` () as this =
     let baseItem = getPeriodItem (piSetup.InitialiseSpiritSalesItem ())
     let periodItem = { baseItem with OpeningStock = 0.9; ClosingStock = 0.3 }
     let salesItemInfo = getSalesItemInfo periodItem.SalesItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, salesItemInfo)
+    let periodItemInfo = getPeriodItemInfo periodItem
     let bottlesSold = 0.6
     let measuresPerBottle = 0.7 / 0.035
     let measuresSold = bottlesSold * measuresPerBottle
@@ -491,7 +491,7 @@ type ``Given that a PeriodItem has no PostMix received`` () as this =
     let baseItem = getPeriodItem (piSetup.InitialisePostMixSalesItem ())
     let periodItem = { baseItem with OpeningStock = 0.9; ClosingStock = 0.3 }
     let salesItemInfo = getSalesItemInfo periodItem.SalesItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, salesItemInfo)
+    let periodItemInfo = getPeriodItemInfo periodItem
     let boxesSold = 0.6
     let measuresPerLitre = 17.6056338
     let measuresSold = boxesSold * 10. * measuresPerLitre
@@ -535,8 +535,7 @@ type ``Given that a PeriodItem has no Draught received`` () as this =
     let gallonsOnHand = LanguagePrimitives.FloatWithMeasure<gal> 23.
     let baseItem = getPeriodItem (piSetup.InitialiseDraughtSalesItem ())
     let periodItem = { baseItem with OpeningStock = 25.; ClosingStock = float gallonsOnHand }
-    let salesItemInfo = getSalesItemInfo periodItem.SalesItem
-    let periodItemInfo = getPeriodItemInfo (periodItem, periodItem.ItemsReceived, salesItemInfo)
+    let periodItemInfo = getPeriodItemInfo periodItem
     let pintsOnHand = Conv.convertGallonsToPints gallonsOnHand
     let gallonsSold = 2.
     let pintsSold = 8. * gallonsSold 

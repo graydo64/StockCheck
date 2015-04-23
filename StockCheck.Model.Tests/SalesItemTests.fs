@@ -9,7 +9,7 @@ open Ploeh.AutoFixture
 
 [<TestFixture>]
 type ``Given that the cost per container is zero`` () =
-    let salesItem = { Factory.defaultMySalesItem with CostPerContainer = 0M<money> }
+    let salesItem = { Factory.defaultSalesItem with CostPerContainer = 0M<money> }
     let salesItemInfo = getSalesItemInfo salesItem
     [<Test>] member x.
         ``The cost per unit of sale is zero`` () =
@@ -19,7 +19,7 @@ type ``Given that the cost per container is zero`` () =
 type ``Given that the item is draught and the cost of sale is greater than zero`` () =
     let containerSize = 11.
     let costPerContainer = 110m<money>
-    let dsi = defaultMySalesItem
+    let dsi = defaultSalesItem
     let salesItem = { dsi with ItemName = { dsi.ItemName with ContainerSize = containerSize }; SalesUnitType = Pint; CostPerContainer = costPerContainer }
     let salesItemInfo = getSalesItemInfo salesItem
 
@@ -38,7 +38,7 @@ type ``Given that the item is bottled and the cost of sale is greater than zero`
     let salesUnitType = Unit
     let salesPrice = 3.52m<money>
     let taxRate = 0.2<percentage>
-    let dsi = defaultMySalesItem
+    let dsi = defaultSalesItem
     let salesItem = { dsi with ItemName = { dsi.ItemName with ContainerSize = containerSize }; SalesUnitType = Unit; CostPerContainer = costPerContainer; SalesPrice = salesPrice; TaxRate = taxRate }
     let salesItemInfo = getSalesItemInfo salesItem
 
@@ -62,7 +62,7 @@ type ``Given that the item is spirit and the cost of sale is greater than zero``
     let containerSize = 0.7
     let unitOfSale = 0.035
     let costPerContainer = 22m<money>
-    let dsi = defaultMySalesItem
+    let dsi = defaultSalesItem
     let salesItem = { dsi with ItemName = { dsi.ItemName with ContainerSize = containerSize }; SalesUnitType = Spirit; CostPerContainer = costPerContainer }
     let salesItemInfo = getSalesItemInfo salesItem
 
@@ -77,7 +77,7 @@ type ``Given that the item is spirit and the cost of sale is greater than zero``
 
 [<TestFixture>]
 type ``Given that the Sales Price is zero`` () =
-    let salesItem = { defaultMySalesItem with SalesPrice = 0m<money> }
+    let salesItem = { defaultSalesItem with SalesPrice = 0m<money> }
     let salesItemInfo = getSalesItemInfo salesItem
 
     [<Test>] member x.
@@ -86,7 +86,7 @@ type ``Given that the Sales Price is zero`` () =
 
 [<TestFixture>]
 type ``Given that the Sales Price double the Cost price`` () =
-    let dsi = defaultMySalesItem
+    let dsi = defaultSalesItem
     let salesItem = { dsi with SalesPrice = 2.4m<money>; ItemName = { dsi.ItemName with ContainerSize = 1. }; SalesUnitType = Unit; CostPerContainer = 1m<money>; TaxRate = 0.2<percentage> }
     let lessTax taxRate (salesPrice : decimal<money>) = salesPrice / (decimal 1.0 + decimal taxRate)
     let salesItemInfo = getSalesItemInfo salesItem
@@ -101,7 +101,7 @@ type ``Given that the Sales Price double the Cost price`` () =
 
 [<TestFixture>]
 type ``Given a draught product with a Sales Price`` () =
-    let dsi = defaultMySalesItem
+    let dsi = defaultSalesItem
     let salesItem = { dsi with SalesPrice = 3.60m<money>; ItemName = { dsi.ItemName with ContainerSize = 9. }; SalesUnitType = Pint; CostPerContainer = 144m<money> }
     let salesItemInfo = getSalesItemInfo salesItem
 

@@ -16,8 +16,8 @@ type PeriodController() =
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
     let cache = FsWeb.CacheWrapper()
     
-    let mapToPI (pi : StockCheck.Model.myPeriodItem) = 
-        let pii = getPeriodItemInfo (pi, pi.ItemsReceived, getSalesItemInfo pi.SalesItem)
+    let mapToPI (pi : StockCheck.Model.PeriodItem) = 
+        let pii = getPeriodItemInfo pi
         { PeriodItemViewModel.Id = pi.Id
           OpeningStock = pi.OpeningStock
           ClosingStockExpr = pi.ClosingStockExpr
@@ -29,7 +29,7 @@ type PeriodController() =
           SalesQty = pii.Sales
           Container = pi.SalesItem.ItemName.ContainerSize }
     
-    let mapToViewModel (p : StockCheck.Model.myPeriod) = 
+    let mapToViewModel (p : StockCheck.Model.Period) = 
         let periodInfo = StockCheck.Model.Factory.getPeriodInfo p
         { 
             PeriodViewModel.Id = p.Id
@@ -43,26 +43,26 @@ type PeriodController() =
         }
     
     // todo: fix this because Seq.append doesn't assign to anything.
-    // side-effect - returns a myPeriodItem and attempts to add it to the piitems collection
-    // should just return a myPeriodItem
-    let mapPIFromViewModel (pitems : seq<StockCheck.Model.myPeriodItem>) (pi : PeriodItemViewModel) =  
+    // side-effect - returns a PeriodItem and attempts to add it to the piitems collection
+    // should just return a PeriodItem
+    let mapPIFromViewModel (pitems : seq<StockCheck.Model.PeriodItem>) (pi : PeriodItemViewModel) =  
         let periodItem = match pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
                             | true -> pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
                             | false -> 
-                                    let si = repo.GetmyModelSalesItemById pi.SalesItemId
+                                    let si = repo.GetModelSalesItemById pi.SalesItemId
                                     { defaultPeriodItem with SalesItem = si }
         
         { periodItem with ClosingStock = pi.ClosingStock; OpeningStock = pi.OpeningStock; ClosingStockExpr = pi.ClosingStockExpr }                                   
 
-    let mapPFromViewModel (p : StockCheck.Model.myPeriod) (vm : PeriodViewModel) =
+    let mapPFromViewModel (p : StockCheck.Model.Period) (vm : PeriodViewModel) =
         let piSeq = vm.Items
                     |> Seq.map (fun i -> mapPIFromViewModel p.Items i)
         {
-            StockCheck.Model.myPeriod.EndOfPeriod = vm.EndOfPeriod;
-            StockCheck.Model.myPeriod.Name = vm.Name;
-            StockCheck.Model.myPeriod.StartOfPeriod = vm.StartOfPeriod;
-            StockCheck.Model.myPeriod.Items = piSeq;
-            StockCheck.Model.myPeriod.Id = vm.Id;
+            StockCheck.Model.Period.EndOfPeriod = vm.EndOfPeriod;
+            StockCheck.Model.Period.Name = vm.Name;
+            StockCheck.Model.Period.StartOfPeriod = vm.StartOfPeriod;
+            StockCheck.Model.Period.Items = piSeq;
+            StockCheck.Model.Period.Id = vm.Id;
         }
 
     let newPFromViewModel (vm : PeriodViewModel) =
