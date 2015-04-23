@@ -5,6 +5,7 @@ open System.Net
 open System.Net.Http
 open System.Web.Http
 open StockCheck.Repository
+open StockCheck.Model.Factory
 open System
 open System.Linq
 open System.Collections.Generic
@@ -13,20 +14,20 @@ open FsWeb.Model
 type PeriodController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
-    let salesItems = repo.GetModelSalesItems
     let cache = FsWeb.CacheWrapper()
     
-    let mapToPI (pi : StockCheck.Model.PeriodItem) = 
+    let mapToPI (pi : StockCheck.Model.myPeriodItem) = 
+        let pii = getPeriodItemInfo (pi, pi.ItemsReceived, getSalesItemInfo pi.SalesItem)
         { PeriodItemViewModel.Id = pi.Id
           OpeningStock = pi.OpeningStock
           ClosingStockExpr = pi.ClosingStockExpr
           ClosingStock = pi.ClosingStock
           SalesItemId = pi.SalesItem.Id
-          SalesItemName = pi.SalesItem.Name
-          SalesItemLedgerCode = pi.SalesItem.LedgerCode
-          ItemsReceived = pi.ContainersReceived
-          SalesQty = pi.Sales
-          Container = pi.SalesItem.ContainerSize }
+          SalesItemName = pi.SalesItem.ItemName.Name
+          SalesItemLedgerCode = pi.SalesItem.ItemName.LedgerCode
+          ItemsReceived = pii.ContainersReceived
+          SalesQty = pii.Sales
+          Container = pi.SalesItem.ItemName.ContainerSize }
     
     let mapToViewModel (p : StockCheck.Model.myPeriod) = 
         let periodInfo = StockCheck.Model.Factory.getPeriodInfo p
@@ -42,20 +43,16 @@ type PeriodController() =
         }
     
     // todo: fix this because Seq.append doesn't assign to anything.
-    let mapPIFromViewModel (pitems : seq<StockCheck.Model.PeriodItem>) (pi : PeriodItemViewModel) =  
+    // side-effect - returns a myPeriodItem and attempts to add it to the piitems collection
+    // should just return a myPeriodItem
+    let mapPIFromViewModel (pitems : seq<StockCheck.Model.myPeriodItem>) (pi : PeriodItemViewModel) =  
         let periodItem = match pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
                             | true -> pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
-                            | false -> let ni = new StockCheck.Model.PeriodItem(
-                                                                        salesItems
-                                                                        |> Seq.filter(fun i -> i.Id = pi.SalesItemId)
-                                                                        |> Seq.head)
-                                       Seq.append pitems [ni] |> ignore
-                                       ni
-                                            
-        periodItem.ClosingStock <- pi.ClosingStock
-        periodItem.OpeningStock <- pi.OpeningStock
-        periodItem.ClosingStockExpr <- pi.ClosingStockExpr
-        periodItem
+                            | false -> 
+                                    let si = repo.GetmyModelSalesItemById pi.SalesItemId
+                                    { defaultPeriodItem with SalesItem = si }
+        
+        { periodItem with ClosingStock = pi.ClosingStock; OpeningStock = pi.OpeningStock; ClosingStockExpr = pi.ClosingStockExpr }                                   
 
     let mapPFromViewModel (p : StockCheck.Model.myPeriod) (vm : PeriodViewModel) =
         let piSeq = vm.Items

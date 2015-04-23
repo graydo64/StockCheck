@@ -49,6 +49,9 @@ module Business =
         | Pint | Unit -> valueOfQuantity qty unit 1.0 ppUnit
         | Spirit | Fortified | Wine | Other -> valueOfQuantity qty unit size ppUnit
 
+    let salesPerDay (startDate: DateTime) (endDate: DateTime) (pii: PeriodItemInfo) = pii.Sales / float (endDate.Subtract(startDate).Days + 1)
+
+    let daysOnHand (startDate: DateTime)  (endDate: DateTime) (pi: myPeriodItem) (pii : PeriodItemInfo) = pi.ClosingStock / salesPerDay startDate endDate pii |> int
 
 
 module Factory =
@@ -92,7 +95,7 @@ module Factory =
 
         let cvc = valueOfQuantity p.ClosingStock sii.CostPerUnitOfSale
         let cvsin = valueOfQuantity p.ClosingStock si.SalesPrice
-        let cvsex = valueOfQuantity p.ClosingStock (lessTax cvsin)
+        let cvsex = lessTax cvsin
 
         { 
             ContainersReceived = cr;

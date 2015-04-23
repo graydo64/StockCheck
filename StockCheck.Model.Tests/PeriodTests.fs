@@ -9,9 +9,11 @@ open StockCheck.Model.Factory
 
 module TestUtils =
     let Zeroise (period : myPeriod) =
-        (period.Items |> Seq.head).OpeningStock <- 0.
-        (period.Items |> Seq.head).ClosingStock <- 0.
-        period
+        let head = period.Items |> Seq.head
+        let tail = period.Items |> Seq.skip 1
+        let newHead = { head with OpeningStock = 0.; ClosingStock = 0.; ItemsReceived = [] }
+        let items = Seq.append [newHead] tail
+        { period with Items = items }
 
 [<TestFixture>]
 type ``Given that a Period has been constructed`` () = 
@@ -42,7 +44,7 @@ type ``Given that a Period has been initialised from an existing Period`` () =
 
     [<Test>] member x.
         ``The items have the same salesItem as the source items`` () =
-            Seq.exists2 (fun (a : PeriodItem) (b : PeriodItem) -> a.SalesItem = b.SalesItem) source.Items target.Items |> should be True
+            Seq.exists2 (fun (a : myPeriodItem) (b : myPeriodItem) -> a.SalesItem = b.SalesItem) source.Items target.Items |> should be True
 
     [<Test>] member x.
         ``The period start date should be one day after the source period end date`` () =

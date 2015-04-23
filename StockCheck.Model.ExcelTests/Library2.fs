@@ -6,6 +6,7 @@ open System.IO
 open System.Linq
 open System.Xml
 open StockCheck.Model
+open StockCheck.Model.Conv
 open StockCheck.Repository
 open Raven.Client
 open Raven.Client.Document
@@ -38,13 +39,13 @@ let updateSalesItem (s : StockCheck.Model.SalesItem) =
 [<Ignore>]
 let ``Update SalesItem price`` () =
     let p = period
-    let items = p.Items |> Seq.filter(fun i -> i.SalesItem.Name.IndexOf("Desperado") > -1)
+    let items = p.Items |> Seq.filter(fun i -> i.SalesItem.ItemName.Name.IndexOf("Desperado") > -1)
 
     items 
-        |> Seq.iter(fun i -> i.SalesItem.SalesPrice <- decimal 3.1)
+        |> Seq.map(fun i -> { i with SalesItem = { i.SalesItem with SalesPrice = money 3.1M } })
         |> ignore
 
-    let items2 = p.Items |> Seq.filter(fun i -> i.SalesItem.Name.IndexOf("Desperado") > -1)
+    let items2 = p.Items |> Seq.filter(fun i -> i.SalesItem.ItemName.Name.IndexOf("Desperado") > -1)
 
     savePeriod p
 
