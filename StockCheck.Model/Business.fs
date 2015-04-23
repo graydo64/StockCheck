@@ -53,6 +53,10 @@ module Business =
 
     let daysOnHand (startDate: DateTime)  (endDate: DateTime) (pi: myPeriodItem) (pii : PeriodItemInfo) = pi.ClosingStock / salesPerDay startDate endDate pii |> int
 
+    let inline round2 x =
+            Math.Round(float x, 2)
+
+
 
 module Factory =
     open Business
@@ -71,7 +75,7 @@ module Factory =
         let valueOfQuantity = valueOfQuantityT si.SalesUnitType sii.SalesUnitsPerContainerUnit si.ItemName.ContainerSize 
         let cr = i |> Seq.sumBy (fun i -> i.Quantity)
         let tu = totalUnits p.SalesItem cr p.SalesItem.ItemName.ContainerSize
-        let st = Utils.Round2 (p.OpeningStock + tu - p.ClosingStock)
+        let st = round2 (p.OpeningStock + tu - p.ClosingStock)
         let pex = i |> Seq.sumBy (fun i -> i.InvoicedAmountEx)
         let pin = i |> Seq.sumBy (fun i -> i.InvoicedAmountInc)
         let pt = pex + lessTax pin

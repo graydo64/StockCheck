@@ -25,15 +25,15 @@ let savePeriod (p : StockCheck.Model.myPeriod) =
 
 let period = query.GetModelPeriods |> Seq.filter(fun p -> p.Name = "April/May 2014") |> Seq.head
 
-let updateSalesItem (s : StockCheck.Model.SalesItem) =
-    match s.LedgerCode with
-    | "1000" -> s.SalesUnitType <- Pint
-    | "1005" -> s.SalesUnitType <- Pint
-    | "1020" -> s.SalesUnitType <- Wine
-    | "1030" -> s.SalesUnitType <- Spirit
-    | _ -> s.SalesUnitType <- Unit
+let updateSalesItem (s : StockCheck.Model.mySalesItem) =
+    let n = match s.ItemName.LedgerCode with
+            | "1000" -> { s with SalesUnitType = Pint }
+            | "1005" -> { s with SalesUnitType = Pint }
+            | "1020" -> { s with SalesUnitType = Wine }
+            | "1030" -> { s with SalesUnitType = Spirit }
+            | _ -> { s with SalesUnitType = Unit }
 
-    persister.Save(s)
+    persister.Save(n)
 
 [<Test>]
 [<Ignore>]

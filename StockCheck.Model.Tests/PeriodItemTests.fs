@@ -9,6 +9,10 @@ open StockCheck.Model.Conv
 open Ploeh.AutoFixture
 
 module Utils =
+
+    let inline Round2 x =
+            Math.Round(float x, 2)
+
     let Round2M (x : decimal) =
             Math.Round(x, 2)
 

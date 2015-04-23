@@ -63,17 +63,23 @@ type Supplier =
 
 module internal MapToModel = 
     let irMap (ir : ItemReceived) = 
-        StockCheck.Model.ItemReceived
-            (Quantity = ir.Quantity, ReceivedDate = ir.ReceivedDate, InvoicedAmountEx = decimal ir.InvoicedAmountEx, 
-             InvoicedAmountInc = decimal ir.InvoicedAmountInc)
-    let siMap (si : SalesItem) = 
-        match si with
-        | i when String.IsNullOrEmpty(i.Id) -> StockCheck.Model.SalesItem()
-        | _ -> StockCheck.Model.SalesItem
-                (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
-                    LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
-                    UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType,
-                    OtherSalesUnit = si.OtherSalesUnit)
+        {
+            StockCheck.Model.myItemReceived.Id = String.Empty;
+            StockCheck.Model.myItemReceived.Quantity = ir.Quantity;
+            StockCheck.Model.myItemReceived.ReceivedDate = ir.ReceivedDate;
+            StockCheck.Model.myItemReceived.InvoicedAmountEx = money ir.InvoicedAmountEx;
+            StockCheck.Model.myItemReceived.InvoicedAmountInc = money ir.InvoicedAmountInc
+        }
+
+//    let siMap (si : SalesItem) = 
+//        match si with
+//        | i when String.IsNullOrEmpty(i.Id) -> StockCheck.Model.SalesItem()
+//        | _ -> StockCheck.Model.SalesItem
+//                (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
+//                    LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
+//                    UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType,
+//                    OtherSalesUnit = si.OtherSalesUnit)
+
     let mysiMap (si : SalesItem) = 
         match si with
         | i when String.IsNullOrEmpty(i.Id) ->
@@ -111,7 +117,7 @@ module internal MapToModel =
         }
     
     let ilMap (il : InvoiceLine) = 
-        let salesItem = siMap il.SalesItem
+        let salesItem = mysiMap il.SalesItem
         let (salesItem : StockCheck.Model.mySalesItem) = {
             Id = il.SalesItem.Id;
             ItemName = { LedgerCode = il.SalesItem.LedgerCode; Name = il.SalesItem.Name; ContainerSize = il.SalesItem.ContainerSize };
@@ -207,7 +213,7 @@ type Query(documentStore : IDocumentStore) =
         use session = documentStore.OpenSession(dbName)
         session.Query<Invoice>().Where(fun i -> i.InvoiceNumber = number && i.Supplier = supplier).Any()
     
-    member this.GetModelSalesItemById id = this.GetSalesItemById id |> MapToModel.siMap
+    //member this.GetModelSalesItemById id = this.GetSalesItemById id |> MapToModel.siMap
 
     member this.GetmyModelSalesItemById id = this.GetSalesItemById id |> MapToModel.mysiMap
     
@@ -257,7 +263,7 @@ type Query(documentStore : IDocumentStore) =
         { modelPeriod with Items = newItemSeq }
     
     member this.GetModelPeriods = this.GetPeriods() |> Seq.map (fun p -> this.GetModelPeriodById p.Id)
-    member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.siMap
+    member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.mysiMap
     member this.GetModelInvoice id = this.GetInvoice id |> MapToModel.iMap
     member this.GetModelInvoices() = this.GetInvoices() |> Seq.map MapToModel.iMap
     member this.GetModelInvoicesPaged (pageSize: int) (pageNumber: int) = this.GetInvoicesPaged pageSize pageNumber |> Seq.map MapToModel.iMap
@@ -291,17 +297,17 @@ module internal MapFromModel =
           SalesUnitType = si.SalesUnitType.toString()
           OtherSalesUnit = si.OtherSalesUnit }
     
-    let siMap (si : StockCheck.Model.SalesItem) = 
-        { Id = idMap si.Id
-          ContainerSize = si.ContainerSize
-          CostPerContainer = si.CostPerContainer
-          LedgerCode = si.LedgerCode
-          Name = si.Name
-          SalesPrice = si.SalesPrice
-          TaxRate = si.TaxRate
-          UllagePerContainer = si.UllagePerContainer
-          SalesUnitType = si.SalesUnitType.toString()
-          OtherSalesUnit = si.OtherSalesUnit }
+//    let siMap (si : StockCheck.Model.SalesItem) = 
+//        { Id = idMap si.Id
+//          ContainerSize = si.ContainerSize
+//          CostPerContainer = si.CostPerContainer
+//          LedgerCode = si.LedgerCode
+//          Name = si.Name
+//          SalesPrice = si.SalesPrice
+//          TaxRate = si.TaxRate
+//          UllagePerContainer = si.UllagePerContainer
+//          SalesUnitType = si.SalesUnitType.toString()
+//          OtherSalesUnit = si.OtherSalesUnit }
     
     let pMap (documentStore) (p : StockCheck.Model.myPeriod) = 
         { Id = idMap p.Id
@@ -345,8 +351,8 @@ type Persister(documentStore : IDocumentStore) =
         session.Store(d)
         session.SaveChanges()
 
-    member this.Save(si : StockCheck.Model.SalesItem) = 
-        MapFromModel.siMap si |> saveDocument
+    member this.Save(si : StockCheck.Model.mySalesItem) = 
+        MapFromModel.mysiMap si |> saveDocument
     
     member this.Save(p : StockCheck.Model.myPeriod) = 
         periodMap p |> saveDocument

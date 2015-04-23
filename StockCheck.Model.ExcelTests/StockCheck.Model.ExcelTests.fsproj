@@ -78,7 +78,6 @@
     <None Include="Script.fsx" />
     <None Include="packages.config" />
     <None Include="app.config" />
-    <Compile Include="Library1.fs" />
     <Compile Include="Library3.fs" />
     <Compile Include="Library2.fs" />
   </ItemGroup>
