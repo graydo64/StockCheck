@@ -5,14 +5,17 @@ open StockCheck.Model.Conv
 
 module Business =
 
+    let fromMoney (x : decimal<money>) = StockCheck.Model.money.FromMoney x
+    let toMoney (x : decimal) = StockCheck.Model.money.ToMoney x
+
     let markUp sale cost = sale - cost
 
     let grossProfit (sale : decimal<money>) (cost : decimal<money>) =
         match sale with
         | 0M<money> -> 0.<percentage>
         | _ -> 
-            let markUpFloat = float ((markUp sale cost)/1.0M<money>)
-            let saleFloat = float (sale / 1.0M<money>)
+            let markUpFloat = float (fromMoney(markUp sale cost))
+            let saleFloat = float (fromMoney sale)
             percentage (markUpFloat / saleFloat)
 
     let lessTax (rate : float<percentage>) (price : decimal<money>) =
@@ -22,7 +25,7 @@ module Business =
     let costPerUnitOfSale (costPerContainer : decimal<money>) (containerSize : float) (salesUnitsPerContainerUnit : float) =
         let salesUnits = containerSize * salesUnitsPerContainerUnit
         let salesUnitsAsDecimal = decimal salesUnits
-        let costAsDecimal = costPerContainer / 1.0M<money>
+        let costAsDecimal = StockCheck.Model.money.FromMoney costPerContainer
         match costAsDecimal with
         | 0.M -> money 0.M
         | _ -> money costAsDecimal/salesUnitsAsDecimal
@@ -42,7 +45,7 @@ module Business =
         | Spirit | Fortified | Wine -> cr
 
     let private valueOfQuantity qty unit size (ppUnit : decimal<money>)=
-        money (decimal (qty * unit * size * float (ppUnit / 1.0M<money>)))
+        money (decimal (qty * unit * size * float (fromMoney ppUnit)))
 
     let valueOfQuantityT t unit size qty ppUnit =
         match t with
@@ -95,7 +98,7 @@ module Factory =
         let cos =         
             match contRec with
             | Some(c) -> 
-                money (decimal ((float (pt / 1.0M<money>) / tu) * st))
+                money (decimal ((float (fromMoney pt) / tu) * st))
             | None -> 
                 salesCost
 
@@ -141,7 +144,7 @@ module Factory =
             CostPerContainer = 0M<StockCheck.Model.money>;
             SalesPrice = 0M<StockCheck.Model.money>;
             TaxRate = 0.<StockCheck.Model.percentage>;
-            UllagePerContainer = 0<StockCheck.Model.pt>;
+            UllagePerContainer = 0<pt>;
             SalesUnitType = StockCheck.Model.salesUnitType.Other;
             OtherSalesUnit = 0.;
         }

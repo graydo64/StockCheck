@@ -9,6 +9,10 @@
 [<Measure>] type money
 [<Measure>] type percentage
 
+type money with
+    static member FromMoney (x : decimal<money>) = decimal (x / 1M<money>)
+    static member ToMoney (x : decimal) = x * 1M<money>
+
 module Conv =
 
     let ptPerGal : float<pt/gal> = 8.<pt/gal>
@@ -24,6 +28,3 @@ module Conv =
         if f < 0. || f > 1.
             then 0.<percentage>
             else f * 1.<percentage>
-
-
-

@@ -7,23 +7,28 @@ open StockCheck.Repository
 open StockCheck.Model.Factory
 
 module Mapping =
+    // return everything from where that isn't in except
+    let notIn ( except : seq<StockCheck.Model.PeriodItem>) ( where : seq<StockCheck.Model.PeriodItem>) =
+        where
+        |> Seq.filter (fun i -> except |> Seq.exists  ( fun t -> t.SalesItem.Id = i.SalesItem.Id) |> not)
+
     module Period =
 
-        // todo: fix this because Seq.append doesn't assign to anything.
-        // side-effect - returns a PeriodItem and attempts to add it to the piitems collection
-        // should just return a PeriodItem
-        let mapPIFromViewModel (getModelSalesItemById : string -> StockCheck.Model.SalesItem) (pitems : seq<StockCheck.Model.PeriodItem>) (pi : PeriodItemViewModel) =  
-            let periodItem = match pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
-                                | true -> pitems.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
-                                | false -> 
-                                        let si = getModelSalesItemById pi.SalesItemId
-                                        { defaultPeriodItem with SalesItem = si }
-        
-            { periodItem with ClosingStock = pi.ClosingStock; OpeningStock = pi.OpeningStock; ClosingStockExpr = pi.ClosingStockExpr }                                   
+        let mapPIFromViewModel getModelSalesItemById (pi : PeriodItemViewModel) =  
+            {
+                StockCheck.Model.PeriodItem.Id = pi.Id;
+                StockCheck.Model.PeriodItem.OpeningStock = pi.OpeningStock;
+                StockCheck.Model.PeriodItem.ClosingStock = pi.ClosingStock;
+                StockCheck.Model.PeriodItem.ClosingStockExpr = pi.ClosingStockExpr;
+                StockCheck.Model.PeriodItem.SalesItem = getModelSalesItemById pi.SalesItemId;
+                StockCheck.Model.PeriodItem.ItemsReceived = [];
+            }
 
         let mapPFromViewModel getModelSalesItemById (p : StockCheck.Model.Period) (vm : PeriodViewModel) =
-            let piSeq = vm.Items
-                        |> Seq.map (fun i -> mapPIFromViewModel getModelSalesItemById p.Items i)
+            let vmItems = vm.Items
+                        |> Seq.map (fun i -> mapPIFromViewModel getModelSalesItemById i)
+            let pItems = p.Items |> notIn vmItems
+            let piSeq = Seq.append pItems vmItems            
             {
                 StockCheck.Model.Period.EndOfPeriod = vm.EndOfPeriod;
                 StockCheck.Model.Period.Name = vm.Name;
@@ -34,7 +39,7 @@ module Mapping =
 
         let newPFromViewModel getModelSalesItemById (vm : PeriodViewModel) =
             let piSeq = vm.Items
-                        |> Seq.map (fun i -> mapPIFromViewModel getModelSalesItemById [] i)
+                        |> Seq.map (fun i -> mapPIFromViewModel getModelSalesItemById i)
             let newp = StockCheck.Model.Factory.getPeriod String.Empty vm.Name vm.StartOfPeriod vm.EndOfPeriod
             { newp with Items = piSeq }
 
