@@ -51,6 +51,7 @@
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <ItemGroup>
     <Compile Include="ViewModels.fs" />
+    <Compile Include="Mapping.fs" />
     <Compile Include="Global.asax.fs" />
     <Compile Include="ValuesController.fs" />
     <Compile Include="Excel.fs" />

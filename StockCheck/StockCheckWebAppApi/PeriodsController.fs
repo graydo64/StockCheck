@@ -9,6 +9,7 @@ open System
 open System.Linq
 open System.Collections.Generic
 open FsWeb.Model
+open FsWeb.Model.Mapping.Period
 
 type PeriodController() = 
     inherit ApiController()
@@ -16,50 +17,6 @@ type PeriodController() =
     let salesItems = repo.GetModelSalesItems
     let cache = FsWeb.CacheWrapper()
     
-    let mapToPI (pi : StockCheck.Model.PeriodItem) = 
-        { PeriodItemViewModel.Id = pi.Id
-          OpeningStock = pi.OpeningStock
-          ClosingStockExpr = pi.ClosingStockExpr
-          ClosingStock = pi.ClosingStock
-          SalesItemId = pi.SalesItem.Id
-          SalesItemName = pi.SalesItem.Name
-          SalesItemLedgerCode = pi.SalesItem.LedgerCode
-          ItemsReceived = pi.ContainersReceived
-          SalesQty = pi.Sales
-          Container = pi.SalesItem.ContainerSize }
-    
-    let mapToViewModel (p : StockCheck.Model.Period) = 
-        { PeriodViewModel.Id = p.Id
-          Name = p.Name
-          StartOfPeriod = p.StartOfPeriod
-          EndOfPeriod = p.EndOfPeriod
-          Items = p.Items |> Seq.map mapToPI
-          ClosingValueCostEx = p.ClosingValueCostEx
-          ClosingValueSalesInc = decimal p.ClosingValueSalesInc
-          ClosingValueSalesEx = decimal p.ClosingValueSalesEx }
-    
-    let mapPIFromViewModel (p : StockCheck.Model.Period) (pi : PeriodItemViewModel) =  
-        let periodItem = match p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).Any() with
-                            | true -> p.Items.Where(fun a -> a.SalesItem.Id = pi.SalesItemId).First()
-                            | false -> let ni = new StockCheck.Model.PeriodItem(
-                                                                        salesItems
-                                                                        |> Seq.filter(fun i -> i.Id = pi.SalesItemId)
-                                                                        |> Seq.head) 
-                                       p.Items.Add(ni)
-                                       ni
-                                            
-        periodItem.ClosingStock <- pi.ClosingStock
-        periodItem.OpeningStock <- pi.OpeningStock
-        periodItem.ClosingStockExpr <- pi.ClosingStockExpr
-
-    let mapPFromViewModel (p : StockCheck.Model.Period) (vm : PeriodViewModel) =
-        p.EndOfPeriod <- vm.EndOfPeriod
-        p.Name <- vm.Name
-        p.StartOfPeriod <- vm.StartOfPeriod
-        vm.Items
-        |> Seq.iter (fun i -> mapPIFromViewModel p i)
-        p
-
     [<Route("api/period/")>]
     member x.Get() = 
         repo.GetModelPeriods |> Seq.map (fun i -> 
@@ -87,7 +44,7 @@ type PeriodController() =
         match periods with
         | 0 -> 
             let p = new StockCheck.Model.Period()
-            mapPFromViewModel p period
+            mapPFromViewModel salesItems p period
             |> persister.Save
             x.Request.CreateResponse(HttpStatusCode.OK, period)
         | _ -> 
@@ -104,7 +61,7 @@ type PeriodController() =
         | _ -> 
             periods 
             |> Seq.head
-            |> (fun p -> mapPFromViewModel p period)
+            |> (fun p -> mapPFromViewModel salesItems p period)
             |> persister.Save
             cache.Remove period.Id
             x.Request.CreateResponse(HttpStatusCode.OK, period)

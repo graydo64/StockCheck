@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{026586C4-806B-4E09-BD51-239E15A6BA62}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockCheckWeb", "StockCheck\StockCheckWebApi\StockCheckWeb.csproj", "{C4891C29-68CB-41D6-A5AA-47017B057878}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheckWebAppApi", "StockCheck\StockCheckWebAppApi\StockCheckWebAppApi.fsproj", "{A999575F-C66E-42BF-A70F-655D4C3F0069}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockCheckWebAppApi.Tests", "StockCheckWebAppApi.Tests\StockCheckWebAppApi.Tests.fsproj", "{D463C710-B38A-4949-8749-F2446BCF99DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{A999575F-C66E-42BF-A70F-655D4C3F0069}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A999575F-C66E-42BF-A70F-655D4C3F0069}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A999575F-C66E-42BF-A70F-655D4C3F0069}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D463C710-B38A-4949-8749-F2446BCF99DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D463C710-B38A-4949-8749-F2446BCF99DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D463C710-B38A-4949-8749-F2446BCF99DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D463C710-B38A-4949-8749-F2446BCF99DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
