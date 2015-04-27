@@ -68,7 +68,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="EPPlus">
-      <HintPath>..\..\packages\EPPlus.4.0.3\lib\net20\EPPlus.dll</HintPath>
+      <HintPath>..\..\packages\EPPlus.4.0.4\lib\net20\EPPlus.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

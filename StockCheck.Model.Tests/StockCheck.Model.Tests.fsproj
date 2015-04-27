@@ -39,7 +39,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.2.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
+      <HintPath>..\packages\FsUnit.1.3.0.1\Lib\Net40\FsUnit.NUnit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
@@ -48,7 +48,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Ploeh.AutoFixture">
-      <HintPath>..\packages\AutoFixture.3.18.6\lib\net40\Ploeh.AutoFixture.dll</HintPath>
+      <HintPath>..\packages\AutoFixture.3.30.3\lib\net40\Ploeh.AutoFixture.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
