@@ -7,10 +7,16 @@ open StockCheck.Repository
 open StockCheck.Model.Factory
 
 module Mapping =
+    open System.Collections.Generic
+
     // return everything from where that isn't in except
     let notIn ( except : seq<StockCheck.Model.PeriodItem>) ( where : seq<StockCheck.Model.PeriodItem>) =
+        let cachedExcept = HashSet<StockCheck.Model.PeriodItem>(except, HashIdentity.Structural)
+        let filter (i: StockCheck.Model.PeriodItem) = cachedExcept 
+                                                        |> Seq.exists  ( fun t -> t.SalesItem.Id = i.SalesItem.Id) 
+                                                        |> not
         where
-        |> Seq.filter (fun i -> except |> Seq.exists  ( fun t -> t.SalesItem.Id = i.SalesItem.Id) |> not)
+        |> Seq.where (fun i -> filter i)
 
     module Period =
 
@@ -28,14 +34,8 @@ module Mapping =
             let vmItems = vm.Items
                         |> Seq.map (fun i -> mapPIFromViewModel getModelSalesItemById i)
             let pItems = p.Items |> notIn vmItems
-            let piSeq = Seq.append pItems vmItems            
-            {
-                StockCheck.Model.Period.EndOfPeriod = vm.EndOfPeriod;
-                StockCheck.Model.Period.Name = vm.Name;
-                StockCheck.Model.Period.StartOfPeriod = vm.StartOfPeriod;
-                StockCheck.Model.Period.Items = piSeq;
-                StockCheck.Model.Period.Id = vm.Id;
-            }
+            let piSeq = Seq.append pItems vmItems
+            { (getPeriod vm.Id vm.Name vm.StartOfPeriod vm.EndOfPeriod) with Items = piSeq }
 
         let newPFromViewModel getModelSalesItemById (vm : PeriodViewModel) =
             let piSeq = vm.Items

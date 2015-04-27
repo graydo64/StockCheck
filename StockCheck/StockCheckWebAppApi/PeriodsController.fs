@@ -54,18 +54,15 @@ type PeriodController() =
     [<Route("api/period")>]
     member x.Put(period : PeriodViewModel) = 
         let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
-        let periods = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = period.Id)
+        let modelPeriod = repo.GetModelPeriodById period.Id
+        let cachedSISeq = Seq.cache repo.GetModelSalesItems
+        let getModelSalesItemById id = cachedSISeq |> Seq.where (fun i -> i.Id = id) |> Seq.head
         
-        match periods |> Seq.length with
-        | 0 -> 
-            x.Request.CreateResponse(HttpStatusCode.NotFound, period)
-        | _ -> 
-            periods 
-            |> Seq.head
-            |> (fun p -> mapPFromViewModel repo.GetModelSalesItemById p period)
-            |> persister.Save
-            cache.Remove period.Id
-            x.Request.CreateResponse(HttpStatusCode.OK, period)
+        modelPeriod
+        |> (fun p -> mapPFromViewModel getModelSalesItemById p period)
+        |> persister.Save
+        cache.Remove period.Id
+        x.Request.CreateResponse(HttpStatusCode.OK, period)
     
     [<HttpGet>][<Route("api/period/init-from/{id}")>]
     member x.InitFrom(id : string) = 
