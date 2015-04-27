@@ -157,8 +157,8 @@ module Excel =
             pi
 
         let compareSalesItems (si1 : StockCheck.Model.SalesItem) (si2 : StockCheck.Model.SalesItem) =
-            if si1 < si2 then -1 else
-            if si1 > si2 then 1 else
+            if si1.ItemName < si2.ItemName then -1 else
+            if si1.ItemName > si2.ItemName then 1 else
             0
 
         let comparePeriodItems (pi1 : StockCheck.Model.PeriodItem) (pi2 : StockCheck.Model.PeriodItem) =
