@@ -79,9 +79,9 @@ module internal MapToModel =
             {
                 Id = si.Id.ToString();
                 ItemName = { LedgerCode = si.LedgerCode; Name = si.Name; ContainerSize = si.ContainerSize }
-                CostPerContainer = StockCheck.Model.Conv.money si.CostPerContainer;
-                SalesPrice = StockCheck.Model.Conv.money si.SalesPrice;
-                TaxRate = StockCheck.Model.Conv.percentage si.TaxRate;
+                CostPerContainer = money si.CostPerContainer;
+                SalesPrice = money si.SalesPrice;
+                TaxRate = percentage si.TaxRate;
                 UllagePerContainer = si.UllagePerContainer * 1<StockCheck.Model.pt>
                 SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType;
                 OtherSalesUnit = si.OtherSalesUnit;
@@ -109,16 +109,6 @@ module internal MapToModel =
     
     let ilMap (il : InvoiceLine) = 
         let salesItem = siMap il.SalesItem
-        let (salesItem : StockCheck.Model.SalesItem) = {
-            Id = il.SalesItem.Id;
-            ItemName = { LedgerCode = il.SalesItem.LedgerCode; Name = il.SalesItem.Name; ContainerSize = il.SalesItem.ContainerSize };
-            CostPerContainer = money il.SalesItem.CostPerContainer;
-            SalesPrice = money il.SalesItem.SalesPrice;
-            TaxRate = percentage il.SalesItem.TaxRate;
-            SalesUnitType = StockCheck.Model.salesUnitType.fromString il.SalesItem.SalesUnitType;
-            OtherSalesUnit = il.SalesItem.OtherSalesUnit;
-            UllagePerContainer = il.SalesItem.UllagePerContainer * 1<StockCheck.Model.pt>
-        }
         {
             StockCheck.Model.InvoiceLine.Id = il.Id.ToString();
             StockCheck.Model.InvoiceLine.Quantity = il.Quantity;

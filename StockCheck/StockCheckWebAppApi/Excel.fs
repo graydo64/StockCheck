@@ -107,7 +107,7 @@ module Excel =
             ws.SetValue(rowNo, 9, si.TaxRate)
             ws.SetValue(rowNo, 10, sii.IdealGP)
 
-        let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
+        let writeClosingItem i (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
             let pii = getPeriodItemInfo pi
             ws.SetValue(rowNo, lcCol, pi.SalesItem.ItemName.LedgerCode)
@@ -182,7 +182,7 @@ module Excel =
             |> Seq.toList
             |> List.sortWith comparePeriodItems
             |> List.mapi(fun i si -> writePeriodItem i period si ws)
-            |> List.mapi(fun i si -> writeClosingItem i period si clo)
+            |> List.mapi(fun i si -> writeClosingItem i si clo)
             |> List.iteri(fun i pi -> writeSalesItem i pi.SalesItem cat)
 
         let getGoodsIn n d (il : StockCheck.Model.InvoiceLine) = 
