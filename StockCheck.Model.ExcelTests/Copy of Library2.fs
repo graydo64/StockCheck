@@ -39,10 +39,10 @@ let updateSalesItem (s : StockCheck.Model.SalesItem) =
 
 let getSalesPrice c =
     match c with
-    | cpc when cpc < 95.0m -> 3.15m
-    | cpc when cpc >= 95.0m && cpc < 105m -> 3.25m
-    | cpc when cpc >= 105m && cpc < 120m -> 3.35m
-    | cpc when cpc >= 120m -> 3.55m
+    | cpc when cpc < 100.0m -> 3.20m
+    | cpc when cpc >= 100.0m && cpc < 110m -> 3.30m
+    | cpc when cpc >= 110m && cpc < 120m -> 3.45m
+    | cpc when cpc >= 120m -> 3.60m
     | _ -> 0m
 
 let amountPerContainer ex qty =
@@ -67,10 +67,10 @@ let checkCatalogueCPC (i : StockCheck.Model.SalesItem) =
 [<Ignore>]
 let ``Update SalesItem price`` () =
     use session = store.OpenSession("StockCheck")
-    let p = session.Query<StockCheck.Repository.Period>().Where(fun i -> i.Name = "Dec/Jan 2015").First()
+    let p = session.Query<StockCheck.Repository.Period>().Where(fun i -> i.Name = "March 2015").First()
     let items = p.Items |> Seq.filter(fun i -> i.SalesItem.LedgerCode = "1005")
 
-    let guestItems = items |> Seq.filter(fun i -> i.SalesItem.Name <> "Everards Tiger 4.2" && i.SalesItem.Name <> "Taylor's Golden Best 3.5" && i.SalesItem.Name <> "Treboom Yorkshire Sparkle 4.0")
+    let guestItems = items |> Seq.filter(fun i -> i.SalesItem.Name <> "Everards Tiger 4.2" && i.SalesItem.Name <> "Timothy Taylor Golden Best 3.5" && i.SalesItem.Name <> "Treboom Yorkshire Sparkle 4.0")
 
     guestItems 
         |> Seq.iter(fun i -> i.SalesItem.SalesPrice <- getSalesPrice i.SalesItem.CostPerContainer)
@@ -93,7 +93,7 @@ let ``Update catalogue price`` () =
     let s = session.Query<StockCheck.Repository.SalesItem>().Take(1024).AsEnumerable()
     let guestItems = s
                     |> Seq.filter(fun i -> i.LedgerCode = "1005")
-                    |> Seq.filter(fun i -> i.Name <> "Everards Tiger 4.2" && i.Name <> "Taylor's Golden Best 3.5" && i.Name <> "Treboom Yorkshire Sparkle 4.0")
+                    |> Seq.filter(fun i -> i.Name <> "Everards Tiger 4.2" && i.Name <> "Timothy Taylor Golden Best 3.5" && i.Name <> "Treboom Yorkshire Sparkle 4.0")
 
     let updatedPrices = guestItems |> Seq.map(fun i -> 
                                                     i.SalesPrice <- getSalesPrice i.CostPerContainer
@@ -115,4 +115,21 @@ let ``Check catalogue cost per container`` () =
             |> Seq.iter(fun i -> System.Console.WriteLine(System.String.Format("{0}: {1}, {2}",i.Name, i.CostPerContainer, maxBySI.Where(fun (a, b) -> a = i.Id).FirstOrDefault())))
     t |> ignore
     //|> Seq.iter(fun i -> checkCatalogueCPC i) 
-    //|> ignore
+    //|> 
+
+[<Test>]
+[<Ignore>]
+let ``Update period from catalogue price`` () =
+    use session = store.OpenSession("StockCheck")
+    let p = session.Query<StockCheck.Repository.Period>().Where(fun i -> i.Name = "March 2015").First()
+    let s = session.Query<StockCheck.Repository.SalesItem>().Take(1024).AsEnumerable()
+    let si = s |> Seq.cache
+    let newPrice (i : StockCheck.Repository.SalesItem) =
+        si.Where(fun x -> x.Id = i.Id).First().SalesPrice
+
+    p.Items
+    |> Seq.iter(fun x -> x.SalesItem.SalesPrice <- (newPrice x.SalesItem))
+    |> ignore
+
+    session.Store(p) |> ignore
+    session.SaveChanges() |> ignore
