@@ -59,7 +59,17 @@ module Business =
     let inline round2 x =
             Math.Round(float x, 2)
 
-
+    let getDateOnly (d : DateTime) =
+        match d.Kind with
+        | DateTimeKind.Unspecified -> d.Date
+        | DateTimeKind.Utc -> 
+            let d1 = d.ToLocalTime().Date
+            let d2 = DateTime.SpecifyKind(d1, DateTimeKind.Unspecified)
+            d2
+        | DateTimeKind.Local ->
+            let d1 = d.Date
+            let d2 = DateTime.SpecifyKind(d1, DateTimeKind.Unspecified)
+            d2
 
 module Factory =
     open Business
@@ -165,21 +175,17 @@ module Factory =
     let copyForNextPeriod (i: PeriodItem) =
         { defaultPeriodItem with SalesItem = i.SalesItem; OpeningStock = i.ClosingStock }
 
-    let cleanDate h m s (d : DateTime) = new DateTime(d.Year, d.Month, d.Day, h, m, s)
-    let cleanStartDate = cleanDate 0 0 0
-    let cleanEndDate = cleanDate 23 59 59
-
     let defaultPeriod = {
         StockCheck.Model.Period.Id = String.Empty;
-        StockCheck.Model.Period.StartOfPeriod = cleanStartDate DateTime.MinValue;
-        StockCheck.Model.Period.EndOfPeriod = cleanEndDate DateTime.MinValue;
+        StockCheck.Model.Period.StartOfPeriod = DateTime.MinValue.Date;
+        StockCheck.Model.Period.EndOfPeriod = DateTime.MinValue.Date;
         StockCheck.Model.Period.Name = String.Empty;
         StockCheck.Model.Period.Items = []
     }
 
     let getPeriod id name (startOfPeriod : DateTime) (endOfPeriod : DateTime) =
-        let sop = cleanStartDate startOfPeriod
-        let eop = cleanEndDate endOfPeriod
+        let sop = startOfPeriod.Date
+        let eop = endOfPeriod.Date
         {
             StockCheck.Model.Period.EndOfPeriod = eop;
             StockCheck.Model.Period.Name = name;
@@ -192,7 +198,7 @@ module Factory =
     let initialisePeriodFromClone (p : Period) = 
         let pi = p.Items 
                  |> Seq.map(fun i -> copyForNextPeriod i)
-        {p with Items = pi; StartOfPeriod = cleanStartDate (p.EndOfPeriod.Date.AddDays(1.)); EndOfPeriod = cleanEndDate p.StartOfPeriod }
+        {p with Items = pi; StartOfPeriod = p.EndOfPeriod.Date.AddDays(1.); EndOfPeriod = p.EndOfPeriod.Date.AddDays(1.) }
 
     let initialiseWithoutZeroCarriedItems (p : Period) = 
         let ip = initialisePeriodFromClone p

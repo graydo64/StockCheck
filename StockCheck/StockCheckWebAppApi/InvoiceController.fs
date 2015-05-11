@@ -62,8 +62,8 @@ type InvoiceController() =
             StockCheck.Model.Invoice.Id = i.Id;
             StockCheck.Model.Invoice.Supplier = i.Supplier;
             StockCheck.Model.Invoice.InvoiceNumber = i.InvoiceNumber;
-            StockCheck.Model.Invoice.InvoiceDate = i.InvoiceDate;
-            StockCheck.Model.Invoice.DeliveryDate = i.DeliveryDate;
+            StockCheck.Model.Invoice.InvoiceDate = i.InvoiceDate.Date;
+            StockCheck.Model.Invoice.DeliveryDate = i.DeliveryDate.Date;
             StockCheck.Model.Invoice.InvoiceLines = modelLines;
         }
 

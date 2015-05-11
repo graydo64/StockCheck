@@ -30,7 +30,7 @@ type ``Given that a Period has been constructed`` () =
 
     [<Test>] member x.
         ``The period end date should end at a second to midnight`` () =
-            period.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(23, 59, 59))
+            period.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
 [<TestFixture>]
 type ``Given that a Period has been initialised from an existing Period`` () =
@@ -55,8 +55,8 @@ type ``Given that a Period has been initialised from an existing Period`` () =
             target.StartOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
     [<Test>] member x.
-        ``The period end date should end at a second to midnight`` () =
-            target.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(23, 59, 59))
+        ``The period end date should be midnight of the last day of the period`` () =
+            target.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
 [<TestFixture>]
 type ``Given that a period has been initialised without zero item carried stock`` () =
