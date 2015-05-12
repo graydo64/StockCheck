@@ -75,14 +75,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Copy of Library2.fs" />
-    <None Include="Common.fsx" />
-    <None Include="UpPSIPrdCode.fsx" />
+    <None Include="Script.fsx" />
     <None Include="packages.config" />
     <None Include="app.config" />
     <Compile Include="Library1.fs" />
     <Compile Include="Library3.fs" />
     <Compile Include="Library2.fs" />
-    <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StockCheck.Model\StockCheck.Model.fsproj">
