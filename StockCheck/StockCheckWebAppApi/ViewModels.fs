@@ -80,7 +80,8 @@ type SalesItemsViewModel =
       [<DataMember>] ContainerSize : float
       [<DataMember>] CostPerContainer : decimal
       [<DataMember>] SalesPrice : decimal
-      [<DataMember>] SalesUnitType : string }
+      [<DataMember>] SalesUnitType : string
+      [<DataMember>] ProductCode : string }
 
 [<CLIMutable>]
 [<DataContract>]
@@ -94,7 +95,9 @@ type SalesItemView =
       [<DataMember>] TaxRate : float
       [<DataMember>] UllagePerContainer : int
       [<DataMember>] SalesUnitType : string
-      [<DataMember>] SalesUnitsPerContainerUnit : float }
+      [<DataMember>] SalesUnitsPerContainerUnit : float
+      [<DataMember>] ProductCode : string
+      [<DataMember>] IsActive : bool }
 
 [<CLIMutable>]
 [<DataContract>]
@@ -111,7 +114,9 @@ type SalesItemViewResponse =
       [<DataMember>] SalesUnitsPerContainerUnit : float
       [<DataMember>] CostPerUnitOfSale : decimal
       [<DataMember>] MarkUp : decimal
-      [<DataMember>] IdealGP : float }
+      [<DataMember>] IdealGP : float      
+      [<DataMember>] ProductCode : string
+      [<DataMember>] IsActive : bool }
 
 [<CLIMutable>]
 [<DataContract>]

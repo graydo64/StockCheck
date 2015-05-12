@@ -25,6 +25,8 @@ type SalesItemController() =
         m.SalesUnitType <- sut
         m.TaxRate <- v.TaxRate
         m.UllagePerContainer <- v.UllagePerContainer
+        m.ProductCode <- v.ProductCode
+        m.IsActive <- v.IsActive
         if sut = salesUnitType.Other then m.OtherSalesUnit <- v.SalesUnitsPerContainerUnit
         else m.OtherSalesUnit <- 0.
         m
@@ -41,8 +43,9 @@ type SalesItemController() =
                                             Name = i.Name; 
                                             ContainerSize = i.ContainerSize; 
                                             CostPerContainer = i.CostPerContainer; 
-                                            SalesPrice = i.SalesPrice
-                                            SalesUnitType = i.SalesUnitType.toString()
+                                            SalesPrice = i.SalesPrice;
+                                            SalesUnitType = i.SalesUnitType.toString();
+                                            ProductCode = i.ProductCode
                                         })
             cache.Add cid i
             x.Request.CreateResponse(HttpStatusCode.OK, i)
@@ -61,11 +64,21 @@ type SalesItemController() =
           SalesUnitsPerContainerUnit = i.SalesUnitsPerContainerUnit
           CostPerUnitOfSale = i.CostPerUnitOfSale
           MarkUp = i.MarkUp
-          IdealGP = i.IdealGP }
+          IdealGP = i.IdealGP
+          ProductCode = i.ProductCode
+          IsActive = i.IsActive }
 
     member x.Post(salesItem : SalesItemView) =
+        let si = match salesItem with
+                    | { ProductCode = "" } -> { salesItem with ProductCode = repo.GetNextProductCode }
+                    | { ProductCode = null } -> { salesItem with ProductCode = repo.GetNextProductCode }
+                    | _ ->
+                            if repo.ProductCodeExists salesItem.ProductCode then
+                                { salesItem with ProductCode = repo.GetNextProductCode }
+                            else
+                                salesItem
         let i = StockCheck.Model.SalesItem()
-        mapViewToModel i salesItem
+        mapViewToModel i si
         |> persister.Save
         cache.Remove("#salesItems")
 

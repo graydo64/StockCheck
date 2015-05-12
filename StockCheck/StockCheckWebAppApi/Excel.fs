@@ -7,6 +7,7 @@ open OfficeOpenXml
 module Excel =
 
     type ilFacade = {
+        ProductCode : string
         LedgerCode : string
         Name : string
         ContainerSize : float
@@ -39,116 +40,91 @@ module Excel =
         let datesRow = 1
         let headerRow = 2
 
-        let lcCol = 1
-        let siCol = 2
-        let csCol = 3
+        let pcCol = 1
+        let lcCol = 2
+        let siCol = 3
+        let csCol = 4
 
         let curFormat = "\£#,##0.00"
         let pcFormat = "0.0%"
         let dateFormat = "dd/mm/yyyy"
 
-        let writeGenericHeader (ws : ExcelWorksheet) =
-            ws.SetValue(headerRow, lcCol, "Category")
-            ws.SetValue(headerRow, siCol, "Item")
-            ws.SetValue(headerRow, csCol, "Container")
+        let genHeadings = ["Prd Code"; "Category"; "Item"; "Container"]
+        let cloHeadings = ["Closing on hand"; "At Cost Ex"; "At Sales Inc"; "At Sales Ex"]
+        let grHeadings = ["Invoice No"; "Delivery Date"; "Qty"; "Total Ex"; "Total Inc"; "Week Ending"]
+        let catHeadings = ["Units/Container Unit"; "Cost/Container Ex"; "Cost/Unit"; "Sales Price Inc"; "Sales Price Ex"; "VAT Rate"; "Ideal GP"]
+        let wsHeadings = ["Opening"; "Containers Received"; "Total Units"; "Closing"; "Sales"; "Purchases Ex"; "Purchases Inc"; "Purchases Total"; "Sales Inc"; "Sales Ex"; "Cost of Sales"; "Profit"; "Sales/Day"; "Days on Hand"]
 
-        let writeCloHeader (ws : ExcelWorksheet) =
-            ws.SetValue(headerRow, 4, "Closing on hand")
-            ws.SetValue(headerRow, 5, "At Cost Ex")
-            ws.SetValue(headerRow, 6, "At Sales Inc")
-            ws.SetValue(headerRow, 7, "At Sales Ex")
+        let writeHeadings ((ws : ExcelWorksheet), headings) =
+            Seq.append genHeadings headings
+            |> Seq.iteri(fun i h -> ws.SetValue(headerRow, i + 1, h))
 
-        let writeGrHeader (ws : ExcelWorksheet) =
-            ws.SetValue(headerRow, 4, "Invoice No")
-            ws.SetValue(headerRow, 5, "Delivery Date")
-            ws.SetValue(headerRow, 6, "Qty")
-            ws.SetValue(headerRow, 7, "Total Ex")
-            ws.SetValue(headerRow, 8, "Total Inc")
-            ws.SetValue(headerRow, 9, "Week Ending")
+        let writeCell (s : ExcelWorksheet) r c v =
+            s.SetValue(r, c, v)  
 
-        let writeCatHeader (ws : ExcelWorksheet) =
-            ws.SetValue(headerRow, 4, "Units/Container Unit")
-            ws.SetValue(headerRow, 5, "Cost/Container Ex")
-            ws.SetValue(headerRow, 6, "Cost/Unit")
-            ws.SetValue(headerRow, 7, "Sales Price Inc")
-            ws.SetValue(headerRow, 8, "Sales Price Ex")
-            ws.SetValue(headerRow, 9, "VAT Rate")
-            ws.SetValue(headerRow, 10, "Ideal GP")
-
-        let writeWsHeader (ws : ExcelWorksheet) =
-            ws.SetValue(headerRow, 4, "Opening")
-            ws.SetValue(headerRow, 5, "Containers Received")
-            ws.SetValue(headerRow, 6, "Total Units")
-            ws.SetValue(headerRow, 7, "Closing")
-            ws.SetValue(headerRow, 8, "Sales")
-            ws.SetValue(headerRow, 9, "Purchases Ex")
-            ws.SetValue(headerRow, 10, "Purchases Inc")
-            ws.SetValue(headerRow, 11, "Purchases Total")
-            ws.SetValue(headerRow, 12, "Sales Inc")
-            ws.SetValue(headerRow, 13, "Sales Ex")
-            ws.SetValue(headerRow, 14, "Cost of Sales")
-            ws.SetValue(headerRow, 15, "Profit")
-            ws.SetValue(headerRow, 16, "Sales/Day")
-            ws.SetValue(headerRow, 17, "Days on Hand")
+        let writeRowHeading (s : ExcelWorksheet) r (si : StockCheck.Model.SalesItem) =  
+            let write c v = writeCell s r c v
+            write pcCol si.ProductCode
+            write lcCol si.LedgerCode
+            write siCol si.Name
+            write csCol si.ContainerSize
 
         let writeSalesItem i (si : StockCheck.Model.SalesItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
-            ws.SetValue(rowNo, lcCol, si.LedgerCode)
-            ws.SetValue(rowNo, siCol, si.Name)
-            ws.SetValue(rowNo, csCol, si.ContainerSize)
-            ws.SetValue(rowNo, 4, si.SalesUnitsPerContainerUnit)
-            ws.SetValue(rowNo, 5, si.CostPerContainer)
-            ws.SetValue(rowNo, 6, si.CostPerUnitOfSale)
-            ws.SetValue(rowNo, 7, si.SalesPrice)
-            ws.SetValue(rowNo, 8, StockCheck.Model.Utils.LessTax si.TaxRate si.SalesPrice)
-            ws.SetValue(rowNo, 9, si.TaxRate)
-            ws.SetValue(rowNo, 10, si.IdealGP)
+            let write c v = writeCell ws rowNo c v
+            writeRowHeading ws rowNo si
+            write (csCol + 1) si.SalesUnitsPerContainerUnit
+            write (csCol + 2) si.CostPerContainer
+            write (csCol + 3) si.CostPerUnitOfSale
+            write (csCol + 4) si.SalesPrice
+            write (csCol + 5) (StockCheck.Model.Utils.LessTax si.TaxRate si.SalesPrice)
+            write (csCol + 6) si.TaxRate
+            write (csCol + 7) si.IdealGP
 
-        let writeClosingItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
+        let writeClosingItem i (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
-            ws.SetValue(rowNo, lcCol, pi.SalesItem.LedgerCode)
-            ws.SetValue(rowNo, siCol, pi.SalesItem.Name)
-            ws.SetValue(rowNo, csCol, pi.SalesItem.ContainerSize)
-            ws.SetValue(rowNo, 4, pi.ClosingStock)
-            ws.SetValue(rowNo, 5, pi.ClosingValueCostEx)
-            ws.SetValue(rowNo, 6, pi.ClosingValueSalesInc)
-            ws.SetValue(rowNo, 7, pi.ClosingValueSalesEx)
+            let write c v = writeCell ws rowNo c v
+            writeRowHeading ws rowNo pi.SalesItem
+            write (csCol + 1) pi.ClosingStock
+            write (csCol + 2) pi.ClosingValueCostEx
+            write (csCol + 3) pi.ClosingValueSalesInc
+            write (csCol + 4) pi.ClosingValueSalesEx
             pi
 
         let writeGoodsIn i f (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
-            let wer = ws.Cells.[rowNo, 9]
-            let ddr = ws.Cells.[rowNo, 5]
-            ws.SetValue(rowNo, lcCol, f.LedgerCode)
-            ws.SetValue(rowNo, siCol, f.Name)
-            ws.SetValue(rowNo, csCol, f.ContainerSize)
-            ws.SetValue(rowNo, 4, f.InvoiceNumber)
-            ws.SetValue(rowNo, 5, f.DeliveryDate.ToLocalTime())
-            ws.SetValue(rowNo, 6, f.Qty)
-            ws.SetValue(rowNo, 7, f.AmountEx)
-            ws.SetValue(rowNo, 8, f.AmountInc)
+            let wer = ws.Cells.[rowNo, (csCol + 5 + 1)]
+            let ddr = ws.Cells.[rowNo, (csCol + 2)]
+            let write c v = writeCell ws rowNo c v
+            write pcCol f.ProductCode
+            write lcCol f.LedgerCode
+            write siCol f.Name
+            write csCol f.ContainerSize
+            write (csCol + 1) f.InvoiceNumber
+            write (csCol + 2) (f.DeliveryDate.ToLocalTime())
+            write (csCol + 3) f.Qty
+            write (csCol + 4) f.AmountEx
+            write (csCol + 5) f.AmountInc
             wer.Formula <- System.String.Format("{0}+(7-WEEKDAY({0},2))", ddr.Address)
-            
-
+        
         let writePeriodItem i (p : StockCheck.Model.Period) (pi : StockCheck.Model.PeriodItem) (ws : ExcelWorksheet) =
             let rowNo = rowOffset i
-            ws.SetValue(rowNo, lcCol, pi.SalesItem.LedgerCode)
-            ws.SetValue(rowNo, siCol, pi.SalesItem.Name)
-            ws.SetValue(rowNo, csCol, pi.SalesItem.ContainerSize)
-            ws.SetValue(rowNo, 4, pi.OpeningStock)
-            ws.SetValue(rowNo, 5, pi.ContainersReceived)
-            ws.SetValue(rowNo, 6, pi.TotalUnits)
-            ws.SetValue(rowNo, 7, pi.ClosingStock)
-            ws.SetValue(rowNo, 8, pi.Sales)
-            ws.SetValue(rowNo, 9, pi.PurchasesEx)
-            ws.SetValue(rowNo, 10, pi.PurchasesInc)
-            ws.SetValue(rowNo, 11, pi.PurchasesTotal)
-            ws.SetValue(rowNo, 12, pi.SalesInc)
-            ws.SetValue(rowNo, 13, pi.SalesEx)
-            ws.SetValue(rowNo, 14, pi.CostOfSalesEx)
-            ws.SetValue(rowNo, 15, pi.Profit)
-            ws.SetValue(rowNo, 16, pi.SalesPerDay(p.StartOfPeriod, p.EndOfPeriod))
-            ws.SetValue(rowNo, 17, pi.DaysOnHand(p.StartOfPeriod, p.EndOfPeriod))
+            let write c v = writeCell ws rowNo c v
+            writeRowHeading ws rowNo pi.SalesItem
+            write (csCol + 1) pi.OpeningStock
+            write (csCol + 2) pi.ContainersReceived
+            write (csCol + 3) pi.TotalUnits
+            write (csCol + 4) pi.ClosingStock
+            write (csCol + 5) pi.Sales
+            write (csCol + 6) pi.PurchasesEx
+            write (csCol + 7) pi.PurchasesInc
+            write (csCol + 8) pi.PurchasesTotal
+            write (csCol + 9) pi.SalesInc
+            write (csCol + 10) pi.SalesEx
+            write (csCol + 11) pi.CostOfSalesEx
+            write (csCol + 12) pi.Profit
+            write (csCol + 13) (pi.SalesPerDay(p.StartOfPeriod, p.EndOfPeriod))
+            write (csCol + 14) (pi.DaysOnHand(p.StartOfPeriod, p.EndOfPeriod))
             pi
 
         let compareSalesItems (si1 : StockCheck.Model.SalesItem) (si2 : StockCheck.Model.SalesItem) =
@@ -164,7 +140,7 @@ module Excel =
             compareSalesItems pi1.SalesItem pi2.SalesItem
 
         let init (sh : ExcelWorksheet) =
-            sh.View.FreezePanes(headerRow + 1, 4)
+            sh.View.FreezePanes(headerRow + 1, 5)
             sh.Cells.AutoFitColumns()
             sh.Row(datesRow).Style.Font.Bold <- true
             
@@ -181,12 +157,13 @@ module Excel =
             |> Seq.toList
             |> List.sortWith comparePeriodItems
             |> List.mapi(fun i si -> writePeriodItem i period si ws)
-            |> List.mapi(fun i si -> writeClosingItem i period si clo)
+            |> List.mapi(fun i si -> writeClosingItem i si clo)
             |> List.iteri(fun i pi -> writeSalesItem i pi.SalesItem cat)
 
         let getGoodsIn n d (il : StockCheck.Model.InvoiceLine) = 
             {
-                ilFacade.LedgerCode = il.SalesItem.LedgerCode
+                ilFacade.ProductCode = il.SalesItem.ProductCode
+                LedgerCode = il.SalesItem.LedgerCode
                 Name = il.SalesItem.Name
                 ContainerSize = il.SalesItem.ContainerSize
                 InvoiceNumber = n
@@ -206,40 +183,39 @@ module Excel =
 
         let sheets = [ws; gr; cat; clo]
 
-        sheets |> Seq.iter writeGenericHeader
-        writeCatHeader cat
-        writeGrHeader gr
-        writeWsHeader ws
-        writeCloHeader clo
+        let hds = [ (ws, wsHeadings); (gr, grHeadings); (cat, catHeadings); (clo, cloHeadings) ]
+
+        hds
+        |> Seq.iter writeHeadings
         writeData
         writeGoodsReceived |> ignore
 
-        ws.Cells.[datesRow, 4] |> sdf |> fun c -> c.Value <- period.StartOfPeriod.ToLocalTime()
-        ws.Cells.[datesRow, 7] |> sdf |> fun c -> c.Value <- period.EndOfPeriod.ToLocalTime()
+        ws.Cells.[datesRow, 5] |> sdf |> fun c -> c.Value <- period.StartOfPeriod.ToLocalTime()
+        ws.Cells.[datesRow, 8] |> sdf |> fun c -> c.Value <- period.EndOfPeriod.ToLocalTime()
 
-        scf ws curFormat {9..15}
+        scf ws curFormat {10..16}
 
-        scf cat curFormat {5..8}
-        scf cat pcFormat {9..10}
+        scf cat curFormat {6..9}
+        scf cat pcFormat {10..11}
 
-        clo.Cells.[datesRow, 4] |> sdf |> fun c -> c.Value <- period.EndOfPeriod.ToLocalTime()
-        scf clo curFormat {5..7}
+        clo.Cells.[datesRow, 5] |> sdf |> fun c -> c.Value <- period.EndOfPeriod.ToLocalTime()
+        scf clo curFormat {6..8}
 
-        gr.Column(5).Style.Numberformat.Format <- dateFormat
-        gr.Column(9).Style.Numberformat.Format <- dateFormat
-        scf gr curFormat {7..8}
+        gr.Column(6).Style.Numberformat.Format <- dateFormat
+        gr.Column(10).Style.Numberformat.Format <- dateFormat
+        scf gr curFormat {8..9}
         let sumCol (sh : ExcelWorksheet) sumRow col =
             let range = ws.Cells.[headerRow + 1, col, sumRow - 1, col]
             sh.Cells.[sumRow, col].Formula <- System.String.Format("SUM({0})", range.Address)
         
         let sumRow = period.Items.Count + headerRow + 1
 
-        sumCol ws sumRow 12
         sumCol ws sumRow 13
         sumCol ws sumRow 14
-        sumCol clo sumRow 5
+        sumCol ws sumRow 15
         sumCol clo sumRow 6
         sumCol clo sumRow 7
+        sumCol clo sumRow 8
 
         sheets |> Seq.iter init
 

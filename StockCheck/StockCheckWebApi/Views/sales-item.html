@@ -2,9 +2,14 @@
     <strong class="error">{{ error }}</strong>
     <strong ng-show="loading">loading...</strong>
     <div class="row">
+        <label class="col-sm-2 control-label">Product Code</label>
+        <strong class="col-md-6" ng-hide="editMode">{{ salesitem.productCode }}</strong>
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.productCode" focus-me />
+    </div>
+    <div class="row">
         <label class="col-sm-2 control-label">Ledger Code</label>
         <strong class="col-md-6" ng-hide="editMode">{{ salesitem.ledgerCode }}</strong>
-        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.ledgerCode" focus-me />
+        <input ng-show="editMode" type="text" class="form-control" ng-model="salesitem.ledgerCode" />
     </div>
     <div class="row">
         <label class="col-sm-2 control-label">Product Name</label>

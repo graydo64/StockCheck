@@ -18,7 +18,9 @@ type SalesItem =
       TaxRate : float
       UllagePerContainer : int
       SalesUnitType : string
-      OtherSalesUnit : float }
+      OtherSalesUnit : float
+      mutable ProductCode : string
+      IsActive : bool }
 
 [<CLIMutable>]
 type ItemReceived = 
@@ -79,7 +81,7 @@ module internal MapToModel =
                 (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
                     LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
                     UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType,
-                    OtherSalesUnit = si.OtherSalesUnit)
+                    OtherSalesUnit = si.OtherSalesUnit, ProductCode = si.ProductCode, IsActive = si.IsActive)
     
     let piMap (pi : PeriodItem) = 
         let modelItem = StockCheck.Model.PeriodItem(siMap pi.SalesItem)
@@ -139,6 +141,14 @@ type Query(documentStore : IDocumentStore) =
         use session = documentStore.OpenSession(dbName)
         session.Load<SalesItem>(id)
     
+    member internal this.GetMaxProductCode =
+        use session = documentStore.OpenSession(dbName)
+        session.Query<SalesItem>().Take(1024).OrderByDescending(fun i -> i.ProductCode).FirstOrDefault().ProductCode
+
+    member internal this.ProductCodeExists c =
+        use session = documentStore.OpenSession(dbName)
+        session.Query<SalesItem>().Any(fun i -> i.ProductCode = c)
+
     member internal this.GetPeriod (id : string) = 
         use session = documentStore.OpenSession(dbName)
         session.Load<Period>(id)
@@ -227,6 +237,11 @@ type Query(documentStore : IDocumentStore) =
     member this.GetModelInvoicesByDateRange start finish = this.GetInvoicesByDateRange start finish |> Seq.map MapToModel.iMap
     member this.InvoiceExists n s = this.TestForAnyInvoicesMatching n s
     member this.GetModelSuppliers = this.GetSuppliers() |> Seq.map MapToModel.supMap
+    member this.ProductCodeExists x = this.ProductCodeExists x
+    member this.GetNextProductCode = 
+        let mpc = this.GetMaxProductCode
+        let i = System.Int64.Parse(mpc)
+        (i + 1L).ToString()
 
 module internal MapFromModel = 
     let idMap id = match id with
@@ -252,7 +267,9 @@ module internal MapFromModel =
           TaxRate = si.TaxRate
           UllagePerContainer = si.UllagePerContainer
           SalesUnitType = si.SalesUnitType.toString()
-          OtherSalesUnit = si.OtherSalesUnit }
+          OtherSalesUnit = si.OtherSalesUnit
+          ProductCode = si.ProductCode
+          IsActive = si.IsActive }
     
     let pMap (documentStore) (p : StockCheck.Model.Period) = 
         { Id = idMap p.Id
