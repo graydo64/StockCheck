@@ -18,7 +18,9 @@ type SalesItem =
       TaxRate : float
       UllagePerContainer : int
       SalesUnitType : string
-      OtherSalesUnit : float }
+      OtherSalesUnit : float
+      mutable ProductCode : string
+      IsActive : bool  }
 
 type ItemReceived = 
     { SalesItemId : string
@@ -85,6 +87,8 @@ module internal MapToModel =
                 UllagePerContainer = si.UllagePerContainer * 1<StockCheck.Model.pt>
                 SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType;
                 OtherSalesUnit = si.OtherSalesUnit;
+                ProductCode = si.ProductCode;
+                IsActive = si.IsActive;
             }
     
     let piMap (pi : PeriodItem) = 
@@ -173,7 +177,17 @@ type Query(documentStore : IDocumentStore) =
     member internal this.GetSalesItems () = 
         use session = documentStore.OpenSession(dbName)
         session.Query<SalesItem>().Take(1024).ToList()
+
+    member internal this.IsProductCodeInUse c = 
+        use session = documentStore.OpenSession(dbName)
+        session.Query<SalesItem>().Where(fun i -> i.ProductCode = c).Any()
     
+    member internal this.NextProductCode () = 
+        use session = documentStore.OpenSession(dbName)
+        let hpc = session.Query<SalesItem>().Take(1024).ToList().OrderByDescending(fun i -> Int64.Parse(i.ProductCode))
+        let fhpc = hpc.FirstOrDefault().ProductCode
+        (Int64.Parse(fhpc) + 1L).ToString()
+
     member internal this.GetInvoice (id : string) = 
         use session = documentStore.OpenSession(dbName)
         session.Load<Invoice>(id)
@@ -253,6 +267,8 @@ type Query(documentStore : IDocumentStore) =
     member this.GetModelInvoicesByDateRange start finish = this.GetInvoicesByDateRange start finish |> Seq.map MapToModel.iMap
     member this.InvoiceExists n s = this.TestForAnyInvoicesMatching n s
     member this.GetModelSuppliers = this.GetSuppliers() |> Seq.map MapToModel.supMap
+    member this.IsProductCodeInUse c = this.IsProductCodeInUse c
+    member this.GetNextProductCode = this.NextProductCode
 
 module internal MapFromModel = 
     let idMap id = match id with
@@ -278,7 +294,9 @@ module internal MapFromModel =
           TaxRate = si.TaxRate / 1.0<StockCheck.Model.percentage>
           UllagePerContainer = si.UllagePerContainer / 1<StockCheck.Model.pt>
           SalesUnitType = si.SalesUnitType.toString()
-          OtherSalesUnit = si.OtherSalesUnit }
+          OtherSalesUnit = si.OtherSalesUnit
+          ProductCode = si.ProductCode
+          IsActive = si.IsActive }
         
     let pMap (documentStore) (p : StockCheck.Model.Period) = 
         { Id = idMap p.Id

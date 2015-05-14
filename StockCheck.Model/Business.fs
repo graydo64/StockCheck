@@ -157,6 +157,8 @@ module Factory =
             UllagePerContainer = 0<pt>;
             SalesUnitType = StockCheck.Model.salesUnitType.Other;
             OtherSalesUnit = 0.;
+            ProductCode = String.Empty;
+            IsActive = true;
         }
 
     let defaultPeriodItem =

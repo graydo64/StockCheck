@@ -27,6 +27,8 @@ type SalesItemController() =
                 SalesUnitType = salesUnitType.fromString v.SalesUnitType;
                 UllagePerContainer = v.UllagePerContainer * 1<pt>;
                 OtherSalesUnit = 0.
+                ProductCode = v.ProductCode
+                IsActive = v.IsActive
             }
         match baseSI.SalesUnitType with
         | Other -> { baseSI with OtherSalesUnit = v.SalesUnitsPerContainerUnit }
@@ -46,6 +48,7 @@ type SalesItemController() =
                                             CostPerContainer = i.CostPerContainer / 1M<money>; 
                                             SalesPrice = i.SalesPrice / 1M<money>;
                                             SalesUnitType = i.SalesUnitType.toString()
+                                            ProductCode = i.ProductCode
                                         })
             cache.Add cid i
             x.Request.CreateResponse(HttpStatusCode.OK, i)
@@ -65,10 +68,20 @@ type SalesItemController() =
           SalesUnitsPerContainerUnit = sii.SalesUnitsPerContainerUnit
           CostPerUnitOfSale = sii.CostPerUnitOfSale / 1.M<money>
           MarkUp = sii.MarkUp / 1.M<money>
-          IdealGP = sii.IdealGP / 1.<percentage>}
+          IdealGP = sii.IdealGP / 1.<percentage>
+          ProductCode = i.ProductCode
+          IsActive = i.IsActive
+        }
 
     member x.Post(salesItem : SalesItemView) =
-        mapViewToM salesItem
+        let pc = match salesItem with
+                    | { ProductCode = "" } -> repo.GetNextProductCode()
+                    | { ProductCode = null } -> repo.GetNextProductCode()
+                    | _ ->  if repo.IsProductCodeInUse salesItem.ProductCode then
+                                repo.GetNextProductCode()
+                            else
+                                salesItem.ProductCode
+        mapViewToM { salesItem with ProductCode = pc }
         |> persister.Save
         cache.Remove("#salesItems")
 

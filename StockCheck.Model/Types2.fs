@@ -13,7 +13,9 @@ type SalesItem = {
     TaxRate: float<percentage>;
     SalesUnitType: salesUnitType;
     OtherSalesUnit: float;
-    UllagePerContainer: int<pt>
+    UllagePerContainer: int<pt>;
+    ProductCode: string;
+    IsActive: bool;
 }
 
 type SalesItemInfo = {
