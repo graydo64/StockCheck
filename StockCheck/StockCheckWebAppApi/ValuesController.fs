@@ -10,7 +10,7 @@ type ValuesController() =
 
     let supMap (s : StockCheck.Model.Supplier) =
         { SupplierView.Id = s.Id
-          Name = s.Name }
+          Name = s.SupplierName }
 
     [<Route("api/supplier")>]
     member x.Get() =
@@ -19,9 +19,10 @@ type ValuesController() =
 
     [<Route("api/supplier")>]
     member x.Post(supplier : SupplierView) =
-        let modelSupplier = StockCheck.Model.Supplier()
-        modelSupplier.Id <- supplier.Id
-        modelSupplier.Name <- supplier.Name
+        let (modelSupplier : StockCheck.Model.Supplier) = { 
+            Id = supplier.Id; 
+            SupplierName = supplier.Name 
+        }
         persister.Save modelSupplier
 
     [<Route("api/salesunit")>]

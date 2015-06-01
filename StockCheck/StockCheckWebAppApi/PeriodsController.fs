@@ -5,6 +5,7 @@ open System.Net
 open System.Net.Http
 open System.Web.Http
 open StockCheck.Repository
+open StockCheck.Model.Factory
 open System
 open System.Linq
 open System.Collections.Generic
@@ -14,18 +15,19 @@ open FsWeb.Model.Mapping.Period
 type PeriodController() = 
     inherit ApiController()
     let repo = new StockCheck.Repository.Query(FsWeb.Global.Store)
-    let salesItems = repo.GetModelSalesItems
     let cache = FsWeb.CacheWrapper()
-    
+        
     [<Route("api/period/")>]
     member x.Get() = 
         repo.GetModelPeriods |> Seq.map (fun i -> 
+                                    let info = StockCheck.Model.Factory.getPeriodInfo i
                                     { PeriodsViewModel.Id = i.Id
                                       Name = i.Name
                                       StartOfPeriod = i.StartOfPeriod
                                       EndOfPeriod = i.EndOfPeriod
-                                      SalesEx = i.SalesEx
-                                      ClosingValueCostEx = i.ClosingValueCostEx })
+                                      SalesEx = info.SalesEx / 1M<StockCheck.Model.money>
+                                      ClosingValueCostEx = info.ClosingValueCostEx / 1M<StockCheck.Model.money>
+                                    })
 
     [<Route("api/period/{id}")>]
     member x.Get(id : string, ()) = 
@@ -43,8 +45,7 @@ type PeriodController() =
         
         match periods with
         | 0 -> 
-            let p = new StockCheck.Model.Period()
-            mapPFromViewModel salesItems p period
+            newPFromViewModel repo.GetModelSalesItemById period
             |> persister.Save
             x.Request.CreateResponse(HttpStatusCode.OK, period)
         | _ -> 
@@ -53,18 +54,15 @@ type PeriodController() =
     [<Route("api/period")>]
     member x.Put(period : PeriodViewModel) = 
         let persister = new StockCheck.Repository.Persister(FsWeb.Global.Store)
-        let periods = repo.GetModelPeriods |> Seq.filter (fun i -> i.Id = period.Id)
+        let modelPeriod = repo.GetModelPeriodById period.Id
+        let cachedSISeq = Seq.cache repo.GetModelSalesItems
+        let getModelSalesItemById id = cachedSISeq |> Seq.where (fun i -> i.Id = id) |> Seq.head
         
-        match periods |> Seq.length with
-        | 0 -> 
-            x.Request.CreateResponse(HttpStatusCode.NotFound, period)
-        | _ -> 
-            periods 
-            |> Seq.head
-            |> (fun p -> mapPFromViewModel salesItems p period)
-            |> persister.Save
-            cache.Remove period.Id
-            x.Request.CreateResponse(HttpStatusCode.OK, period)
+        modelPeriod
+        |> (fun p -> mapPFromViewModel getModelSalesItemById p period)
+        |> persister.Save
+        cache.Remove period.Id
+        x.Request.CreateResponse(HttpStatusCode.OK, period)
     
     [<HttpGet>][<Route("api/period/init-from/{id}")>]
     member x.InitFrom(id : string) = 
@@ -73,7 +71,7 @@ type PeriodController() =
             |> Seq.filter (fun i -> i.Id = id)
             |> Seq.head
         
-        let newp = StockCheck.Model.Period.InitialiseFromClone(period)
+        let newp = StockCheck.Model.Factory.initialisePeriodFromClone period
         mapToViewModel newp
 
     [<HttpGet>][<Route("api/period/init-clean/{id}")>]
@@ -83,7 +81,7 @@ type PeriodController() =
             |> Seq.filter (fun i -> i.Id = id)
             |> Seq.head
         
-        let newp = StockCheck.Model.Period.InitialiseWithoutZeroCarriedItems(period)
+        let newp = StockCheck.Model.Factory.initialiseWithoutZeroCarriedItems period
         mapToViewModel newp
 
     [<HttpGet>][<Route("api/period/export/{id}")>]

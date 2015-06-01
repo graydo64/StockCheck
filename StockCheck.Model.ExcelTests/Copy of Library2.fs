@@ -28,14 +28,14 @@ let saveSalesItem (s : StockCheck.Model.SalesItem) =
 let period = query.GetModelPeriods |> Seq.filter(fun p -> p.Name = "Dec/Jan 2015") |> Seq.head
 
 let updateSalesItem (s : StockCheck.Model.SalesItem) =
-    match s.LedgerCode with
-    | "1000" -> s.SalesUnitType <- Pint
-    | "1005" -> s.SalesUnitType <- Pint
-    | "1020" -> s.SalesUnitType <- Wine
-    | "1030" -> s.SalesUnitType <- Spirit
-    | _ -> s.SalesUnitType <- Unit
+    let n = match s.ItemName.LedgerCode with
+            | "1000" -> { s with SalesUnitType = Pint }
+            | "1005" -> { s with SalesUnitType = Pint }
+            | "1020" -> { s with SalesUnitType = Wine }
+            | "1030" -> { s with SalesUnitType = Spirit }
+            | _ -> { s with SalesUnitType = Unit }
 
-    persister.Save(s)
+    persister.Save(n)
 
 let getSalesPrice c =
     match c with
@@ -56,7 +56,7 @@ let maxBySI =
     let endDate = System.DateTime.Now
     let invoices = query.GetModelInvoicesByDateRange start endDate
     let invoiceLines = invoices |> Seq.collect(fun a -> a.InvoiceLines)
-    let linesBySI = invoiceLines |> Seq.map(fun b -> (b.SalesItem.Id, amountPerContainer b.InvoicedAmountEx b.Quantity))
+    let linesBySI = invoiceLines |> Seq.map(fun b -> (b.SalesItem.Id, amountPerContainer (b.InvoicedAmountEx / 1.0M<StockCheck.Model.money>) b.Quantity))
     linesBySI |> Seq.groupBy(fun c -> fst c) |> Seq.map(fun (k, v) -> Seq.max v)
 
 let checkCatalogueCPC (i : StockCheck.Model.SalesItem) =
@@ -80,11 +80,11 @@ let ``Update SalesItem price`` () =
     session.Store(p)
     session.SaveChanges()
 
-[<Test>]
-[<Ignore>]
-let ``Update SalesItem unit type`` () =
-    let s = query.GetModelSalesItems
-    s |> Seq.iter updateSalesItem
+//[<Test>]
+//[<Ignore>]
+//let ``Update SalesItem unit type`` () =
+//    let s = query.GetModelSalesItems
+//    s |> Seq.map updateSalesItem
 
 [<Test>]
 [<Ignore>]
@@ -110,9 +110,9 @@ let ``Check catalogue cost per container`` () =
     let s = query.GetModelSalesItems
     let maxBySI = maxBySI
     let t = s
-            |> Seq.filter(fun i -> i.LedgerCode = "1005")
+            |> Seq.filter(fun i -> i.ItemName.LedgerCode = "1005")
             //|> Seq.iter(fun i -> System.conol maxBySI.Where(fun (a, b) -> a = i.Id).First())
-            |> Seq.iter(fun i -> System.Console.WriteLine(System.String.Format("{0}: {1}, {2}",i.Name, i.CostPerContainer, maxBySI.Where(fun (a, b) -> a = i.Id).FirstOrDefault())))
+            |> Seq.iter(fun i -> System.Console.WriteLine(System.String.Format("{0}: {1}, {2}",i.ItemName.Name, i.CostPerContainer, maxBySI.Where(fun (a, b) -> a = i.Id).FirstOrDefault())))
     t |> ignore
     //|> Seq.iter(fun i -> checkCatalogueCPC i) 
     //|> 

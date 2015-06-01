@@ -13,6 +13,7 @@
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th>Prd Code</th>
                     <th>Ledger Code</th>
                     <th>Name</th>
                     <th>Container Size</th>
@@ -21,6 +22,7 @@
                 </tr>
             </thead>
             <tr ng-repeat="salesitem in salesitems | filter:searchText | orderBy:predicate">
+                <td>{{ salesitem.productCode }}</td>
                 <td>{{ salesitem.ledgerCode }}</td>
                 <td>{{ salesitem.name }}</td>
                 <td>{{ salesitem.containerSize }}</td>

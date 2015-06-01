@@ -5,21 +5,24 @@ open FsUnit
 open StockCheck.Model
 open Ploeh.AutoFixture
 open System
+open StockCheck.Model.Factory
 
 module TestUtils =
     let Zeroise (period : Period) =
-        (period.Items |> Seq.head).OpeningStock <- 0.
-        (period.Items |> Seq.head).ClosingStock <- 0.
-        period
+        let head = period.Items |> Seq.head
+        let tail = period.Items |> Seq.skip 1
+        let newHead = { head with OpeningStock = 0.; ClosingStock = 0.; ItemsReceived = [] }
+        let items = Seq.append [newHead] tail
+        { period with Items = items }
 
 [<TestFixture>]
 type ``Given that a Period has been constructed`` () = 
-    let period = new Period()
+    let period = Factory.getPeriod (Guid.NewGuid().ToString()) "..." (DateTime.Now) (DateTime.Now.AddDays(30.)) //new Period()
     let fixture = new Fixture()
 
     [<Test>] member x.
-        ``The Items collection should be a list of PeriodItems`` () =
-            period.Items |> should be instanceOfType<System.Collections.Generic.List<PeriodItem>>
+        ``The Items collection should be empty`` () =
+            Seq.length (period.Items) |> should equal (0)
 
     [<Test>] member x.
         ``The period start date should start at midnight`` () =
@@ -27,17 +30,17 @@ type ``Given that a Period has been constructed`` () =
 
     [<Test>] member x.
         ``The period end date should end at a second to midnight`` () =
-            period.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(23, 59, 59))
+            period.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
 [<TestFixture>]
 type ``Given that a Period has been initialised from an existing Period`` () =
     let fixture = new Fixture()
     let source = fixture.Create<Period>()
-    let target = Period.InitialiseFromClone source
+    let target = initialisePeriodFromClone source
 
     [<Test>] member x.
         ``The items collection contains the same number of items as the source`` () =
-            target.Items |> should haveCount source.Items.Count
+            Seq.length target.Items |> should equal (Seq.length source.Items)
 
     [<Test>] member x.
         ``The items have the same salesItem as the source items`` () =
@@ -45,28 +48,28 @@ type ``Given that a Period has been initialised from an existing Period`` () =
 
     [<Test>] member x.
         ``The period start date should be one day after the source period end date`` () =
-            target.StartOfPeriod |> should equal (source.EndOfPeriod.AddSeconds(1.))
+            target.StartOfPeriod |> should equal (source.EndOfPeriod.Date.AddDays(1.))
 
     [<Test>] member x.
         ``The period start date should start at midnight`` () =
             target.StartOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
     [<Test>] member x.
-        ``The period end date should end at a second to midnight`` () =
-            target.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(23, 59, 59))
+        ``The period end date should be midnight of the last day of the period`` () =
+            target.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
 [<TestFixture>]
 type ``Given that a period has been initialised without zero item carried stock`` () =
     let fixture = new Fixture()
     let source = fixture.Create<Period>()
-    let target = Period.InitialiseWithoutZeroCarriedItems (TestUtils.Zeroise source)
+    let target = initialiseWithoutZeroCarriedItems (TestUtils.Zeroise source)
 
     [<Test>] member x.
         ``The period's item collection should exclude items with zero opening and closing stocks`` () =
             
-            target.Items |> should haveCount (source.Items.Count - 1)
+            Seq.length target.Items |> should equal (Seq.length source.Items - 1)
 
     [<Test>] member x.
         ``The period start date should be one day after the source period end date`` () =
-            target.StartOfPeriod |> should equal (source.EndOfPeriod.AddSeconds(1.))
+            target.StartOfPeriod |> should equal (source.EndOfPeriod.Date.AddDays(1.))
         

@@ -6,10 +6,10 @@ open System.Linq
 open System.ComponentModel.DataAnnotations
 open Raven.Client
 open Raven.Client.Document
+open StockCheck.Model.Conv
 
-[<CLIMutable>]
 type SalesItem = 
-    { Id : string
+    { mutable Id : string
       ContainerSize : float
       CostPerContainer : decimal
       LedgerCode : string
@@ -18,9 +18,10 @@ type SalesItem =
       TaxRate : float
       UllagePerContainer : int
       SalesUnitType : string
-      OtherSalesUnit : float }
+      OtherSalesUnit : float
+      mutable ProductCode : string
+      IsActive : bool  }
 
-[<CLIMutable>]
 type ItemReceived = 
     { SalesItemId : string
       Quantity : float
@@ -28,93 +29,115 @@ type ItemReceived =
       InvoicedAmountEx : decimal
       InvoicedAmountInc : decimal }
 
-[<CLIMutable>]
 type PeriodItem = 
-    { Id : string
+    { mutable Id : string
       PeriodId : string
       SalesItem : SalesItem
       OpeningStock : float
       ClosingStockExpr : string
       ClosingStock : float }
 
-[<CLIMutable>]
 type Period = 
-    { Id : string
+    { mutable Id : string
       Name : string
       StartOfPeriod : DateTime
       EndOfPeriod : DateTime
       mutable Items : PeriodItem seq }
 
-[<CLIMutable>]
 type InvoiceLine = 
-    { Id : string
+    { mutable Id : string
       SalesItem : SalesItem
       Quantity : float
       InvoicedAmountEx : decimal
       InvoicedAmountInc : decimal }
 
-[<CLIMutable>]
 type Invoice = 
-    { Id : string
+    { mutable Id : string
       Supplier : string
       InvoiceNumber : string
       InvoiceDate : DateTime
       DeliveryDate : DateTime
       InvoiceLines : InvoiceLine seq }
 
-[<CLIMutable>]
 type Supplier = 
-    { Id : string
+    { mutable Id : string
       Name : string }
 
 module internal MapToModel = 
     let irMap (ir : ItemReceived) = 
-        StockCheck.Model.ItemReceived
-            (Quantity = ir.Quantity, ReceivedDate = ir.ReceivedDate, InvoicedAmountEx = decimal ir.InvoicedAmountEx, 
-             InvoicedAmountInc = decimal ir.InvoicedAmountInc)
+        {
+            StockCheck.Model.ItemReceived.Id = String.Empty;
+            StockCheck.Model.ItemReceived.Quantity = ir.Quantity;
+            StockCheck.Model.ItemReceived.ReceivedDate = ir.ReceivedDate;
+            StockCheck.Model.ItemReceived.InvoicedAmountEx = money ir.InvoicedAmountEx;
+            StockCheck.Model.ItemReceived.InvoicedAmountInc = money ir.InvoicedAmountInc
+        }
+
     let siMap (si : SalesItem) = 
         match si with
-        | i when String.IsNullOrEmpty(i.Id) -> StockCheck.Model.SalesItem()
-        | _ -> StockCheck.Model.SalesItem
-                (Id = si.Id.ToString(), ContainerSize = si.ContainerSize, CostPerContainer = si.CostPerContainer, 
-                    LedgerCode = si.LedgerCode, Name = si.Name, SalesPrice = si.SalesPrice, TaxRate = si.TaxRate, 
-                    UllagePerContainer = si.UllagePerContainer, SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType,
-                    OtherSalesUnit = si.OtherSalesUnit)
+        | i when String.IsNullOrEmpty(i.Id) ->
+            StockCheck.Model.Factory.defaultSalesItem
+        | _ -> 
+            {
+                Id = si.Id.ToString();
+                ItemName = { LedgerCode = si.LedgerCode; Name = si.Name; ContainerSize = si.ContainerSize }
+                CostPerContainer = money si.CostPerContainer;
+                SalesPrice = money si.SalesPrice;
+                TaxRate = percentage si.TaxRate;
+                UllagePerContainer = si.UllagePerContainer * 1<StockCheck.Model.pt>
+                SalesUnitType = StockCheck.Model.salesUnitType.fromString si.SalesUnitType;
+                OtherSalesUnit = si.OtherSalesUnit;
+                ProductCode = si.ProductCode;
+                IsActive = si.IsActive;
+            }
     
     let piMap (pi : PeriodItem) = 
-        let modelItem = StockCheck.Model.PeriodItem(siMap pi.SalesItem)
-        modelItem.Id <- pi.Id
-        modelItem.OpeningStock <- pi.OpeningStock
-        modelItem.ClosingStockExpr <- pi.ClosingStockExpr
-        modelItem.ClosingStock <- pi.ClosingStock
-        modelItem
+        {
+            StockCheck.Model.PeriodItem.Id = pi.Id;
+            StockCheck.Model.PeriodItem.OpeningStock = pi.OpeningStock;
+            StockCheck.Model.PeriodItem.ClosingStockExpr = pi.ClosingStockExpr;
+            StockCheck.Model.PeriodItem.ClosingStock = pi.ClosingStock;
+            StockCheck.Model.PeriodItem.SalesItem = siMap pi.SalesItem;
+            StockCheck.Model.PeriodItem.ItemsReceived = [];
+        }
     
     let pMap (p : Period) = 
         let items = p.Items |> Seq.map piMap
-        StockCheck.Model.Period
-            (Id = p.Id.ToString(), Name = p.Name, StartOfPeriod = p.StartOfPeriod.ToLocalTime(), EndOfPeriod = p.EndOfPeriod.ToLocalTime(),
-             Items = List<StockCheck.Model.PeriodItem> items)
+        {
+            StockCheck.Model.Period.Id = p.Id.ToString(); 
+            StockCheck.Model.Period.Name = p.Name; 
+            StockCheck.Model.Period.StartOfPeriod = p.StartOfPeriod.ToLocalTime(); 
+            StockCheck.Model.Period.EndOfPeriod = p.EndOfPeriod.ToLocalTime();
+            StockCheck.Model.Period.Items = items
+        }
     
     let ilMap (il : InvoiceLine) = 
         let salesItem = siMap il.SalesItem
-        let modelItem = StockCheck.Model.InvoiceLine(salesItem)
-        modelItem.Id <- il.Id.ToString()
-        modelItem.Quantity <- il.Quantity
-        modelItem.InvoicedAmountEx <- il.InvoicedAmountEx
-        modelItem.InvoicedAmountInc <- il.InvoicedAmountInc
-        modelItem
+        {
+            StockCheck.Model.InvoiceLine.Id = il.Id.ToString();
+            StockCheck.Model.InvoiceLine.Quantity = il.Quantity;
+            StockCheck.Model.InvoiceLine.SalesItem = salesItem;
+            StockCheck.Model.InvoiceLine.InvoicedAmountEx = money il.InvoicedAmountEx;
+            StockCheck.Model.InvoiceLine.InvoicedAmountInc = money il.InvoicedAmountInc;
+        }
     
     let iMap (i : Invoice) = 
         let lines = i.InvoiceLines |> Seq.map ilMap
-        StockCheck.Model.Invoice
-            (Id = i.Id.ToString(), Supplier = i.Supplier, InvoiceNumber = i.InvoiceNumber, InvoiceDate = i.InvoiceDate.ToLocalTime(), 
-             DeliveryDate = i.DeliveryDate.ToLocalTime(), InvoiceLines = List<StockCheck.Model.InvoiceLine>(lines))
+        {
+            StockCheck.Model.Invoice.Id = i.Id.ToString(); 
+            StockCheck.Model.Invoice.Supplier = i.Supplier; 
+            StockCheck.Model.Invoice.InvoiceNumber = i.InvoiceNumber; 
+            StockCheck.Model.Invoice.InvoiceDate = i.InvoiceDate.ToLocalTime(); 
+            StockCheck.Model.Invoice.DeliveryDate = i.DeliveryDate.ToLocalTime(); 
+            StockCheck.Model.Invoice.InvoiceLines = lines;
+        }
     
     let supMap (s : Supplier) = 
-        let supplier = StockCheck.Model.Supplier()
-        supplier.Id <- s.Id.ToString()
-        supplier.Name <- s.Name
-        supplier
+        let (model : StockCheck.Model.Supplier) = { 
+            Id = s.Id.ToString(); 
+            SupplierName = s.Name;
+        }
+        model
 
 type Query(documentStore : IDocumentStore) = 
 
@@ -154,7 +177,17 @@ type Query(documentStore : IDocumentStore) =
     member internal this.GetSalesItems () = 
         use session = documentStore.OpenSession(dbName)
         session.Query<SalesItem>().Take(1024).ToList()
+
+    member internal this.IsProductCodeInUse c = 
+        use session = documentStore.OpenSession(dbName)
+        session.Query<SalesItem>().Where(fun i -> i.ProductCode = c).Any()
     
+    member internal this.NextProductCode () = 
+        use session = documentStore.OpenSession(dbName)
+        let hpc = session.Query<SalesItem>().Take(1024).ToList().OrderByDescending(fun i -> Int64.Parse(i.ProductCode))
+        let fhpc = hpc.FirstOrDefault().ProductCode
+        (Int64.Parse(fhpc) + 1L).ToString()
+
     member internal this.GetInvoice (id : string) = 
         use session = documentStore.OpenSession(dbName)
         session.Load<Invoice>(id)
@@ -206,18 +239,25 @@ type Query(documentStore : IDocumentStore) =
                 |> Seq.map getPeriodItem
 
         let periodItems = Seq.concat [invoicePeriodItems; p.Items] |> Seq.distinct
+        let basePeriod = StockCheck.Model.Factory.getPeriod p.Id p.Name p.StartOfPeriod p.EndOfPeriod
+        let modelPeriod = { basePeriod with Items = periodItems |> Seq.map MapToModel.piMap }
 
-        let modelPeriod = MapToModel.pMap p
-        modelPeriod.Items.Clear()
-        modelPeriod.Items.AddRange(periodItems |> Seq.map MapToModel.piMap)
-        modelPeriod.Items
-        |> Seq.iter (fun mpi -> 
-               itemsReceived.Where(fun r -> r.SalesItemId = mpi.SalesItem.Id)
-               |> Seq.iter 
-                      (fun ir -> mpi.ReceiveItems ir.ReceivedDate ir.Quantity ir.InvoicedAmountEx ir.InvoicedAmountInc)
-               |> ignore)
-        |> ignore
-        modelPeriod
+        let mapItemsReceived sid =             
+            itemsReceived.Where(fun r -> r.SalesItemId = sid)
+            |> Seq.map (fun ir ->  {
+                                        StockCheck.Model.ItemReceived.Id = String.Empty;
+                                        StockCheck.Model.ItemReceived.InvoicedAmountEx = money ir.InvoicedAmountEx;
+                                        StockCheck.Model.ItemReceived.InvoicedAmountInc = money ir.InvoicedAmountInc;
+                                        StockCheck.Model.ItemReceived.Quantity = ir.Quantity;
+                                        StockCheck.Model.ItemReceived.ReceivedDate = ir.ReceivedDate;
+                                    })
+
+        let newItemSeq = modelPeriod.Items
+                            |> Seq.map ( fun mpi -> 
+                                                let ir = mapItemsReceived mpi.SalesItem.Id
+                                                { mpi with ItemsReceived = ir })
+
+        { modelPeriod with Items = newItemSeq }
     
     member this.GetModelPeriods = this.GetPeriods() |> Seq.map (fun p -> this.GetModelPeriodById p.Id)
     member this.GetModelSalesItems = this.GetSalesItems() |> Seq.map MapToModel.siMap
@@ -227,6 +267,8 @@ type Query(documentStore : IDocumentStore) =
     member this.GetModelInvoicesByDateRange start finish = this.GetInvoicesByDateRange start finish |> Seq.map MapToModel.iMap
     member this.InvoiceExists n s = this.TestForAnyInvoicesMatching n s
     member this.GetModelSuppliers = this.GetSuppliers() |> Seq.map MapToModel.supMap
+    member this.IsProductCodeInUse c = this.IsProductCodeInUse c
+    member this.GetNextProductCode = this.NextProductCode
 
 module internal MapFromModel = 
     let idMap id = match id with
@@ -241,19 +283,21 @@ module internal MapFromModel =
           OpeningStock = pi.OpeningStock
           ClosingStockExpr = pi.ClosingStockExpr
           ClosingStock = pi.ClosingStock }
-    
+
     let siMap (si : StockCheck.Model.SalesItem) = 
         { Id = idMap si.Id
-          ContainerSize = si.ContainerSize
-          CostPerContainer = si.CostPerContainer
-          LedgerCode = si.LedgerCode
-          Name = si.Name
-          SalesPrice = si.SalesPrice
-          TaxRate = si.TaxRate
-          UllagePerContainer = si.UllagePerContainer
+          ContainerSize = si.ItemName.ContainerSize
+          CostPerContainer = si.CostPerContainer / 1.0M<StockCheck.Model.money>
+          LedgerCode = si.ItemName.LedgerCode
+          Name = si.ItemName.Name
+          SalesPrice = si.SalesPrice / 1.0M<StockCheck.Model.money>
+          TaxRate = si.TaxRate / 1.0<StockCheck.Model.percentage>
+          UllagePerContainer = si.UllagePerContainer / 1<StockCheck.Model.pt>
           SalesUnitType = si.SalesUnitType.toString()
-          OtherSalesUnit = si.OtherSalesUnit }
-    
+          OtherSalesUnit = si.OtherSalesUnit
+          ProductCode = si.ProductCode
+          IsActive = si.IsActive }
+        
     let pMap (documentStore) (p : StockCheck.Model.Period) = 
         { Id = idMap p.Id
           Name = p.Name
@@ -276,8 +320,8 @@ module internal MapFromModel =
         { Id = idMap il.Id
           SalesItem = siMap il.SalesItem
           Quantity = il.Quantity
-          InvoicedAmountEx = il.InvoicedAmountEx
-          InvoicedAmountInc = il.InvoicedAmountInc }
+          InvoicedAmountEx = il.InvoicedAmountEx / 1.0M<StockCheck.Model.money>
+          InvoicedAmountInc = il.InvoicedAmountInc / 1.0M<StockCheck.Model.money> }
     
     let iMap (i : StockCheck.Model.Invoice) = 
         { Id = idMap i.Id
@@ -308,5 +352,5 @@ type Persister(documentStore : IDocumentStore) =
     member this.Save(s : StockCheck.Model.Supplier) = 
         let supplier = 
             { Supplier.Id = MapFromModel.idMap s.Id
-              Name = s.Name }
+              Name = s.SupplierName }
         supplier |> saveDocument

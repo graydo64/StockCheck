@@ -30,6 +30,7 @@ type Global() =
         ) |> ignore
         // Additional Web API settings
         config.Formatters.JsonFormatter.SerializerSettings.ContractResolver <- Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+        config.Filters.Add(new System.Web.Http.AuthorizeAttribute())
 
     member x.Application_Start() =
         AreaRegistration.RegisterAllAreas()

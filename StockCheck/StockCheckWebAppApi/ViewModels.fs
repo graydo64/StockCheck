@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Runtime.Serialization
 
-[<CLIMutable>]
 [<DataContract>]
 type ItemReceivedViewModel =
     { [<DataMember>] Quantity : float
@@ -13,7 +12,6 @@ type ItemReceivedViewModel =
       [<DataMember>] InvoicedAmountInc : decimal
       [<DataMember>] Reference : string }
 
-[<CLIMutable>]
 [<DataContract>]
 type InvoiceLineViewModel =
     { [<DataMember>] Id : string
@@ -23,7 +21,6 @@ type InvoiceLineViewModel =
       [<DataMember>] InvoicedAmountEx : decimal
       [<DataMember>] InvoicedAmountInc : decimal }
 
-[<CLIMutable>]
 [<DataContract>]
 type InvoiceViewModel =
     { [<DataMember>] Id : string
@@ -35,7 +32,6 @@ type InvoiceViewModel =
       [<DataMember>] TotalEx : decimal
       [<DataMember>] TotalInc : decimal }
 
-[<CLIMutable>]
 [<DataContract>]
 type PeriodItemViewModel =
     { [<DataMember>] Id : string
@@ -49,7 +45,6 @@ type PeriodItemViewModel =
       [<DataMember>] ItemsReceived : float
       [<DataMember>] SalesQty : float }
 
-[<CLIMutable>]
 [<DataContract>]
 type PeriodsViewModel =
     { [<DataMember>] Id : string
@@ -59,7 +54,6 @@ type PeriodsViewModel =
       [<DataMember>] SalesEx : decimal
       [<DataMember>] ClosingValueCostEx : decimal }
 
-[<CLIMutable>]
 [<DataContract>]
 type PeriodViewModel =
     { [<DataMember>] Id : string
@@ -71,7 +65,6 @@ type PeriodViewModel =
       [<DataMember>] ClosingValueSalesInc : decimal
       [<DataMember>] ClosingValueSalesEx : decimal }
 
-[<CLIMutable>]
 [<DataContract>]
 type SalesItemsViewModel =
     { [<DataMember>] Id : string
@@ -80,9 +73,9 @@ type SalesItemsViewModel =
       [<DataMember>] ContainerSize : float
       [<DataMember>] CostPerContainer : decimal
       [<DataMember>] SalesPrice : decimal
-      [<DataMember>] SalesUnitType : string }
+      [<DataMember>] SalesUnitType : string
+      [<DataMember>] ProductCode : string }
 
-[<CLIMutable>]
 [<DataContract>]
 type SalesItemView =
     { [<DataMember>] Id : string
@@ -94,9 +87,10 @@ type SalesItemView =
       [<DataMember>] TaxRate : float
       [<DataMember>] UllagePerContainer : int
       [<DataMember>] SalesUnitType : string
-      [<DataMember>] SalesUnitsPerContainerUnit : float }
+      [<DataMember>] SalesUnitsPerContainerUnit : float
+      [<DataMember>] ProductCode : string
+      [<DataMember>] IsActive : bool }
 
-[<CLIMutable>]
 [<DataContract>]
 type SalesItemViewResponse =
     { [<DataMember>] Id : string
@@ -111,9 +105,10 @@ type SalesItemViewResponse =
       [<DataMember>] SalesUnitsPerContainerUnit : float
       [<DataMember>] CostPerUnitOfSale : decimal
       [<DataMember>] MarkUp : decimal
-      [<DataMember>] IdealGP : float }
+      [<DataMember>] IdealGP : float
+      [<DataMember>] ProductCode : string
+      [<DataMember>] IsActive : bool }
 
-[<CLIMutable>]
 [<DataContract>]
 type SupplierView =
     { [<DataMember>] Id : string

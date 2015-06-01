@@ -195,7 +195,7 @@ function SalesItemController($scope, $http, $routeParams, $window, appConfig, Sa
 
     var id = $routeParams.id;
     if (id === undefined) {
-        $scope.salesitem = new SalesItem({ taxRate: appConfig.defaultTaxRate });
+        $scope.salesitem = new SalesItem({ taxRate: appConfig.defaultTaxRate, isActive: true });
         $scope.taxRatepc = $window.Math.round(100 * appConfig.defaultTaxRate);
         $scope.loading = false;
     }
