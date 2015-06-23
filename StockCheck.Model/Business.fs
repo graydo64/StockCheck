@@ -200,7 +200,7 @@ module Factory =
     let initialisePeriodFromClone (p : Period) = 
         let pi = p.Items 
                  |> Seq.map(fun i -> copyForNextPeriod i)
-        {p with Items = pi; StartOfPeriod = p.EndOfPeriod.Date.AddDays(1.); EndOfPeriod = p.EndOfPeriod.Date.AddDays(1.) }
+        {defaultPeriod with Items = pi; StartOfPeriod = p.EndOfPeriod.Date.AddDays(1.); EndOfPeriod = p.EndOfPeriod.Date.AddDays(1.) }
 
     let initialiseWithoutZeroCarriedItems (p : Period) = 
         let ip = initialisePeriodFromClone p

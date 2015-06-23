@@ -58,6 +58,14 @@ type ``Given that a Period has been initialised from an existing Period`` () =
         ``The period end date should be midnight of the last day of the period`` () =
             target.EndOfPeriod.TimeOfDay |> should equal (new TimeSpan(0, 0, 0))
 
+    [<Test>] member x.
+        ``The period id should be an empty string`` () =
+            target.Id |> should equal (String.Empty)
+
+    [<Test>] member x.
+        ``The period name should be an empty string`` () =
+            target.Name |> should equal (String.Empty)
+
 [<TestFixture>]
 type ``Given that a period has been initialised without zero item carried stock`` () =
     let fixture = new Fixture()
